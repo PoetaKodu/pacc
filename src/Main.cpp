@@ -81,6 +81,7 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 	}
 }
 
+///////////////////////////////////////////////////
 void initPackage()
 {
 	auto cwd = fs::current_path();
