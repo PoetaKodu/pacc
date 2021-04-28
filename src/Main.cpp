@@ -107,7 +107,7 @@ R"PKG(
 return {
 	name = "",
 	type = "app",
-	language = "c++17"
+	language = "c++17",
 	files = "src/*.cpp"
 })PKG";
 
