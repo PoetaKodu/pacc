@@ -1,16 +1,19 @@
 #include <CppPkg/Main.hpp>
 
 #include <CppPkg/Help.hpp>
+#include <CppPkg/Errors.hpp>
 
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <stdexcept>
 
 namespace fs = std::filesystem;
 
 // Forward declarations
 void handleArgs(ProgramArgs const & args_);
 void displayHelp(ProgramArgs const& args_, bool full_);
+void buildPackage(ProgramArgs const& args_);
 void initPackage();
 
 
@@ -20,7 +23,23 @@ int main(int argc, char *argv[])
 {
 	ProgramArgs args{ argv, argv + argc };
 
-	handleArgs(args);
+	try {
+		handleArgs(args);
+	}
+	catch(std::exception & exc)
+	{
+		std::cerr 	<< "An error occurred. Details:\n" << exc.what();
+
+		return 1;
+	}
+	catch(...)
+	{
+		std::cerr 	<< "An error occurred. No details available."
+					<< "\nPlease refer to https://github.com/PoetaKodu/cpp-pkg/issues"
+					<< std::endl;
+
+		return 1;
+	}
 }
 
 ///////////////////////////////////////////////////
@@ -41,6 +60,10 @@ void handleArgs(ProgramArgs const& args_)
 		else if (action == "init")
 		{
 			initPackage();
+		}
+		else if (action == "build")
+		{
+			buildPackage(args_);
 		}
 		else
 		{
@@ -113,4 +136,57 @@ return {
 
 	std::cout 	<< "\"package.lua\" has been created.\n"
 				<< "Happy development!" << std::endl;
+}
+
+
+///////////////////////////////////////////////////
+void buildPackage(ProgramArgs const& args_)
+{
+	constexpr std::string_view PackageJSON 	= "package.json";
+	constexpr std::string_view PackageLUA 	= "package.lua";
+
+	auto cwd = fs::current_path();
+
+	enum class PackageFileSource
+	{
+		JSON,
+		LuaScript
+	};
+	PackageFileSource pkgSrcFile;
+
+
+
+	// Detect package file
+	if (fs::exists(cwd / PackageLUA)) // LuaScript has higher priority
+	{
+		pkgSrcFile = PackageFileSource::LuaScript;
+	}
+	else if (fs::exists(cwd / PackageJSON))
+	{
+		pkgSrcFile = PackageFileSource::JSON;
+	}
+	else
+		throw std::exception(errors::NoPackageSourceFile.data());
+	
+
+
+
+	// Decide what to do:
+	switch(pkgSrcFile)
+	{
+	case PackageFileSource::JSON:
+	{
+		std::cout << "Loading \"" << PackageJSON << "\" file";\
+
+		// TODO: implement this.
+		std::cout << "This function is not implemented yet." << std::endl;
+	}
+	case PackageFileSource::LuaScript:
+	{
+		std::cout << "Loading \"" << PackageLUA << "\" file";
+
+		// TODO: implement this.
+		std::cout << "This function is not implemented yet." << std::endl;
+	}
+	}
 }
