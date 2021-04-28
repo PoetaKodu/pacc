@@ -1,6 +1,0 @@
-[
-{
-  "directory": "D:\\Programowanie\\Repos\\cpp-pkg",
-  "arguments": ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Preview\\VC\\Tools\\MSVC\\14.29.30031\\bin\\HostX64\\x64\\cl.exe", "/c", "/EHsc", "/nologo", "/std:c++17", "/Iinclude", "/Fobuild\\.objs\\cpp-pkg\\windows\\x64\\release\\src\\Main.cpp.obj", "src\\Main.cpp"],
-  "file": "src\\Main.cpp"
-}]

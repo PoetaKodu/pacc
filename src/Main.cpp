@@ -2,6 +2,8 @@
 
 #include <CppPkg/Help.hpp>
 #include <CppPkg/Errors.hpp>
+#include <CppPkg/Package.hpp>
+#include <CppPkg/Generators/Premake5.hpp>
 
 #include <iostream>
 #include <filesystem>
