@@ -157,7 +157,6 @@ void buildPackage(ProgramArgs const& args_)
 	PackageFileSource pkgSrcFile;
 
 
-
 	// Detect package file
 	if (fs::exists(cwd / PackageLUA)) // LuaScript has higher priority
 	{

@@ -41,12 +41,29 @@ struct IndentScope
 	}
 };
 
-void appendWorkspace(Formatter &fmt_, Package const& pkg_);
-void appendProject(Formatter &fmt_, Project const& project_);
-void appendPropWithAccess(Formatter &fmt_, std::string_view propName, VecOfStrAcc const& values_);
-void appendProp(Formatter &fmt_, std::string_view propName, VecOfStr const& values_);
-void appendStringsWithAccess(Formatter &fmt_, VecOfStrAcc const& vec_);
-void appendStrings(Formatter &fmt_, VecOfStr const& vec_);
+/////////////////////////////////////////////////
+auto getAccesses(VecOfStr const& v)
+{
+	return std::vector{ &v };
+}
+
+/////////////////////////////////////////////////
+auto getAccesses(VecOfStrAcc const& v)
+{
+	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+}
+
+
+/////////////////////////////////////////////////
+template <typename T>
+concept Accessible = requires(T t) {
+	{ getAccesses(t) };
+};
+
+void appendWorkspace		(Formatter &fmt_, Package const& pkg_);
+void appendProject			(Formatter &fmt_, Project const& project_);
+void appendPropWithAccess	(Formatter &fmt_, std::string_view propName, Accessible auto const& values_);
+void appendStringsWithAccess(Formatter &fmt_, Accessible auto const& vec_);
 
 
 /////////////////////////////////////////////////
@@ -72,7 +89,6 @@ void appendWorkspace(Formatter &fmt_, Package const& pkg_)
 	for(auto const& project : pkg_.projects)
 	{
 		IndentScope indent{fmt_};
-
 		appendProject(fmt_, project);
 	}
 }
@@ -80,13 +96,14 @@ void appendWorkspace(Formatter &fmt_, Package const& pkg_)
 /////////////////////////////////////////////////
 void appendProject(Formatter &fmt_, Project const& project_)
 {
+	fmt_.write("\n");
 	fmt_.write("project(\"{}\")\n", project_.name);
 
 	// Format project settings:
 	{
 		IndentScope indent{fmt_};
 
-		appendProp			(fmt_, "files", 		project_.files);
+		appendPropWithAccess(fmt_, "files", 		project_.files);
 		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
 		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries);
 		appendPropWithAccess(fmt_, "linkdirs", 		project_.linkerFolders);
@@ -96,31 +113,22 @@ void appendProject(Formatter &fmt_, Project const& project_)
 
 
 /////////////////////////////////////////////////
-void appendPropWithAccess(Formatter &fmt_, std::string_view propName, VecOfStrAcc const& values_)
+void appendPropWithAccess(Formatter &fmt_, std::string_view propName, Accessible auto const& values_)
 {
-	fmt_.write("{} ({{", propName);
+	fmt_.write("{} ({{\n", propName);
 	{
 		IndentScope indent{fmt_};
 		appendStringsWithAccess(fmt_, values_);
 	}
-	fmt_.write("})");
+	fmt_.write("}})\n");
 }
 
-/////////////////////////////////////////////////
-void appendProp(Formatter &fmt_, std::string_view propName, VecOfStr const& values_)
-{
-	fmt_.write("{} ({{", propName);
-	{
-		IndentScope indent{fmt_};
-		appendStrings(fmt_, values_);
-	}
-	fmt_.write("})");
-}
+
 
 /////////////////////////////////////////////////
-void appendStringsWithAccess(Formatter &fmt_, VecOfStrAcc const& vec_)
+void appendStringsWithAccess(Formatter &fmt_, Accessible auto const& acc_)
 {
-	for(auto const* acc : { &vec_.private_, &vec_.public_, &vec_.interface_ })
+	for(auto const* acc : getAccesses(acc_))
 	{
 		appendStrings(fmt_, *acc);
 
