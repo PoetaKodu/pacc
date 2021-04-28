@@ -1,3 +1,9 @@
+# Custom:
+build/
+.xmake/
+.vscode/*
+!.vscode/compile_commands.json
+
 # Prerequisites
 *.d
 

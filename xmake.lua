@@ -1,0 +1,7 @@
+target("cpp-pkg")
+
+	set_kind("binary")
+	set_languages("c++17")
+	add_headerfiles("include/CppPkg/*.hpp")
+	add_files("src/*.cpp")
+	add_includedirs("include")
