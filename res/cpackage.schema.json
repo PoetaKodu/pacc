@@ -1,24 +1,34 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"$id": "https://raw.githubusercontent.com/PoetaKodu/cpp-pkg/main/res/cpackage.schema.json",
-	"type": [ "object", "array" ],
-	"minItems": 1,
-	"items": { "$ref": "#/definitions/project" },
-	"properties": {
-		"name": {
-			"type": "string",
-			"minLength": 1,
-			"description": "Name of the workspace. First project's name will be used if not specified."
+	"oneOf": [
+		{
+			"$ref": "#/definitions/workspace"
 		},
-		"projects": {
-			"type": "array",
-			"description": "List of projects belonging to the workspace",
-			"items": { "$ref": "#/definitions/project" }
+		{
+			"$ref": "#/definitions/project"
 		}
-	},
+	],
 	"additionalProperties": true,
-	"required": ["projects"],
 	"definitions": {
+		"workspace": {
+			"type": ["object", "array"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1,
+					"description": "Name of the workspace. First project's name will be used if not specified."
+				},
+				"projects": {
+					"type": "array",
+					"description": "List of projects belonging to the workspace",
+					"items": { "$ref": "#/definitions/project" }
+				}
+			},
+			"required": ["projects"],
+			"minItems": 1,
+			"items": { "$ref": "#/definitions/project" }
+		},
 		"project": {
 			"type": "object",
 			"additionalProperties": true,
@@ -42,15 +52,24 @@
 					"type": "string",
 					"description": "Language version (default: C++17)",
 					"oneOf": [
+						{"enum": ["C89"], 			"title": "C (standard: C89)"},
+						{"enum": ["C90"], 			"title": "C (standard: C90)"},
+						{"enum": ["C95"], 			"title": "C (standard: C95)"},
+						{"enum": ["C99"], 			"title": "C (standard: C99)"},
+						{"enum": ["C11"], 			"title": "C (standard: C11)"},
+						{"enum": ["C17"], 			"title": "C (standard: C17)"},
 						{"enum": ["C++98"], 		"title": "C++ (standard: C++98)"},
+						{"enum": ["C++0x"], 		"title": "C++ (standard: C++0x - the prepublish version of C++11)"},
 						{"enum": ["C++11"], 		"title": "C++ (standard: C++11)"},
+						{"enum": ["C++1y"], 		"title": "C++ (standard: C++1y - the prepublish version of C++14)"},
 						{"enum": ["C++14"], 		"title": "C++ (standard: C++14)"},
+						{"enum": ["C++1z"], 		"title": "C++ (standard: C++1z - the prepublish version of C++17)"},
 						{"enum": ["C++17"], 		"title": "C++ (standard: C++17)"}
 					]
 				},
 				"files": {
 					"$ref": "#/definitions/stringOrVec",
-					"description": "Files that this project uses.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\""
+					"description": "Files that this project uses.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]"
 				},
 				"linkedLibraries": {
 					"$ref": "#/definitions/stringOrVecAcc",
@@ -68,7 +87,7 @@
 			"required": [ "name", "type" ]
 		},
 		"stringOrVec": {
-			"type": [ "string", "array" ],
+			"type": [ "array", "string" ],
 			"minLength": 1,
 			"items": {
 				"type": "string",
@@ -76,7 +95,7 @@
 			}
 		},
 		"stringOrVecAcc": {
-			"type": [ "object", "string", "array" ],
+			"type": [ "array", "object", "string" ],
 			"minLength": 1,
 			"items": {
 				"type": "string",
