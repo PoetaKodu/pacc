@@ -7,10 +7,12 @@
 	"properties": {
 		"name": {
 			"type": "string",
+			"minLength": 1,
 			"description": "Name of the workspace. First project's name will be used if not specified."
 		},
 		"projects": {
 			"type": "array",
+			"description": "List of projects belonging to the workspace",
 			"items": { "$ref": "#/definitions/project" }
 		}
 	},
@@ -22,7 +24,9 @@
 			"additionalProperties": true,
 			"properties": {
 				"name": {
-					"type": "string"
+					"type": "string",
+					"minLength": 1,
+					"description": "Name of the project. Use only characters allowed in file names."
 				},
 				"type": {
 					"type": "string",
@@ -43,9 +47,55 @@
 						{"enum": ["C++14"], 		"title": "C++ (standard: C++14)"},
 						{"enum": ["C++17"], 		"title": "C++ (standard: C++17)"}
 					]
+				},
+				"files": {
+					"$ref": "#/definitions/stringOrVec",
+					"description": "Files that this project uses.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\""
+				},
+				"linkedLibraries": {
+					"$ref": "#/definitions/stringOrVecAcc",
+					"description": "Library dependencies of this project.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
+				},
+				"includeFolders": {
+					"$ref": "#/definitions/stringOrVecAcc",
+					"description": "Folders used by the compiler to locate project files.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
+				},
+				"linkerFolders": {
+					"$ref": "#/definitions/stringOrVecAcc",
+					"description": "Folders used by the linker to locate library dependencies.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
 				}
 			},
 			"required": [ "name", "type" ]
+		},
+		"stringOrVec": {
+			"type": [ "string", "array" ],
+			"minLength": 1,
+			"items": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"stringOrVecAcc": {
+			"type": [ "object", "string", "array" ],
+			"minLength": 1,
+			"items": {
+				"type": "string",
+				"minLength": 1
+			},
+			"properties": {
+				"public": {
+					"$ref": "#/definitions/stringOrVec",
+					"decription": "Values used by the current project and propagated to projects that use it as a dependency."
+				},
+				"private": {
+					"$ref": "#/definitions/stringOrVec",
+					"decription": "Values used by the current project only."
+				},
+				"interface": {
+					"$ref": "#/definitions/stringOrVec",
+					"decription": "Values propagated to projects that use the current project as a dependency."
+				}
+			}
 		}
 	}
 }
