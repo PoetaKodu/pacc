@@ -128,18 +128,20 @@ void initPackage()
 	}
 
 	std::ofstream("cpackage.json") <<
-R"PKG(
-{
-	// Package configuration file.
-	// For more info visit https://github.com/PoetaKodu/cpp-pkg/docs/PackageFile/README.md
-
-	name = "",
-	type = "app",
-	language = "c++17",
-	files = "src/*.cpp"
+R"PKG({
+	"$schema": "https://github.com/cpp-pkg/res/cpackage.schema.json",
+	name = "MyWorkspace",
+	projects = [
+		{
+			"name": "MyProject",
+			"type": "app",
+			"language": "C++17",
+			"files": "src/*.cpp"
+		}
+	]
 })PKG";
 
-	std::cout 	<< "\"package.lua\" has been created.\n"
+	std::cout 	<< "\"cpackage.json\" has been created.\n"
 				<< "Happy development!" << std::endl;
 }
 
