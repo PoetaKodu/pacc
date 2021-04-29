@@ -2,6 +2,7 @@
 build/
 .xmake/
 .vscode/
+testbed/
 
 # Prerequisites
 *.d
