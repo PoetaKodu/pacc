@@ -26,6 +26,7 @@
 				}
 			},
 			"required": ["projects"],
+			"not": { "required": [ "type" ] },
 			"minItems": 1,
 			"items": { "$ref": "#/definitions/project" }
 		},
@@ -84,7 +85,8 @@
 					"description": "Folders used by the linker to locate library dependencies.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
 				}
 			},
-			"required": [ "name", "type" ]
+			"required": [ "name", "type" ],
+			"not": { "required": [ "projects" ] }
 		},
 		"stringOrVec": {
 			"type": [ "array", "string" ],
