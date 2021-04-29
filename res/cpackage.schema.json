@@ -23,10 +23,10 @@
 					"type": "array",
 					"description": "List of projects belonging to the workspace",
 					"items": { "$ref": "#/definitions/project" }
-				}
+				},
+				"type": false
 			},
 			"required": ["projects"],
-			"not": { "required": [ "type" ] },
 			"minItems": 1,
 			"items": { "$ref": "#/definitions/project" }
 		},
@@ -83,10 +83,10 @@
 				"linkerFolders": {
 					"$ref": "#/definitions/stringOrVecAcc",
 					"description": "Folders used by the linker to locate library dependencies.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
-				}
+				},
+				"projects": false
 			},
-			"required": [ "name", "type" ],
-			"not": { "required": [ "projects" ] }
+			"required": [ "name", "type" ]
 		},
 		"stringOrVec": {
 			"type": [ "array", "string" ],
