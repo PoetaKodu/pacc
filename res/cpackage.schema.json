@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"$id": "https://github.com/cpp-pkg/res/cpackage.schema.json",
+	"$id": "https://raw.githubusercontent.com/PoetaKodu/cpp-pkg/main/res/cpackage.schema.json",
 	"type": [ "object", "array" ],
 	"minItems": 1,
 	"items": { "$ref": "#/definitions/project" },

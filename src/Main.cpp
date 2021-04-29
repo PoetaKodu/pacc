@@ -129,9 +129,9 @@ void initPackage()
 
 	std::ofstream("cpackage.json") <<
 R"PKG({
-	"$schema": "https://github.com/cpp-pkg/res/cpackage.schema.json",
-	name = "MyWorkspace",
-	projects = [
+	"$schema": "https://raw.githubusercontent.com/PoetaKodu/cpp-pkg/main/res/cpackage.schema.json",
+	"name": "MyWorkspace",
+	"projects": [
 		{
 			"name": "MyProject",
 			"type": "app",
