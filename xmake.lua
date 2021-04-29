@@ -1,4 +1,9 @@
 add_requires("fmt 7.*")
+add_requires("nlohmann_json 3.9.*", { alias="json" })
+
+is_mode("debug")
+	set_symbols("debug")
+
 
 target("cpp-pkg")
 
@@ -7,4 +12,5 @@ target("cpp-pkg")
 	add_headerfiles("include/CppPkg/**.hpp")
 	add_files("src/**.cpp")
 	add_includedirs("include")
-	add_packages("fmt")
+	add_packages("fmt", "json")
+	

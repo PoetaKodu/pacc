@@ -4,19 +4,22 @@
 #include <CppPkg/Errors.hpp>
 #include <CppPkg/Package.hpp>
 #include <CppPkg/Generators/Premake5.hpp>
+#include <CppPkg/Readers/General.hpp>
+#include <CppPkg/Readers/JSONReader.hpp>
 
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 
-namespace fs = std::filesystem;
+namespace fs 	= std::filesystem;
 
 // Forward declarations
 void handleArgs(ProgramArgs const & args_);
 void displayHelp(ProgramArgs const& args_, bool full_);
 void buildPackage(ProgramArgs const& args_);
 void initPackage();
+Package fromJSON(std::string const& packageContent_);
 
 
 
@@ -155,7 +158,7 @@ void buildPackage(ProgramArgs const& args_)
 		LuaScript
 	};
 	PackageFileSource pkgSrcFile;
-
+	
 
 	// Detect package file
 	if (fs::exists(cwd / PackageLUA)) // LuaScript has higher priority
@@ -170,24 +173,33 @@ void buildPackage(ProgramArgs const& args_)
 		throw std::exception(errors::NoPackageSourceFile.data());
 	
 
-
+	Package pkg;
 
 	// Decide what to do:
 	switch(pkgSrcFile)
 	{
 	case PackageFileSource::JSON:
 	{
-		std::cout << "Loading \"" << PackageJSON << "\" file";\
+		std::cout << "Loading \"" << PackageJSON << "\" file\n";\
 
-		// TODO: implement this.
-		std::cout << "This function is not implemented yet." << std::endl;
+		pkg = reader::fromJSON(reader::readFileContents(PackageJSON));
+		break;
 	}
 	case PackageFileSource::LuaScript:
 	{
-		std::cout << "Loading \"" << PackageLUA << "\" file";
+		std::cout << "Loading \"" << PackageLUA << "\" file\n";
 
 		// TODO: implement this.
 		std::cout << "This function is not implemented yet." << std::endl;
+		break;
 	}
 	}
+
+	gen::Premake5 g;
+	g.generate(pkg);
 }
+
+
+
+
+
