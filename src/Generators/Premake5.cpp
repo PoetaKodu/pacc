@@ -1,6 +1,7 @@
 #include <CppPkg/Generators/Premake5.hpp>
 #include <fmt/core.h>
 #include <fstream>
+#include <array>
 
 using namespace fmt;
 
@@ -44,6 +45,19 @@ struct IndentScope
 };
 
 /////////////////////////////////////////////////
+auto getNumElements(VecOfStr const& v)
+{
+	return v.size();
+}
+
+/////////////////////////////////////////////////
+auto getNumElements(VecOfStrAcc const& v)
+{
+	return v.public_.size() + v.private_.size() + v.interface_.size();
+}
+
+
+/////////////////////////////////////////////////
 auto getAccesses(VecOfStr const& v)
 {
 	return std::vector{ &v };
@@ -60,6 +74,7 @@ auto getAccesses(VecOfStrAcc const& v)
 template <typename T>
 concept Accessible = requires(T t) {
 	{ getAccesses(t) };
+	{ getNumElements(t) };
 };
 
 void appendWorkspace		(Formatter &fmt_, Package const& pkg_);
@@ -96,6 +111,88 @@ void appendWorkspace(Formatter &fmt_, Package const& pkg_)
 }
 
 /////////////////////////////////////////////////
+bool compareIgnoreCase(std::string_view l, std::string_view r)
+{
+	if (l.length() != r.length()) return false;
+
+	for(std::size_t i = 0; i < l.size(); i++)
+	{
+		if ( std::tolower(int(l[i])) != std::tolower(int(r[i])) )
+			return false;
+	}
+
+	return true;
+}
+
+
+template <typename T = std::string_view>
+using DictElem 	= std::pair<std::string_view, T>;
+template <typename T = std::string_view>
+using Dict 		= std::vector< DictElem<T> >;
+
+
+/////////////////////////////////////////////////
+template <typename T>
+auto mapString(Dict<T> const& dict_, std::string_view v)
+{
+	for(auto it = dict_.begin(); it != dict_.end(); it++)
+	{
+		if (compareIgnoreCase(std::get<0>(*it), v))
+			return it;
+	}
+	return dict_.end();
+}
+
+/////////////////////////////////////////////////
+std::string_view mapToPremake5Kind(std::string_view projectType_)
+{
+	static const Dict<> PremakeKind = {
+		{ "app", 		"ConsoleApp" },
+		{ "static lib", "StaticLib" },
+		{ "shared lib", "SharedLib" }
+	};
+
+	auto it = mapString(PremakeKind, projectType_);
+	if (it != PremakeKind.end())
+		return it->second;
+	
+	return "";
+}
+
+/////////////////////////////////////////////////
+void appendPremake5Lang(Formatter& fmt_, std::string_view lang_)
+{
+	using LangAndDialect = std::pair<std::string_view, std::string_view>;
+	static const Dict<LangAndDialect> PremakeLangAndDialect = {
+		{ "C89", 	{ "C", 		"" } },
+		{ "C90", 	{ "C", 		"" } },
+		{ "C95", 	{ "C", 		"" } },
+		{ "C99", 	{ "C", 		"" } },
+		{ "C11", 	{ "C", 		"" } },
+		{ "C17", 	{ "C", 		"" } },
+		{ "C++98", 	{ "C++", 	"C++98" } },
+		{ "C++0x", 	{ "C++", 	"C++11" } },
+		{ "C++11", 	{ "C++", 	"C++11" } },
+		{ "C++1y", 	{ "C++", 	"C++14" } },
+		{ "C++14", 	{ "C++", 	"C++14" } },
+		{ "C++1z", 	{ "C++", 	"C++17" } },
+		{ "C++17", 	{ "C++", 	"C++17" } }
+	};
+
+	auto it = mapString(PremakeLangAndDialect, lang_);
+	if (it != PremakeLangAndDialect.end())
+	{
+		auto const& premakeVal = it->second;
+		
+		fmt_.write("language (\"{}\")\n", premakeVal.first);
+		if (!premakeVal.second.empty())
+			fmt_.write("cppdialect (\"{}\")\n", premakeVal.second);
+	}
+}
+
+
+
+/////////////////////////////////////////////////
 void appendProject(Formatter &fmt_, Project const& project_)
 {
 	fmt_.write("\n");
@@ -106,30 +203,22 @@ void appendProject(Formatter &fmt_, Project const& project_)
 		IndentScope indent{fmt_};
 
 		// TODO: value mapping (enums, etc)
-		fmt_.write("kind(\"{}\")\n", !project_.type.empty() ? project_.type : "ConsoleApp");
+		fmt_.write("kind(\"{}\")\n", mapToPremake5Kind(project_.type));
 
 		// TODO: extract this to functions
 		// TODO: merge language and c/cpp dialect into one
 		if (!project_.language.empty())
-		{
-			fmt_.write("language(\"{}\")\n", project_.language);
-
-			if (!project_.cppStandard.empty())
-				fmt_.write("cppdialect(\"{}\")\n", project_.cppStandard);
-			else if (!project_.cStandard.empty())
-				fmt_.write("cdialect(\"{}\")\n", project_.cStandard);
-		}
-		else
-		{
+			appendPremake5Lang(fmt_, project_.language);
+		else {
 			// TODO: use configuration file to get default values
 			fmt_.write("language(\"C++\")\n", project_.language);
 			fmt_.write("cppdialect(\"C++17\")\n", project_.cppStandard);
 		}
 
 		appendPropWithAccess(fmt_, "files", 		project_.files);
-		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
 		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries);
-		appendPropWithAccess(fmt_, "linkdirs", 		project_.linkerFolders);
+		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
+		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders);
 	}
 }
 
@@ -138,12 +227,15 @@ void appendProject(Formatter &fmt_, Project const& project_)
 /////////////////////////////////////////////////
 void appendPropWithAccess(Formatter &fmt_, std::string_view propName, Accessible auto const& values_)
 {
-	fmt_.write("{} ({{\n", propName);
+	if (getNumElements(values_) > 0)
 	{
-		IndentScope indent{fmt_};
-		appendStringsWithAccess(fmt_, values_);
+		fmt_.write("{} ({{\n", propName);
+		{
+			IndentScope indent{fmt_};
+			appendStringsWithAccess(fmt_, values_);
+		}
+		fmt_.write("}})\n");
 	}
-	fmt_.write("}})\n");
 }
 
 

@@ -69,16 +69,22 @@ Package fromJSON(std::string const& packageContent_)
 				else
 					return result;
 			}
-
-			PackageJSONView::expectType(*val, fieldName, json::value_t::array);
-			
-			// Read the array:
-			result.reserve(val->size());
-
-			for(auto elem : val->items())
+			if (val->type() == json::value_t::string)
 			{
-				PackageJSONView::expectType(elem.value(), elemName, json::value_t::string);
-				result.push_back(elem.value());
+				result.push_back(*val);
+			}
+			else
+			{
+				PackageJSONView::expectType(*val, fieldName, json::value_t::array);
+				
+				// Read the array:
+				result.reserve(val->size());
+
+				for(auto elem : val->items())
+				{
+					PackageJSONView::expectType(elem.value(), elemName, json::value_t::string);
+					result.push_back(elem.value());
+				}
 			}
 			return result;
 		};
