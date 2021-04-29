@@ -105,6 +105,27 @@ void appendProject(Formatter &fmt_, Project const& project_)
 	{
 		IndentScope indent{fmt_};
 
+		// TODO: value mapping (enums, etc)
+		fmt_.write("kind(\"{}\")\n", !project_.type.empty() ? project_.type : "ConsoleApp");
+
+		// TODO: extract this to functions
+		// TODO: merge language and c/cpp dialect into one
+		if (!project_.language.empty())
+		{
+			fmt_.write("language(\"{}\")\n", project_.language);
+
+			if (!project_.cppStandard.empty())
+				fmt_.write("cppdialect(\"{}\")\n", project_.cppStandard);
+			else if (!project_.cStandard.empty())
+				fmt_.write("cdialect(\"{}\")\n", project_.cStandard);
+		}
+		else
+		{
+			// TODO: use configuration file to get default values
+			fmt_.write("language(\"C++\")\n", project_.language);
+			fmt_.write("cppdialect(\"C++17\")\n", project_.cppStandard);
+		}
+
 		appendPropWithAccess(fmt_, "files", 		project_.files);
 		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
 		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries);
@@ -132,9 +153,11 @@ void appendStringsWithAccess(Formatter &fmt_, Accessible auto const& acc_)
 {
 	for(auto const* acc : getAccesses(acc_))
 	{
-		appendStrings(fmt_, *acc);
-
-		fmt_.write("\n");
+		if (acc->size() > 0)
+		{
+			appendStrings(fmt_, *acc);
+			fmt_.write("\n");
+		}
 	}
 }
 

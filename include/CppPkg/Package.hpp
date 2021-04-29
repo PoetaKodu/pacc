@@ -25,7 +25,10 @@ struct TargetBase
 
 struct Project : TargetBase
 {
-	
+	std::string		type;
+	std::string		language;
+	std::string		cppStandard;
+	std::string		cStandard;
 };
 
 struct Package : TargetBase
