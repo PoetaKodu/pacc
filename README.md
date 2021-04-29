@@ -29,12 +29,12 @@ This will regenerate build files and build the application with default mode (se
 
 Folder contents:
 ```
-- package.json
+- cpackage.json
 - src/
 	- Main.cpp
 ```
 
-`package.json` contents:
+`cpackage.json` contents:
 
 ```json
 {

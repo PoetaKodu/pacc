@@ -127,12 +127,12 @@ void initPackage()
 		return;
 	}
 
-	std::ofstream("package.lua") <<
+	std::ofstream("cpackage.json") <<
 R"PKG(
--- Package configuration file.
--- For more info visit https://github.com/PoetaKodu/cpp-pkg/docs/PackageFile/README.md
+{
+	// Package configuration file.
+	// For more info visit https://github.com/PoetaKodu/cpp-pkg/docs/PackageFile/README.md
 
-return {
 	name = "",
 	type = "app",
 	language = "c++17",
@@ -147,8 +147,8 @@ return {
 ///////////////////////////////////////////////////
 void buildPackage(ProgramArgs const& args_)
 {
-	constexpr std::string_view PackageJSON 	= "package.json";
-	constexpr std::string_view PackageLUA 	= "package.lua";
+	constexpr std::string_view PackageJSON 	= "cpackage.json";
+	constexpr std::string_view PackageLUA 	= "cpackage.lua";
 
 	auto cwd = fs::current_path();
 

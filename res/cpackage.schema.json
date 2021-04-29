@@ -1,0 +1,51 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "https://github.com/cpp-pkg/res/cpackage.schema.json",
+	"type": [ "object", "array" ],
+	"minItems": 1,
+	"items": { "$ref": "#/definitions/project" },
+	"properties": {
+		"name": {
+			"type": "string",
+			"description": "Name of the workspace. First project's name will be used if not specified."
+		},
+		"projects": {
+			"type": "array",
+			"items": { "$ref": "#/definitions/project" }
+		}
+	},
+	"additionalProperties": true,
+	"required": ["projects"],
+	"definitions": {
+		"project": {
+			"type": "object",
+			"additionalProperties": true,
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"type": {
+					"type": "string",
+					"description": "Type of the project (causes different build results)",
+					"oneOf": [
+						{"enum": ["app"], 			"title": "An executable application (EXE on Windows systems)."},
+						{"enum": ["static lib"], 	"title": "A library that is compiled into binaries while linking (integrated into one file, bigger file sizes)."},
+						{"enum": ["shared lib"], 	"title": "A standalone library (sharable between binaries)."},
+						{"enum": ["interface"], 	"title": "A project that doesn't result in a binary itself, instead it provides configuration to other projects."}
+					]
+				},
+				"language": {
+					"type": "string",
+					"description": "Language version (default: C++17)",
+					"oneOf": [
+						{"enum": ["C++98"], 		"title": "C++ (standard: C++98)"},
+						{"enum": ["C++11"], 		"title": "C++ (standard: C++11)"},
+						{"enum": ["C++14"], 		"title": "C++ (standard: C++14)"},
+						{"enum": ["C++17"], 		"title": "C++ (standard: C++17)"}
+					]
+				}
+			},
+			"required": [ "name", "type" ]
+		}
+	}
+}
