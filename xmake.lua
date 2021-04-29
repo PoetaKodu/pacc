@@ -5,7 +5,7 @@ is_mode("debug")
 	set_symbols("debug")
 
 
-target("cpp-pkg")
+target("cpkg")
 
 	set_kind("binary")
 	set_languages("c++20")
