@@ -1,5 +1,12 @@
-# cpp-pkg
-An easy to use and powerful C++ package manager with an integrated build system.
+# cpkg
+
+An easy to use and powerful C++ package manager with an integrated build tools.
+## Overview (04.2020)
+
+
+<p align="center">
+	<img src="res/img/overview_04_2021.gif" alt="Overview"/>
+</p>
 
 ## 1. Quick Start
 
