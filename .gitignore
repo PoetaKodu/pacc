@@ -3,6 +3,8 @@ build/
 .xmake/
 .vscode/
 testbed/
+deps/*
+!deps/README.md
 
 # Prerequisites
 *.d
