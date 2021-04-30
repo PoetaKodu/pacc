@@ -116,7 +116,7 @@ void initPackage()
 
 
 	std::cout << "Initializing package \"" << cwd.stem().string() << "\"" << std::endl;
-	std::cout << "Do you want to create \"package.lua\" file (Y/N): ";
+	std::cout << "Do you want to create \"cpackage.json\" file (Y/N): ";
 
 	std::string response;
 	std::getline(std::cin, response);
