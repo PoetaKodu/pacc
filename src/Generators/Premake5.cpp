@@ -103,10 +103,29 @@ void appendWorkspace(Formatter &fmt_, Package const& pkg_)
 {
 	fmt_.write("workspace(\"{}\")\n", pkg_.name);
 
-	for(auto const& project : pkg_.projects)
 	{
 		IndentScope indent{fmt_};
-		appendProject(fmt_, project);
+
+		// TODO: add support for user configurations
+		{
+			fmt_.write("configurations(\"debug\")\n");
+
+			IndentScope indent{fmt_};
+			fmt_.write("symbols(\"On\")\n");
+		}
+
+		// TODO: add support for user configurations
+		{
+			fmt_.write("configurations(\"release\")\n");
+
+			IndentScope indent{fmt_};
+			fmt_.write("symbols(\"Off\")\n\n");
+		}
+		
+		for(auto const& project : pkg_.projects)
+		{
+			appendProject(fmt_, project);
+		}
 	}
 }
 
