@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "Root"
+		},
+		{
+			"path": "include/CppPkg",
+			"name": "🔶 Header files 🔶"
+		},
+		{
+			"path": "src",
+			"name": "🔷 Source files 🔷"
+		}
+	],
+	"settings": {
+		"editor.mouseWheelZoom": true
+	}
+}
