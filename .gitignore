@@ -6,6 +6,7 @@ bin/
 testbed/
 deps/*
 !deps/README.md
+*.user.*
 
 # Prerequisites
 *.d
