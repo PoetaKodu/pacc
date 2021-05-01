@@ -136,22 +136,6 @@ platforms { "x86", "x64" }
 	filter {}
 			)DefaultCfg");
 		}
-		// fmt_.write("configurations(\"debug\", \"release\")\n\n");
-
-		// // TODO: add support for user configurations
-		// {
-		// 	fmt_.write("filter(\"configuration:debug\")\n");
-		// 	IndentScope indent{fmt_};
-		// 	fmt_.write("symbols(\"On\")\n");
-		// }
-
-		// // TODO: add support for user configurations
-		// {
-		// 	fmt_.write("filter(\"configuration:release\")\n");
-
-		// 	IndentScope indent{fmt_};
-		// 	fmt_.write("symbols(\"Off\")\n\n");
-		// }
 		
 		for(auto const& project : pkg_.projects)
 		{
