@@ -1,4 +1,5 @@
 #include <CppPkg/Generators/Premake5.hpp>
+#include <CppPkg/OutputFormatter.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <array>
@@ -9,45 +10,6 @@ using namespace fmt;
 
 namespace gen
 {
-
-struct Formatter
-{
-	std::string& output;	
-	int indent = 0;
-
-	void writeIndent()
-	{
-		for(int i = 0; i < indent; ++i)
-			output += '\t';
-	}
-
-	template <bool Indent = true, typename FirstArg, typename... Args>
-	void write(FirstArg&& firstArg_, Args&&... args_)
-	{
-		if constexpr (Indent) {
-			this->writeIndent();
-		}
-		output += format( std::forward<FirstArg>(firstArg_), std::forward<Args>(args_)... );
-	}
-
-	void writeRaw(std::string_view s)
-	{
-		output += s;
-	}
-};
-
-struct IndentScope
-{
-	Formatter& fmt;
-	IndentScope(Formatter& fmt_)
-		: fmt(fmt_)
-	{
-		++fmt.indent;
-	}
-	~IndentScope() {
-		--fmt.indent;
-	}
-};
 
 /////////////////////////////////////////////////
 auto getNumElements(VecOfStr const& v)
@@ -75,12 +37,12 @@ auto getAccesses(VecOfStrAcc const& v)
 }
 
 
-void appendWorkspace		(Formatter &fmt_, Package const& pkg_);
-void appendProject			(Formatter &fmt_, Project const& project_);
+void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
+void appendProject			(OutputFormatter &fmt_, Project const& project_);
 template <typename T>
-void appendPropWithAccess	(Formatter &fmt_, std::string_view propName, T const& values_);
+void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
 template <typename T>
-void appendStringsWithAccess(Formatter &fmt_, T const& vec_);
+void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
 
 
 /////////////////////////////////////////////////
@@ -90,7 +52,7 @@ void Premake5::generate(Package const& pkg_)
 	std::string out;
 	out.reserve(4 * 1024 * 1024);
 
-	Formatter fmt{out};
+	OutputFormatter fmt{out};
 
 	appendWorkspace(fmt, pkg_);
 
@@ -99,7 +61,7 @@ void Premake5::generate(Package const& pkg_)
 }
 
 /////////////////////////////////////////////////
-void appendWorkspace(Formatter &fmt_, Package const& pkg_)
+void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 {
 	fmt_.write("workspace(\"{}\")\n", pkg_.name);
 
@@ -194,7 +156,7 @@ std::string_view mapToPremake5Kind(std::string_view projectType_)
 }
 
 /////////////////////////////////////////////////
-void appendPremake5Lang(Formatter& fmt_, std::string_view lang_)
+void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 {
 	using LangAndDialect = std::pair<std::string_view, std::string_view>;
 	static const Dict<LangAndDialect> PremakeLangAndDialect = {
@@ -227,7 +189,7 @@ void appendPremake5Lang(Formatter& fmt_, std::string_view lang_)
 
 
 /////////////////////////////////////////////////
-void appendProject(Formatter &fmt_, Project const& project_)
+void appendProject(OutputFormatter &fmt_, Project const& project_)
 {
 	fmt_.write("\n");
 	fmt_.write("project(\"{}\")\n", project_.name);
@@ -260,7 +222,7 @@ void appendProject(Formatter &fmt_, Project const& project_)
 
 /////////////////////////////////////////////////
 template <typename T>
-void appendPropWithAccess(Formatter &fmt_, std::string_view propName, T const& values_)
+void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T const& values_)
 {
 	if (getNumElements(values_) > 0)
 	{
@@ -277,7 +239,7 @@ void appendPropWithAccess(Formatter &fmt_, std::string_view propName, T const& v
 
 /////////////////////////////////////////////////
 template <typename T>
-void appendStringsWithAccess(Formatter &fmt_, T const& acc_)
+void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_)
 {
 	for(auto const* acc : getAccesses(acc_))
 	{
@@ -290,7 +252,7 @@ void appendStringsWithAccess(Formatter &fmt_, T const& acc_)
 }
 
 /////////////////////////////////////////////////
-void appendStrings(Formatter &fmt_, VecOfStr const& vec_)
+void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
 {
 	for(auto const & str : vec_)
 		fmt_.write("\"{}\",\n", str);
