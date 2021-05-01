@@ -42,7 +42,8 @@ Package fromJSON(std::string const& packageContent_)
 
 	j = json::parse(packageContent_);
 	view.makeConformant();
-	std::ofstream("package.dump.json") << j.dump(1, '\t');
+	
+	// std::ofstream("package.dump.json") << j.dump(1, '\t');
 
 	// Load JSON:
 	result.name = j["name"].get<std::string>();
