@@ -1,6 +1,6 @@
 #include <CppPkg/Readers/JSONReader.hpp>
 
-#include <fmt/core.h> 
+#include <fmt/format.h> 
 #include <fstream> 
 
 namespace reader

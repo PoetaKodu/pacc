@@ -2,7 +2,7 @@
 
 #include <fstream>
 #include <stdexcept>
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 namespace reader
 {

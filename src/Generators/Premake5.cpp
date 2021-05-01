@@ -1,5 +1,5 @@
 #include <CppPkg/Generators/Premake5.hpp>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <fstream>
 #include <array>
 
@@ -70,17 +70,12 @@ auto getAccesses(VecOfStrAcc const& v)
 }
 
 
-/////////////////////////////////////////////////
-template <typename T>
-concept Accessible = requires(T t) {
-	{ getAccesses(t) };
-	{ getNumElements(t) };
-};
-
 void appendWorkspace		(Formatter &fmt_, Package const& pkg_);
 void appendProject			(Formatter &fmt_, Project const& project_);
-void appendPropWithAccess	(Formatter &fmt_, std::string_view propName, Accessible auto const& values_);
-void appendStringsWithAccess(Formatter &fmt_, Accessible auto const& vec_);
+template <typename T>
+void appendPropWithAccess	(Formatter &fmt_, std::string_view propName, T const& values_);
+template <typename T>
+void appendStringsWithAccess(Formatter &fmt_, T const& vec_);
 
 
 /////////////////////////////////////////////////
@@ -244,7 +239,8 @@ void appendProject(Formatter &fmt_, Project const& project_)
 
 
 /////////////////////////////////////////////////
-void appendPropWithAccess(Formatter &fmt_, std::string_view propName, Accessible auto const& values_)
+template <typename T>
+void appendPropWithAccess(Formatter &fmt_, std::string_view propName, T const& values_)
 {
 	if (getNumElements(values_) > 0)
 	{
@@ -260,7 +256,8 @@ void appendPropWithAccess(Formatter &fmt_, std::string_view propName, Accessible
 
 
 /////////////////////////////////////////////////
-void appendStringsWithAccess(Formatter &fmt_, Accessible auto const& acc_)
+template <typename T>
+void appendStringsWithAccess(Formatter &fmt_, T const& acc_)
 {
 	for(auto const* acc : getAccesses(acc_))
 	{
