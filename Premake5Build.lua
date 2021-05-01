@@ -54,14 +54,12 @@ function defaultProjectConfiguration()
 end
 
 
-
-
-workspace("cpkg")
+workspace("Blocc")
 
 	configureWorkspace()
 	
 	-- Main Project:
-	project("cpkg")
+	project("Blocc")
 
 		defaultProjectConfiguration()
 

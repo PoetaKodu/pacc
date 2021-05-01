@@ -1,4 +1,4 @@
-# cpkg
+# Blocc
 
 An easy to use and powerful C++ package manager with an integrated build tools.
 ## Overview (04.2021)
@@ -17,7 +17,7 @@ Download the package manager and then do the following:
 Open a terminal inside an empty folder and type the following command:
 
 ```
-cpkg init
+blocc init
 ```
 
 This will create a default package inside the current folder (see [init templates](docs/InitTemplates.md)).
@@ -27,7 +27,7 @@ This will create a default package inside the current folder (see [init template
 Run following command
 
 ```
-cpkg build
+blocc build
 ```
 
 This will regenerate build files and build the application with default mode (see [build modes](docs/BuildModes.md))
