@@ -50,6 +50,10 @@ Package 			loadPackage();
 Package 			fromJSON(std::string const& packageContent_);
 std::optional<int> 	runChildProcessSync(std::string const& command_, std::string cwd = "", int timeOutSecs = -1);
 
+// Used by build command:
+void 				generateProjectFiles();
+void 				buildProjects(Package const &pkg_);
+
 fs::path 			getBloccDataStorageFolder();
 fs::path 			requireBloccDataStorageFolder();
 
@@ -255,52 +259,26 @@ void unlinkPackage(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
+void generatePremakeFiles(Package const& pkg)
+{
+	gen::Premake5 g;
+	g.generate(pkg);
+}
+
+
+
+///////////////////////////////////////////////////
 void buildPackage(ProgramArgs const& args_)
 {
 	Package pkg = loadPackage();
 
-	gen::Premake5 g;
-	g.generate(pkg);
+	generatePremakeFiles(pkg);
 
 	// Run premake:
-	{
-		std::cout << "Running Premake5 build (VS2019) config" << std::endl;
+	generateProjectFiles();
 
-		auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
-
-		if (exitStatus.has_value())
-			std::cout << "Premake5 finished with exit code " << exitStatus.value() << std::endl;
-		else
-			std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
-
-		if (exitStatus.value_or(1) != 0)
-			return;
-	}
-	
 	// Run msbuild
-	{
-		std::cout << "Running MSBuild" << std::endl;
-
-		std::string_view params[] = {
-			"/m",
-			"/property:Configuration=Debug",
-			"/property:Platform=x64",
-			// Ask msbuild to generate full paths for file names.
-			"/property:GenerateFullPaths=true",
-			"/t:build"
-		};
-
-		std::string buildCommand = fmt::format("msbuild {0}.sln", pkg.name);
-		for(auto p : params)
-			buildCommand += fmt::format(" \"{}\"", p);
-
-		auto exitStatus = runChildProcessSync(buildCommand, "build", 30);
-
-		if (exitStatus.has_value())
-			std::cout << "MSBuild finished with exit code " << exitStatus.value() << std::endl;
-		else
-			std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
-	}
+	buildProjects(pkg);
 }
 
 ///////////////////////////////////////////////////
@@ -354,6 +332,51 @@ Package loadPackage()
 	}
 	}
 	return pkg;
+}
+
+///////////////////////////////////////////////////
+void generateProjectFiles()
+{
+	std::cout << "Running Premake5 build (VS2019) config" << std::endl;
+
+	auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
+
+	if (exitStatus.has_value())
+		std::cout << "Premake5 finished with exit code " << exitStatus.value() << std::endl;
+	else
+		std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
+
+	if (exitStatus.value_or(1) != 0)
+		return;
+}
+
+///////////////////////////////////////////////////
+void buildProjects(Package const& pkg_)
+{
+	// TODO: add ability to run other build systems.
+	// TODO: right now MSBuild has to be in PATH variable. Add ability to find msbuild.
+
+	std::cout << "Running MSBuild" << std::endl;
+
+	std::string_view params[] = {
+		"/m",
+		"/property:Configuration=Debug",
+		"/property:Platform=x64",
+		// Ask msbuild to generate full paths for file names.
+		"/property:GenerateFullPaths=true",
+		"/t:build"
+	};
+
+	std::string buildCommand = fmt::format("msbuild {0}.sln", pkg_.name);
+	for(auto p : params)
+		buildCommand += fmt::format(" \"{}\"", p);
+
+	auto exitStatus = runChildProcessSync(buildCommand, "build", 30);
+
+	if (exitStatus.has_value())
+		std::cout << "MSBuild finished with exit code " << exitStatus.value() << std::endl;
+	else
+		std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
 }
 
 ///////////////////////////////////////////////////
