@@ -347,7 +347,7 @@ void generateProjectFiles()
 		std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
 
 	if (exitStatus.value_or(1) != 0)
-		return;
+		throw std::runtime_error("Failed to generate project files");
 }
 
 ///////////////////////////////////////////////////
@@ -377,6 +377,9 @@ void buildProjects(Package const& pkg_)
 		std::cout << "MSBuild finished with exit code " << exitStatus.value() << std::endl;
 	else
 		std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
+
+	if (exitStatus.value_or(1) != 0)
+		throw std::runtime_error("Failed to build package projects");
 }
 
 ///////////////////////////////////////////////////
