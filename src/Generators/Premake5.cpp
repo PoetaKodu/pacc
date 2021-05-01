@@ -29,6 +29,11 @@ struct Formatter
 		}
 		output += format( std::forward<FirstArg>(firstArg_), std::forward<Args>(args_)... );
 	}
+
+	void writeRaw(std::string_view s)
+	{
+		output += s;
+	}
 };
 
 struct IndentScope
@@ -101,21 +106,52 @@ void appendWorkspace(Formatter &fmt_, Package const& pkg_)
 	{
 		IndentScope indent{fmt_};
 
-		// TODO: add support for user configurations
+		// TODO: manual configuration
 		{
-			fmt_.write("configurations(\"debug\")\n");
+			fmt_.writeRaw(R"DefaultCfg(
+platforms { "x86", "x64" }
+	configurations { "Debug", "Release" }
 
-			IndentScope indent{fmt_};
-			fmt_.write("symbols(\"On\")\n");
+	location ("build")
+	targetdir(path.join(os.getcwd(), "bin/%{cfg.platform}/%{cfg.buildcfg}"))
+	
+	if os.host() == "macosx" then
+		removeplatforms { "x86" }
+	end
+
+	filter "platforms:*32"
+		architecture "x86"
+
+	filter "platforms:*64"
+		architecture "x86_64"
+
+	filter "configurations:Debug"
+		defines { "DEBUG" }
+		symbols "On"
+
+	filter "configurations:Release"
+		defines { "NDEBUG" }
+		optimize "On"
+
+	filter {}
+			)DefaultCfg");
 		}
+		// fmt_.write("configurations(\"debug\", \"release\")\n\n");
 
-		// TODO: add support for user configurations
-		{
-			fmt_.write("configurations(\"release\")\n");
+		// // TODO: add support for user configurations
+		// {
+		// 	fmt_.write("filter(\"configuration:debug\")\n");
+		// 	IndentScope indent{fmt_};
+		// 	fmt_.write("symbols(\"On\")\n");
+		// }
 
-			IndentScope indent{fmt_};
-			fmt_.write("symbols(\"Off\")\n\n");
-		}
+		// // TODO: add support for user configurations
+		// {
+		// 	fmt_.write("filter(\"configuration:release\")\n");
+
+		// 	IndentScope indent{fmt_};
+		// 	fmt_.write("symbols(\"Off\")\n\n");
+		// }
 		
 		for(auto const& project : pkg_.projects)
 		{

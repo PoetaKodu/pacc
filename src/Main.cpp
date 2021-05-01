@@ -6,13 +6,23 @@
 #include <CppPkg/Generators/Premake5.hpp>
 #include <CppPkg/Readers/General.hpp>
 #include <CppPkg/Readers/JSONReader.hpp>
+#include <fmt/format.h>
+#undef UNICODE
+#include <tiny-process-lib/process.hpp>
+#define UNICODE
 
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
+#include <optional>
 
 namespace fs 	= std::filesystem;
+namespace proc 	= TinyProcessLib;
+namespace ch 	= std::chrono;
+namespace tt	= std::this_thread;
 
 // Forward declarations
 void handleArgs(ProgramArgs const & args_);
@@ -147,6 +157,57 @@ R"PKG({
 
 
 ///////////////////////////////////////////////////
+std::optional<int> runChildProcessSync(std::string const& command_, std::string cwd = "", int timeOutSecs = -1)
+{
+	auto prevCwd = fs::current_path();
+	if (cwd != "")
+		fs::current_path(cwd); 
+		
+	proc::Process proc(command_, "",
+		// Handle stdout:
+		[](const char *bytes, size_t n)
+		{
+			std::cout << std::string(bytes, n);
+			if(bytes[n - 1] != '\n')
+				std::cout << std::endl;
+		},
+		// Handle stderr:
+		[](const char *bytes, size_t n)
+		{
+			std::cerr << std::string(bytes, n);
+			if(bytes[n - 1] != '\n')
+				std::cout << std::endl;
+		}
+	);
+
+	bool killed 	= false;
+	int exitStatus 	= 1;
+	int runTime 	= 0;
+	while(!proc.try_get_exit_status(exitStatus))
+	{
+		if (timeOutSecs != -1)
+		{
+			if (runTime++ > timeOutSecs * 10)
+			{
+				proc.kill();
+				killed = true;
+				break;
+			}
+		}
+
+		tt::sleep_for(ch::milliseconds{100});
+	}
+
+	if (cwd != "")
+		fs::current_path(prevCwd); 
+
+	if (killed)
+		return std::nullopt;
+
+	return exitStatus;
+}
+
+///////////////////////////////////////////////////
 void buildPackage(ProgramArgs const& args_)
 {
 	constexpr std::string_view PackageJSON 	= "cpackage.json";
@@ -199,6 +260,46 @@ void buildPackage(ProgramArgs const& args_)
 
 	gen::Premake5 g;
 	g.generate(pkg);
+
+	// Run premake:
+	{
+		std::cout << "Running Premake5 build (VS2019) config" << std::endl;
+
+		auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
+
+		if (exitStatus.has_value())
+			std::cout << "Premake5 finished with exit code " << exitStatus.value() << std::endl;
+		else
+			std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
+
+		if (exitStatus.value_or(1) != 0)
+			return;
+	}
+	
+	// Run msbuild
+	{
+		std::cout << "Running MSBuild" << std::endl;
+
+		std::string_view params[] = {
+			"/m",
+			"/property:Configuration=Debug",
+			"/property:Platform=x64",
+			// Ask msbuild to generate full paths for file names.
+			"/property:GenerateFullPaths=true",
+			"/t:build"
+		};
+
+		std::string buildCommand = fmt::format("msbuild {0}.sln", pkg.name);
+		for(auto p : params)
+			buildCommand += fmt::format(" \"{}\"", p);
+
+		auto exitStatus = runChildProcessSync(buildCommand, "build", 30);
+
+		if (exitStatus.has_value())
+			std::cout << "MSBuild finished with exit code " << exitStatus.value() << std::endl;
+		else
+			std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
+	}
 }
 
 
