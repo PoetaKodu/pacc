@@ -30,7 +30,15 @@ function configureWorkspace()
 	
 	if os.host() == "macosx" then
 		removeplatforms { "x86" }
+		defines { "BLOCC_SYSTEM_MACOSX" }
+	elseif os.host() == "linux" then
+		defines { "BLOCC_SYSTEM_LINUX" }
+	elseif os.host() == "windows" then 
+		defines { "BLOCC_SYSTEM_WINDOWS" }
+	else
+		defines { "BLOCC_SYSTEM_UNKNOWN" }
 	end
+
 
 	filter "platforms:*32"
 		architecture "x86"
