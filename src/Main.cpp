@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	catch(...)
 	{
 		std::cerr 	<< "An error occurred. No details available."
-					<< "\nPlease refer to https://github.com/PoetaKodu/cpp-pkg/issues"
+					<< "\nPlease refer to https://github.com/PoetaKodu/blocc/issues"
 					<< std::endl;
 
 		return 1;
@@ -139,7 +139,7 @@ void initPackage()
 
 	std::ofstream("cpackage.json") <<
 R"PKG({
-	"$schema": "https://raw.githubusercontent.com/PoetaKodu/cpp-pkg/main/res/cpackage.schema.json",
+	"$schema": "https://raw.githubusercontent.com/PoetaKodu/blocc/main/res/cpackage.schema.json",
 	"name": "MyWorkspace",
 	"projects": [
 		{

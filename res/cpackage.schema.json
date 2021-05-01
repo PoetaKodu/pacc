@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"$id": "https://raw.githubusercontent.com/PoetaKodu/cpp-pkg/main/res/cpackage.schema.json",
+	"$id": "https://raw.githubusercontent.com/PoetaKodu/blocc/main/res/cpackage.schema.json",
 	"oneOf": [
 		{
 			"$ref": "#/definitions/workspace"
