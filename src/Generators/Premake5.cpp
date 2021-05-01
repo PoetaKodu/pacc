@@ -6,6 +6,83 @@
 
 using namespace fmt;
 
+template <typename T = std::string_view>
+using DictElem 	= std::pair<std::string_view, T>;
+template <typename T = std::string_view>
+using Dict 		= std::vector< DictElem<T> >;
+
+namespace constants
+{
+
+/////////////////////////////////////////////////////////////////////
+constexpr std::string_view DefaultPremakeCfg =
+R"DefaultCfg(
+platforms { "x86", "x64" }
+	configurations { "Debug", "Release" }
+
+	location ("build")
+	targetdir(path.join(os.getcwd(), "bin/%{cfg.platform}/%{cfg.buildcfg}"))
+	
+	if os.host() == "macosx" then
+		removeplatforms { "x86" }
+	end
+
+	filter "platforms:*32"
+		architecture "x86"
+
+	filter "platforms:*64"
+		architecture "x86_64"
+
+	filter "configurations:Debug"
+		defines { "DEBUG" }
+		symbols "On"
+
+	filter "configurations:Release"
+		defines { "NDEBUG" }
+		optimize "On"
+
+	filter {}
+)DefaultCfg";
+
+namespace mappings
+{
+
+/////////////////////////////////////////////////////////////////////
+auto const& LangToPremakeLangAndDialect()
+{
+	using LangAndDialect = std::pair<std::string_view, std::string_view>;
+	static const Dict<LangAndDialect> dict = {
+		{ "C89", 	{ "C", 		"" } },
+		{ "C90", 	{ "C", 		"" } },
+		{ "C95", 	{ "C", 		"" } },
+		{ "C99", 	{ "C", 		"" } },
+		{ "C11", 	{ "C", 		"" } },
+		{ "C17", 	{ "C", 		"" } },
+		{ "C++98", 	{ "C++", 	"C++98" } },
+		{ "C++0x", 	{ "C++", 	"C++11" } },
+		{ "C++11", 	{ "C++", 	"C++11" } },
+		{ "C++1y", 	{ "C++", 	"C++14" } },
+		{ "C++14", 	{ "C++", 	"C++14" } },
+		{ "C++1z", 	{ "C++", 	"C++17" } },
+		{ "C++17", 	{ "C++", 	"C++17" } }
+	};
+	return dict;
+}
+
+/////////////////////////////////////////////////////////////////////
+auto const& AppTypeToPremakeKind()
+{
+	static const Dict<> AppTypeToPremakeKind = {
+		{ "app", 		"ConsoleApp" },
+		{ "static lib", "StaticLib" },
+		{ "shared lib", "SharedLib" }
+	};
+	return AppTypeToPremakeKind;
+}
+
+}
+
+}
 
 
 namespace gen
@@ -69,35 +146,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 		IndentScope indent{fmt_};
 
 		// TODO: manual configuration
-		{
-			fmt_.writeRaw(R"DefaultCfg(
-platforms { "x86", "x64" }
-	configurations { "Debug", "Release" }
-
-	location ("build")
-	targetdir(path.join(os.getcwd(), "bin/%{cfg.platform}/%{cfg.buildcfg}"))
-	
-	if os.host() == "macosx" then
-		removeplatforms { "x86" }
-	end
-
-	filter "platforms:*32"
-		architecture "x86"
-
-	filter "platforms:*64"
-		architecture "x86_64"
-
-	filter "configurations:Debug"
-		defines { "DEBUG" }
-		symbols "On"
-
-	filter "configurations:Release"
-		defines { "NDEBUG" }
-		optimize "On"
-
-	filter {}
-			)DefaultCfg");
-		}
+		fmt_.writeRaw(constants::DefaultPremakeCfg);
 		
 		for(auto const& project : pkg_.projects)
 		{
@@ -121,12 +170,6 @@ bool compareIgnoreCase(std::string_view l, std::string_view r)
 }
 
 
-template <typename T = std::string_view>
-using DictElem 	= std::pair<std::string_view, T>;
-template <typename T = std::string_view>
-using Dict 		= std::vector< DictElem<T> >;
-
-
 /////////////////////////////////////////////////
 template <typename T>
 auto mapString(Dict<T> const& dict_, std::string_view v)
@@ -142,14 +185,10 @@ auto mapString(Dict<T> const& dict_, std::string_view v)
 /////////////////////////////////////////////////
 std::string_view mapToPremake5Kind(std::string_view projectType_)
 {
-	static const Dict<> PremakeKind = {
-		{ "app", 		"ConsoleApp" },
-		{ "static lib", "StaticLib" },
-		{ "shared lib", "SharedLib" }
-	};
+	auto const& AppTypeMapping = constants::mappings::AppTypeToPremakeKind();
 
-	auto it = mapString(PremakeKind, projectType_);
-	if (it != PremakeKind.end())
+	auto it = mapString(AppTypeMapping, projectType_);
+	if (it != AppTypeMapping.end())
 		return it->second;
 	
 	return "";
@@ -158,25 +197,10 @@ std::string_view mapToPremake5Kind(std::string_view projectType_)
 /////////////////////////////////////////////////
 void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 {
-	using LangAndDialect = std::pair<std::string_view, std::string_view>;
-	static const Dict<LangAndDialect> PremakeLangAndDialect = {
-		{ "C89", 	{ "C", 		"" } },
-		{ "C90", 	{ "C", 		"" } },
-		{ "C95", 	{ "C", 		"" } },
-		{ "C99", 	{ "C", 		"" } },
-		{ "C11", 	{ "C", 		"" } },
-		{ "C17", 	{ "C", 		"" } },
-		{ "C++98", 	{ "C++", 	"C++98" } },
-		{ "C++0x", 	{ "C++", 	"C++11" } },
-		{ "C++11", 	{ "C++", 	"C++11" } },
-		{ "C++1y", 	{ "C++", 	"C++14" } },
-		{ "C++14", 	{ "C++", 	"C++14" } },
-		{ "C++1z", 	{ "C++", 	"C++17" } },
-		{ "C++17", 	{ "C++", 	"C++17" } }
-	};
+	auto const& LangMapping = constants::mappings::LangToPremakeLangAndDialect();
 
-	auto it = mapString(PremakeLangAndDialect, lang_);
-	if (it != PremakeLangAndDialect.end())
+	auto it = mapString(LangMapping, lang_);
+	if (it != LangMapping.end())
 	{
 		auto const& premakeVal = it->second;
 		
