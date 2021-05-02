@@ -18,6 +18,7 @@ struct TargetBase
 	std::string 	name;
 
 	VecOfStr 		files;
+	VecOfStrAcc 	defines;
 	VecOfStrAcc 	includeFolders;
 	VecOfStrAcc 	linkerFolders;
 	VecOfStrAcc 	linkedLibraries;

@@ -130,6 +130,7 @@ Package fromJSON(std::string const& packageContent_)
 
 		project.files 			= loadVecOfStrField(jsonProject, "files");
 
+		project.defines 		= loadVecOfStrAccField(jsonProject, "defines");
 		project.includeFolders 	= loadVecOfStrAccField(jsonProject, "includeFolders");
 		project.linkedLibraries = loadVecOfStrAccField(jsonProject, "linkedLibraries");
 		project.linkerFolders 	= loadVecOfStrAccField(jsonProject, "linkerFolders");

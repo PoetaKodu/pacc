@@ -236,6 +236,7 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 		}
 
 		appendPropWithAccess(fmt_, "files", 		project_.files);
+		appendPropWithAccess(fmt_, "defines", 		project_.defines);
 		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries);
 		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
 		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders);

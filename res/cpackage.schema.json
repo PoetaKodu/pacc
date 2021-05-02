@@ -76,6 +76,10 @@
 					"$ref": "#/definitions/stringOrVecAcc",
 					"description": "Library dependencies of this project.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
 				},
+				"defines": {
+					"$ref": "#/definitions/stringOrVecAcc",
+					"description": "Preprocessor definitions.\nExamples:\n\"defines\": [\n\t\"DEBUG\",\n\t\"FOO=123\"\n].\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
+				},
 				"includeFolders": {
 					"$ref": "#/definitions/stringOrVecAcc",
 					"description": "Folders used by the compiler to locate project files.\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
