@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <string_view>
+#include BLOCC_PCH
 
 using VecOfStr = std::vector< std::string >;
 
@@ -45,6 +43,7 @@ struct Project : TargetBase
 
 struct Package : TargetBase
 {
+	fs::path 		root;
 	std::vector<Project> projects;
 };
 

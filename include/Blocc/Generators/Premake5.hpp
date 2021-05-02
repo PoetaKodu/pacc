@@ -1,5 +1,7 @@
 #pragma once
 
+#include BLOCC_PCH
+
 #include <Blocc/Package.hpp>
 
 namespace gen

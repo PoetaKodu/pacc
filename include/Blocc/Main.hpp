@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <string_view>
+#include BLOCC_PCH
 
 using ProgramArgs = std::vector< std::string_view >;

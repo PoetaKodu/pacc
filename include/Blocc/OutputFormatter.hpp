@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string>
-#include <fmt/format.h>
+#include BLOCC_PCH
 
 struct OutputFormatter
 {

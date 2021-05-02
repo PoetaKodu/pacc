@@ -61,6 +61,13 @@ function defaultProjectConfiguration()
 	location (path.join(os.getcwd(), "build/%{prj.name}"))
 end
 
+function configurePCH(pchHeader, pchSource, pchMacro)
+	pchheader (pchHeader)
+	pchsource (pchSource)
+	defines { pchMacro .. "=\"" .. pchHeader .. "\"" }
+	includedirs { "." }
+end
+
 
 workspace("Blocc")
 
@@ -71,6 +78,7 @@ workspace("Blocc")
 
 		defaultProjectConfiguration()
 
+		configurePCH("include/Blocc/BloccPCH.hpp", "src/BloccPCH.cpp", "BLOCC_PCH")
 		kind("ConsoleApp")
 		language("c++")
 		cppdialect("C++17")
@@ -79,6 +87,7 @@ workspace("Blocc")
 			"src/**.cpp"
 		})
 		includedirs("include")
+
 		addCustomDep("fmt")
 		addCustomDep("json")
 		addCustomDep("tiny-process-lib")

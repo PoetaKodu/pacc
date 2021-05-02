@@ -1,8 +1,7 @@
+#include BLOCC_PCH
+
 #include <Blocc/Package.hpp>
 
-#include <fmt/format.h>
-#include <stdexcept>
-#include <string>
 
 ///////////////////////////////////////////////////////////////
 Dependency Dependency::from(std::string_view depPattern)

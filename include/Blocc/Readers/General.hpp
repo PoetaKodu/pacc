@@ -1,9 +1,6 @@
 #pragma once
 
-#include <string>
-#include <filesystem>
-
-namespace fs = std::filesystem;
+#include BLOCC_PCH
 
 namespace reader
 {

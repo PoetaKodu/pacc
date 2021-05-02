@@ -1,8 +1,7 @@
+#include BLOCC_PCH
+
 #include <Blocc/Generators/Premake5.hpp>
 #include <Blocc/OutputFormatter.hpp>
-#include <fmt/format.h>
-#include <fstream>
-#include <array>
 
 using namespace fmt;
 

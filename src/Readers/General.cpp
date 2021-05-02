@@ -1,8 +1,6 @@
-#include <Blocc/Readers/General.hpp>
+#include BLOCC_PCH
 
-#include <fstream>
-#include <stdexcept>
-#include <fmt/format.h>
+#include <Blocc/Readers/General.hpp>
 
 namespace reader
 {
