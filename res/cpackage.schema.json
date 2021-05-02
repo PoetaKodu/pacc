@@ -78,7 +78,7 @@
 				},
 				"defines": {
 					"$ref": "#/definitions/stringOrVecAcc",
-					"description": "Preprocessor definitions.\nExamples:\n\"defines\": [\n\t\"DEBUG\",\n\t\"FOO=123\"\n].\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
+					"description": "Preprocessor definitions.\nExamples:```json\n\"defines\": [\n\"DEBUG\",\n\"FOO=123\"\n]\n```\nThis is a structure of three values: public, private and interface.\nWhen using string or array to define this field, values will be considered as public."
 				},
 				"includeFolders": {
 					"$ref": "#/definitions/stringOrVecAcc",
