@@ -14,8 +14,6 @@ namespace actions
 
 /////////////////////
 // Helper functions:
-Package 			loadPackage(fs::path dir_ = "");
-Package 			fromJSON(std::string const& packageContent_);
 std::optional<int> 	runChildProcessSync(std::string const& command_, std::string cwd = "", int timeOutSecs = -1);
 
 // Used by build command:
@@ -64,7 +62,7 @@ R"PKG({
 ///////////////////////////////////////////////////
 void linkPackage(ProgramArgs const& args_)
 {
-	Package pkg = loadPackage();
+	Package pkg = Package::load();
 
 	fs::path appData = getBloccDataStorageFolder();
 
@@ -109,7 +107,7 @@ void unlinkPackage(ProgramArgs const& args_)
 
 	if (pkgName.empty())
 	{
-		Package pkg = loadPackage();
+		Package pkg = Package::load();
 		pkgName = pkg.name;
 	}
 
@@ -140,7 +138,7 @@ void generatePremakeFiles(Package const& pkg)
 ///////////////////////////////////////////////////
 Package generate(ProgramArgs const& args_)
 {
-	Package pkg = loadPackage();
+	Package pkg = Package::load();
 
 	generatePremakeFiles(pkg);
 
@@ -157,64 +155,6 @@ void buildPackage(ProgramArgs const& args_)
 
 	// Run msbuild
 	buildProjects(pkg);
-}
-
-
-///////////////////////////////////////////////////
-Package loadPackage(fs::path dir_)
-{
-	constexpr std::string_view PackageJSON 	= "cpackage.json";
-	constexpr std::string_view PackageLUA 	= "cpackage.lua";
-
-	if (dir_ == "") {
-		dir_ = fs::current_path();
-	}
-
-	enum class PackageFileSource
-	{
-		JSON,
-		LuaScript
-	};
-
-	PackageFileSource pkgSrcFile;
-	
-	Package pkg;
-
-	// Detect package file
-	if (fs::exists(dir_ / PackageLUA)) // LuaScript has higher priority
-	{
-		pkgSrcFile = PackageFileSource::LuaScript;
-		pkg.root = dir_ / PackageLUA;
-	}
-	else if (fs::exists(dir_ / PackageJSON))
-	{
-		pkgSrcFile = PackageFileSource::JSON;
-		pkg.root = dir_ / PackageJSON;
-	}
-	else
-		throw std::exception(errors::NoPackageSourceFile.data());
-	
-
-	// Decide what to do:
-	switch(pkgSrcFile)
-	{
-	case PackageFileSource::JSON:
-	{
-		std::cout << "Loading \"" << PackageJSON << "\" file\n";\
-
-		pkg = reader::fromJSON(reader::readFileContents(PackageJSON));
-		break;
-	}
-	case PackageFileSource::LuaScript:
-	{
-		std::cout << "Loading \"" << PackageLUA << "\" file\n";
-
-		// TODO: implement this.
-		std::cout << "This function is not implemented yet." << std::endl;
-		break;
-	}
-	}
-	return pkg;
 }
 
 ///////////////////////////////////////////////////

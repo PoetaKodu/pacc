@@ -45,5 +45,11 @@ struct Package : TargetBase
 {
 	fs::path 		root;
 	std::vector<Project> projects;
+
+	static Package load(fs::path dir_ = "");
+
+private:
+	static Package loadFromJSON(std::string const& packageContent_);
 };
+
 

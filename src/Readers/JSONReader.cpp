@@ -30,7 +30,7 @@ constexpr std::string_view jsonTypeName(json::value_t type)
 }
 
 ///////////////////////////////////////////////////
-Package fromJSON(std::string const& packageContent_)
+Package loadFromJSON(std::string const& packageContent_)
 {
 	
 	Package result;
