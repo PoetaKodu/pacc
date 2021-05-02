@@ -3,6 +3,7 @@
 #include <Blocc/Actions.hpp>
 
 #include <Blocc/Help.hpp>
+#include <Blocc/Environment.hpp>
 #include <Blocc/Errors.hpp>
 #include <Blocc/Package.hpp>
 #include <Blocc/Generators/Premake5.hpp>
@@ -19,9 +20,6 @@ std::optional<int> 	runChildProcessSync(std::string const& command_, std::string
 // Used by build command:
 void 				generateProjectFiles();
 void 				buildProjects(Package const &pkg_);
-
-fs::path 			getBloccDataStorageFolder();
-fs::path 			requireBloccDataStorageFolder();
 
 ///////////////////////////////////////////////////
 void initPackage()
@@ -64,7 +62,7 @@ void linkPackage(ProgramArgs const& args_)
 {
 	Package pkg = Package::load();
 
-	fs::path appData = getBloccDataStorageFolder();
+	fs::path appData = env::getBloccDataStorageFolder();
 
 	fs::path packagesDir 	= appData / "packages";
 	fs::path targetSymlink 	= packagesDir / pkg.name;
@@ -111,7 +109,7 @@ void unlinkPackage(ProgramArgs const& args_)
 		pkgName = pkg.name;
 	}
 
-	fs::path storage = getBloccDataStorageFolder();
+	fs::path storage = env::getBloccDataStorageFolder();
 	fs::path symlinkPath = storage / "packages" / pkgName;
 	if (fs::is_symlink(symlinkPath))
 	{
@@ -286,25 +284,6 @@ std::optional<int> runChildProcessSync(std::string const& command_, std::string 
 	return exitStatus;
 }
 
-///////////////////////////////////////////////////
-fs::path getBloccDataStorageFolder()
-{
-	fs::path appData;
-	#ifdef BLOCC_SYSTEM_WINDOWS
-		appData = std::getenv("APPDATA");
-	#else
-		appData = std::getenv("USER");
-	#endif
-	appData /= "blocc";
-	return appData;
-}
 
-///////////////////////////////////////////////////
-fs::path requireBloccDataStorageFolder()
-{
-	fs::path const storage = getBloccDataStorageFolder();
-	fs::create_directories(storage);
-	return storage;
-}
 
 }

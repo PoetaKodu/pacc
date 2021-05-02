@@ -2,8 +2,11 @@
 
 #include BLOCC_PCH
 
-using VecOfStr = std::vector< std::string >;
+constexpr std::string_view PackageJSON 	= "cpackage.json";
+constexpr std::string_view PackageLUA 	= "cpackage.lua";
 
+using VecOfStr 		= std::vector< std::string >;
+using PackagePtr 	= std::shared_ptr<struct Package>;
 struct VecOfStrAcc
 {
 	VecOfStr public_;
@@ -15,6 +18,9 @@ struct Dependency
 {
 	std::string packageName;
 	std::string projectName;
+
+	// Resolved (or not) package pointer.
+	PackagePtr 	package;
 	// std::string version; // TODO add version support
 	// TODO: add config support
 
@@ -51,5 +57,7 @@ struct Package : TargetBase
 private:
 	static Package loadFromJSON(std::string const& packageContent_);
 };
+
+
 
 

@@ -27,9 +27,6 @@ Dependency Dependency::from(std::string_view depPattern)
 ///////////////////////////////////////////////////
 Package Package::load(fs::path dir_)
 {
-	constexpr std::string_view PackageJSON 	= "cpackage.json";
-	constexpr std::string_view PackageLUA 	= "cpackage.lua";
-
 	if (dir_.empty()) {
 		dir_ = fs::current_path();
 	}

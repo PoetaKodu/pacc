@@ -9,7 +9,9 @@ namespace gen
 
 class Premake5
 {
-	void loadDependencies(Package const& pkg_);
+	std::vector<PackagePtr> dependencies;
+
+	void loadDependencies(Package pkg_);
 public:
 	void generate(Package const& package_);
 };

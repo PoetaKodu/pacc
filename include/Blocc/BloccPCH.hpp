@@ -15,6 +15,7 @@
 #include <optional>
 #include <thread>
 #include <chrono>
+#include <memory>
 #include <filesystem>
 
 #include <nlohmann/json.hpp>

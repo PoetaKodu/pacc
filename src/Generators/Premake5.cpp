@@ -2,6 +2,7 @@
 
 #include <Blocc/Generators/Premake5.hpp>
 #include <Blocc/OutputFormatter.hpp>
+#include <Blocc/Environment.hpp>
 
 using namespace fmt;
 
@@ -138,11 +139,36 @@ void Premake5::generate(Package const& pkg_)
 }
 
 /////////////////////////////////////////////////
-void Premake5::loadDependencies(Package const& pkg_)
+Package loadPackageByName(std::string_view name)
 {
-	for(auto const& p : pkg_.projects)
+	const std::vector<fs::path> candidates = {
+		fs::current_path() / "blocc_packages",
+		env::getBloccDataStorageFolder()
+	};
+
+	// Get first matching candidate:
+	for(auto const& c : candidates)
 	{
-		for(auto const& dep : p.dependencies)
+		auto pkgFolder = c / name;
+		try {
+			return Package::load(pkgFolder);
+		}
+		catch(...)
+		{
+			// Could not load, ignore
+		}
+	}
+
+	// Found none.
+	throw std::runtime_error(fmt::format("Could not find package \"{}\" (TODO: help here).", name));
+}
+
+/////////////////////////////////////////////////
+void Premake5::loadDependencies(Package pkg_)
+{
+	for(auto p : pkg_.projects)
+	{
+		for(auto dep : p.dependencies)
 		{
 			if (dep.packageName.empty())
 				fmt::print("Loading dependency \"{}\"\n", dep.projectName);
@@ -150,6 +176,13 @@ void Premake5::loadDependencies(Package const& pkg_)
 				fmt::print("Loading dependency \"{}\":\"{}\"\n", dep.packageName, dep.projectName);
 
 			// TODO: load dependency
+
+			auto pkg = std::make_shared<Package>(loadPackageByName(dep.packageName));
+
+			// Assign loaded package:
+			dep.package = pkg;
+
+			dependencies.push_back(std::move(pkg));
 		}
 	}
 }
