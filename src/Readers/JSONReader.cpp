@@ -1,4 +1,4 @@
-#include <CppPkg/Readers/JSONReader.hpp>
+#include <Blocc/Readers/JSONReader.hpp>
 
 #include <fmt/format.h> 
 #include <fstream> 

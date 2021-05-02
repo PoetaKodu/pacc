@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CppPkg/Package.hpp>
+#include <Blocc/Package.hpp>
 
 namespace gen
 {

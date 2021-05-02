@@ -1,5 +1,5 @@
-#include <CppPkg/Generators/Premake5.hpp>
-#include <CppPkg/OutputFormatter.hpp>
+#include <Blocc/Generators/Premake5.hpp>
+#include <Blocc/OutputFormatter.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <array>

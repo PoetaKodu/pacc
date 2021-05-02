@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CppPkg/Package.hpp>
+#include <Blocc/Package.hpp>
 
 #include <nlohmann/json.hpp>
 #include <string_view>

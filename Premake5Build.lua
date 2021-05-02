@@ -75,7 +75,7 @@ workspace("Blocc")
 		language("c++")
 		cppdialect("C++17")
 		files( {
-			"include/CppPkg/**.hpp",
+			"include/Blocc/**.hpp",
 			"src/**.cpp"
 		})
 		includedirs("include")

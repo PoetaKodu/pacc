@@ -1,4 +1,4 @@
-#include <CppPkg/Readers/General.hpp>
+#include <Blocc/Readers/General.hpp>
 
 #include <fstream>
 #include <stdexcept>

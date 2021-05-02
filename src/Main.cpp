@@ -1,11 +1,11 @@
-#include <CppPkg/Main.hpp>
+#include <Blocc/Main.hpp>
 
-#include <CppPkg/Help.hpp>
-#include <CppPkg/Errors.hpp>
-#include <CppPkg/Package.hpp>
-#include <CppPkg/Generators/Premake5.hpp>
-#include <CppPkg/Readers/General.hpp>
-#include <CppPkg/Readers/JSONReader.hpp>
+#include <Blocc/Help.hpp>
+#include <Blocc/Errors.hpp>
+#include <Blocc/Package.hpp>
+#include <Blocc/Generators/Premake5.hpp>
+#include <Blocc/Readers/General.hpp>
+#include <Blocc/Readers/JSONReader.hpp>
 #include <fmt/format.h>
 #undef UNICODE
 #include <tiny-process-lib/process.hpp>
