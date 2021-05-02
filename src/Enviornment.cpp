@@ -1,25 +1,25 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
 namespace env
 {
 
 ///////////////////////////////////////////////////
-fs::path getBloccDataStorageFolder()
+fs::path getPaccDataStorageFolder()
 {
 	fs::path appData;
-	#ifdef BLOCC_SYSTEM_WINDOWS
+	#ifdef PACC_SYSTEM_WINDOWS
 		appData = std::getenv("APPDATA");
 	#else
 		appData = std::getenv("USER");
 	#endif
-	appData /= "blocc";
+	appData /= "pacc";
 	return appData;
 }
 
 ///////////////////////////////////////////////////
-fs::path requireBloccDataStorageFolder()
+fs::path requirePaccDataStorageFolder()
 {
-	fs::path const storage = getBloccDataStorageFolder();
+	fs::path const storage = getPaccDataStorageFolder();
 	fs::create_directories(storage);
 	return storage;
 }

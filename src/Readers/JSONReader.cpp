@@ -1,6 +1,6 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Readers/JSONReader.hpp>
+#include <Pacc/Readers/JSONReader.hpp>
 
 namespace reader
 {

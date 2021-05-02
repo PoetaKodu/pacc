@@ -1,9 +1,9 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Package.hpp>
-#include <Blocc/Errors.hpp>
-#include <Blocc/Readers/General.hpp>
-#include <Blocc/Readers/JSONReader.hpp>
+#include <Pacc/Package.hpp>
+#include <Pacc/Errors.hpp>
+#include <Pacc/Readers/General.hpp>
+#include <Pacc/Readers/JSONReader.hpp>
 
 
 ///////////////////////////////////////////////////////////////

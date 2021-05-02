@@ -1,6 +1,6 @@
 #pragma once
 
-#include BLOCC_PCH
+#include PACC_PCH
 
 constexpr std::string_view PackageJSON 	= "cpackage.json";
 constexpr std::string_view PackageLUA 	= "cpackage.lua";

@@ -1,9 +1,9 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Main.hpp>
+#include <Pacc/Main.hpp>
 
-#include <Blocc/Help.hpp>
-#include <Blocc/Actions.hpp>
+#include <Pacc/Help.hpp>
+#include <Pacc/Actions.hpp>
 
 ////////////////////////////////////
 // Forward declarations
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	catch(...)
 	{
 		std::cerr 	<< "An error occurred. No details available."
-					<< "\nPlease refer to https://github.com/PoetaKodu/blocc/issues"
+					<< "\nPlease refer to https://github.com/PoetaKodu/pacc/issues"
 					<< std::endl;
 
 		return 1;

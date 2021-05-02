@@ -30,13 +30,13 @@ function configureWorkspace()
 	
 	if os.host() == "macosx" then
 		removeplatforms { "x86" }
-		defines { "BLOCC_SYSTEM_MACOSX" }
+		defines { "PACC_SYSTEM_MACOSX" }
 	elseif os.host() == "linux" then
-		defines { "BLOCC_SYSTEM_LINUX" }
+		defines { "PACC_SYSTEM_LINUX" }
 	elseif os.host() == "windows" then 
-		defines { "BLOCC_SYSTEM_WINDOWS" }
+		defines { "PACC_SYSTEM_WINDOWS" }
 	else
-		defines { "BLOCC_SYSTEM_UNKNOWN" }
+		defines { "PACC_SYSTEM_UNKNOWN" }
 	end
 
 
@@ -69,21 +69,21 @@ function configurePCH(pchHeader, pchSource, pchMacro)
 end
 
 
-workspace("Blocc")
+workspace("Pacc")
 
 	configureWorkspace()
 	
 	-- Main Project:
-	project("Blocc")
+	project("Pacc")
 
 		defaultProjectConfiguration()
 
-		configurePCH("include/Blocc/BloccPCH.hpp", "src/BloccPCH.cpp", "BLOCC_PCH")
+		configurePCH("include/Pacc/PaccPCH.hpp", "src/PaccPCH.cpp", "PACC_PCH")
 		kind("ConsoleApp")
 		language("c++")
 		cppdialect("C++17")
 		files( {
-			"include/Blocc/**.hpp",
+			"include/Pacc/**.hpp",
 			"src/**.cpp"
 		})
 		includedirs("include")

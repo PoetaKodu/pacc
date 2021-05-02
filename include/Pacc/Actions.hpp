@@ -1,9 +1,9 @@
 #pragma once
 
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Main.hpp>
-#include <Blocc/Package.hpp>
+#include <Pacc/Main.hpp>
+#include <Pacc/Package.hpp>
 
 namespace actions
 {

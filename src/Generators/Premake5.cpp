@@ -1,8 +1,8 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Generators/Premake5.hpp>
-#include <Blocc/OutputFormatter.hpp>
-#include <Blocc/Environment.hpp>
+#include <Pacc/Generators/Premake5.hpp>
+#include <Pacc/OutputFormatter.hpp>
+#include <Pacc/Environment.hpp>
 
 using namespace fmt;
 
@@ -142,8 +142,8 @@ void Premake5::generate(Package const& pkg_)
 Package loadPackageByName(std::string_view name)
 {
 	const std::vector<fs::path> candidates = {
-		fs::current_path() / "blocc_packages",
-		env::getBloccDataStorageFolder()
+		fs::current_path() / "pacc_packages",
+		env::getPaccDataStorageFolder()
 	};
 
 	// Get first matching candidate:

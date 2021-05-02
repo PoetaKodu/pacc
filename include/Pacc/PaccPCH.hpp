@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BLOCC_PCH
-#define BLOCC_PCH <Blocc/BloccPCH.hpp>
+#ifndef PACC_PCH
+#define PACC_PCH <Pacc/PaccPCH.hpp>
 #endif
 
 #include <iostream>

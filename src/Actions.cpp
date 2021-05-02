@@ -1,14 +1,14 @@
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Actions.hpp>
+#include <Pacc/Actions.hpp>
 
-#include <Blocc/Help.hpp>
-#include <Blocc/Environment.hpp>
-#include <Blocc/Errors.hpp>
-#include <Blocc/Package.hpp>
-#include <Blocc/Generators/Premake5.hpp>
-#include <Blocc/Readers/General.hpp>
-#include <Blocc/Readers/JSONReader.hpp>
+#include <Pacc/Help.hpp>
+#include <Pacc/Environment.hpp>
+#include <Pacc/Errors.hpp>
+#include <Pacc/Package.hpp>
+#include <Pacc/Generators/Premake5.hpp>
+#include <Pacc/Readers/General.hpp>
+#include <Pacc/Readers/JSONReader.hpp>
 
 namespace actions
 {
@@ -41,7 +41,7 @@ void initPackage()
 
 	std::ofstream("cpackage.json") <<
 R"PKG({
-	"$schema": "https://raw.githubusercontent.com/PoetaKodu/blocc/main/res/cpackage.schema.json",
+	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
 	"name": "MyWorkspace",
 	"projects": [
 		{
@@ -62,7 +62,7 @@ void linkPackage(ProgramArgs const& args_)
 {
 	Package pkg = Package::load();
 
-	fs::path appData = env::getBloccDataStorageFolder();
+	fs::path appData = env::getPaccDataStorageFolder();
 
 	fs::path packagesDir 	= appData / "packages";
 	fs::path targetSymlink 	= packagesDir / pkg.name;
@@ -75,7 +75,7 @@ void linkPackage(ProgramArgs const& args_)
 		{
 			throw std::runtime_error(fmt::format(
 					"Package \"{}\" is already linked to {}.\n"
-					"If you want to update the link, use \"blocc unlink\" first.",
+					"If you want to update the link, use \"pacc unlink\" first.",
 					pkg.name,
 					fs::read_symlink(targetSymlink).string()
 				));
@@ -84,7 +84,7 @@ void linkPackage(ProgramArgs const& args_)
 		{
 			throw std::runtime_error(fmt::format(
 					"Package \"{}\" is already installed in users environment.\n"
-					"If you want to link current package, uninstall existing one with \"blocc uninstall\" first.",
+					"If you want to link current package, uninstall existing one with \"pacc uninstall\" first.",
 					pkg.name
 				));
 		}
@@ -109,7 +109,7 @@ void unlinkPackage(ProgramArgs const& args_)
 		pkgName = pkg.name;
 	}
 
-	fs::path storage = env::getBloccDataStorageFolder();
+	fs::path storage = env::getPaccDataStorageFolder();
 	fs::path symlinkPath = storage / "packages" / pkgName;
 	if (fs::is_symlink(symlinkPath))
 	{
@@ -120,7 +120,7 @@ void unlinkPackage(ProgramArgs const& args_)
 	{
 		throw std::runtime_error(fmt::format(
 				"Package \"{}\" is not linked within user environment.\n"
-				"If you want to link current package, use \"blocc link\" first.",
+				"If you want to link current package, use \"pacc link\" first.",
 				pkgName
 			));
 	}	

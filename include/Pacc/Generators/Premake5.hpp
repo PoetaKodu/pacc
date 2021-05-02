@@ -1,8 +1,8 @@
 #pragma once
 
-#include BLOCC_PCH
+#include PACC_PCH
 
-#include <Blocc/Package.hpp>
+#include <Pacc/Package.hpp>
 
 namespace gen
 {
