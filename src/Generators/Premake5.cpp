@@ -131,10 +131,28 @@ void Premake5::generate(Package const& pkg_)
 
 	OutputFormatter fmt{out};
 
+	this->loadDependencies(pkg_);
 	appendWorkspace(fmt, pkg_);
 
 	// Store the output in the premake file
 	std::ofstream("premake5.lua") << out;
+}
+
+/////////////////////////////////////////////////
+void Premake5::loadDependencies(Package const& pkg_)
+{
+	for(auto const& p : pkg_.projects)
+	{
+		for(auto const& dep : p.dependencies)
+		{
+			if (dep.packageName.empty())
+				fmt::print("Loading dependency \"{}\"\n", dep.projectName);
+			else
+				fmt::print("Loading dependency \"{}\":\"{}\"\n", dep.packageName, dep.projectName);
+
+			// TODO: load dependency
+		}
+	}
 }
 
 /////////////////////////////////////////////////

@@ -128,12 +128,19 @@ Package fromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("cStandard"); it != jsonProject.end())
 			project.cStandard = it->get<std::string>();
 
+		VecOfStr dependencyPatterns;
+		dependencyPatterns 		= loadVecOfStrField(jsonProject, "dependencies");
 		project.files 			= loadVecOfStrField(jsonProject, "files");
-
 		project.defines 		= loadVecOfStrAccField(jsonProject, "defines");
 		project.includeFolders 	= loadVecOfStrAccField(jsonProject, "includeFolders");
 		project.linkedLibraries = loadVecOfStrAccField(jsonProject, "linkedLibraries");
 		project.linkerFolders 	= loadVecOfStrAccField(jsonProject, "linkerFolders");
+		
+		project.dependencies.reserve(dependencyPatterns.size());
+		for(std::string_view p : dependencyPatterns)
+		{
+			project.dependencies.push_back( Dependency::from(p) );
+		}
 		
 		result.projects.push_back(std::move(project));
 	}

@@ -39,6 +39,8 @@ void 				displayHelp(ProgramArgs const& args_, bool full_);
 void 				linkPackage(ProgramArgs const& args_);
 // unlink
 void 				unlinkPackage(ProgramArgs const& args_);
+// generate
+Package 			generate(ProgramArgs const& args_);
 // build
 void 				buildPackage(ProgramArgs const& args_);
 // init
@@ -100,6 +102,10 @@ void handleArgs(ProgramArgs const& args_)
 		else if (action == "init")
 		{
 			initPackage();
+		}
+		else if (action == "generate")
+		{
+			generate(args_);
 		}
 		else if (action == "build")
 		{
@@ -265,14 +271,20 @@ void generatePremakeFiles(Package const& pkg)
 	g.generate(pkg);
 }
 
-
-
 ///////////////////////////////////////////////////
-void buildPackage(ProgramArgs const& args_)
+Package generate(ProgramArgs const& args_)
 {
 	Package pkg = loadPackage();
 
 	generatePremakeFiles(pkg);
+
+	return pkg;
+}
+
+///////////////////////////////////////////////////
+void buildPackage(ProgramArgs const& args_)
+{
+	Package pkg = generate(args_);
 
 	// Run premake:
 	generateProjectFiles();
@@ -280,6 +292,7 @@ void buildPackage(ProgramArgs const& args_)
 	// Run msbuild
 	buildProjects(pkg);
 }
+
 
 ///////////////////////////////////////////////////
 Package loadPackage()

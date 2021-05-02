@@ -13,15 +13,26 @@ struct VecOfStrAcc
 	VecOfStr interface_;
 };
 
+struct Dependency
+{
+	std::string packageName;
+	std::string projectName;
+	// std::string version; // TODO add version support
+	// TODO: add config support
+
+	static Dependency from(std::string_view depPattern);
+};
+
 struct TargetBase
 {
 	std::string 	name;
 
-	VecOfStr 		files;
-	VecOfStrAcc 	defines;
-	VecOfStrAcc 	includeFolders;
-	VecOfStrAcc 	linkerFolders;
-	VecOfStrAcc 	linkedLibraries;
+	VecOfStr 				files;
+	std::vector<Dependency> dependencies;
+	VecOfStrAcc 			defines;
+	VecOfStrAcc 			includeFolders;
+	VecOfStrAcc 			linkerFolders;
+	VecOfStrAcc 			linkedLibraries;
 };
 
 struct Project : TargetBase
