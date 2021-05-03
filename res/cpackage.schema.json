@@ -9,6 +9,67 @@
 			"$ref": "#/definitions/project"
 		}
 	],
+	"defaultSnippets": [
+		{
+			"label": "Workspace",
+			"description": "Creates a new workspace with no projects",
+			"body": {
+				"name": "${1:WorkspaceName}",
+				"projects": [ 
+					
+				],
+				"description": "An empty workspace. Hover mouse over a `projects` field to see what you can do."
+			}
+		},
+		{
+			"label": "Single project - application",
+			"description": "Creates a single project workspace (application)",
+			"body": {
+				"name": "${1:AppName}",
+				"type": "app",
+				"files": "${2:src/Main.cpp}",
+				"description": "An application project. Hover mouse over a `type` field to see available fields."
+			}
+		},
+		{
+			"label": "Single project - static library",
+			"description": "Creates a single project workspace (static library)",
+			"body": {
+				"name": "${1:LibraryName}",
+				"type": "static lib",
+				"includeFolders": {
+					"public": "include"
+				},
+				"files": "${2:src/Main.cpp}",
+				"description": "A static library project. Hover mouse over a `type` field to see available fields."
+			}
+		},
+		{
+			"label": "Single project - shared library",
+			"description": "Creates a single project workspace (shared library)",
+			"body": {
+				"name": "${1:LibraryName}",
+				"type": "static lib",
+				"includeFolders": {
+					"public": "include"
+				},
+				"files": "${2:src/Main.cpp}",
+				"description": "A shared library project. Hover mouse over a `type` field to see available fields."
+			}
+		},
+		{
+			"label": "Single project - interface",
+			"description": "Creates a workspace with an interface project (which acts like a config provider)",
+			"body": {
+				"name": "${1:LibraryName}",
+				"type": "interface",
+				"defines": {
+					"interface": "MY_DEFINE=123"
+				},
+				"description": "An interface project. Hover mouse over a `type` field to see available fields."
+			}
+		}
+	],
 	"additionalProperties": true,
 	"definitions": {
 		"workspace": {
@@ -22,13 +83,15 @@
 				"projects": {
 					"type": "array",
 					"description": "List of projects belonging to the workspace",
-					"items": { "$ref": "#/definitions/project" }
+					"$ref": "#/definitions/hasArrayOfProjects"
 				},
 				"type": false
 			},
 			"required": ["projects"],
 			"minItems": 1,
-			"items": { "$ref": "#/definitions/project" }
+			"items": {
+				"$ref": "#/definitions/project"
+			}
 		},
 		"project": {
 			"type": "object",
@@ -124,6 +187,61 @@
 					"$ref": "#/definitions/stringOrVec",
 					"decription": "Values propagated to projects that use the current project as a dependency."
 				}
+			}
+		},
+		"hasArrayOfProjects": {
+			"items": {
+				"$ref": "#/definitions/project",
+				"defaultSnippets": [
+					{
+						"label": "Application project",
+						"description": "Adds an application project to the workspace",
+						"body": {
+							"name": "${1:AppName}",
+							"type": "app",
+							"files": "${2:src/Main.cpp}",
+							"description": "An application project. Hover mouse over a `type` field to see available fields."
+						}
+					},
+					{
+						"label": "Static library project",
+						"description": "Adds a static library project to the workspace",
+						"body": {
+							"name": "${1:LibraryName}",
+							"type": "static lib",
+							"includeFolders": {
+								"public": "include"
+							},
+							"files": "${2:src/Main.cpp}",
+							"description": "A static library project. Hover mouse over a `type` field to see available fields."
+						}
+					},
+					{
+						"label": "Shared library project",
+						"description": "Adds a shared library project to the workspace",
+						"body": {
+							"name": "${1:LibraryName}",
+							"type": "static lib",
+							"includeFolders": {
+								"public": "include"
+							},
+							"files": "${2:src/Main.cpp}",
+							"description": "A shared library project. Hover mouse over a `type` field to see available fields."
+						}
+					},
+					{
+						"label": "Interface project",
+						"description": "Adds an interface project to the workspace",
+						"body": {
+							"name": "${1:LibraryName}",
+							"type": "interface",
+							"defines": {
+								"interface": "MY_DEFINE=123"
+							},
+							"description": "An interface project. Hover mouse over a `type` field to see available fields."
+						}
+					}
+				]
 			}
 		}
 	}
