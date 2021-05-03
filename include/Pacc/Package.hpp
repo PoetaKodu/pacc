@@ -54,6 +54,8 @@ struct Package : TargetBase
 
 	static Package load(fs::path dir_ = "");
 
+	Project const* findProject(std::string_view name_) const;
+
 private:
 	static Package loadFromJSON(std::string const& packageContent_);
 };

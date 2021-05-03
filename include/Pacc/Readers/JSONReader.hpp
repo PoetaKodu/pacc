@@ -17,6 +17,4 @@ public:
 	void makeConformant();
 };
 
-Package loadFromJSON(std::string const& packageContent_);
-
 }

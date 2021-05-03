@@ -127,7 +127,7 @@ void unlinkPackage(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
-void generatePremakeFiles(Package const& pkg)
+void generatePremakeFiles(Package & pkg)
 {
 	gen::Premake5 g;
 	g.generate(pkg);

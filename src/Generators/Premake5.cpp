@@ -123,7 +123,7 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
 
 
 /////////////////////////////////////////////////
-void Premake5::generate(Package const& pkg_)
+void Premake5::generate(Package & pkg_)
 {
 	// Prepare output buffer
 	std::string out;
@@ -143,7 +143,7 @@ Package loadPackageByName(std::string_view name)
 {
 	const std::vector<fs::path> candidates = {
 		fs::current_path() / "pacc_packages",
-		env::getPaccDataStorageFolder()
+		env::getPaccDataStorageFolder() / "packages"
 	};
 
 	// Get first matching candidate:
@@ -164,25 +164,95 @@ Package loadPackageByName(std::string_view name)
 }
 
 /////////////////////////////////////////////////
-void Premake5::loadDependencies(Package pkg_)
+bool Premake5::compareDependency(Dependency const& left_, Dependency const& right_)
+{
+	if (&left_ == &right_)
+		return true;
+
+	if (left_.projectName == right_.projectName &&
+		left_.packageName == right_.packageName)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////
+PackagePtr Premake5::findPackageByRoot(fs::path root_) const
+{
+	auto it = std::lower_bound(
+			loadedPackages.begin(), loadedPackages.end(),
+			root_,
+			[](auto const& e, fs::path const& inserted) { return e->root < inserted; }
+		);
+
+	if (it != loadedPackages.end() && (*it)->root == root_)
+		return *it;
+
+	return nullptr;
+}
+
+
+/////////////////////////////////////////////////
+bool Premake5::wasPackageLoaded(fs::path root_) const
+{
+	auto it = std::lower_bound(
+			loadedPackages.begin(), loadedPackages.end(),
+			root_,
+			[](auto const& e, fs::path const& inserted) { return e->root < inserted; }
+		);
+
+	if (it != loadedPackages.end() && (*it)->root == root_)
+		return true;
+
+	return false;
+}
+
+/////////////////////////////////////////////////
+void Premake5::loadDependencies(Package & pkg_)
 {
 	for(auto p : pkg_.projects)
 	{
 		for(auto dep : p.dependencies)
 		{
-			if (dep.packageName.empty())
-				fmt::print("Loading dependency \"{}\"\n", dep.projectName);
-			else
-				fmt::print("Loading dependency \"{}\":\"{}\"\n", dep.packageName, dep.projectName);
+			PackagePtr pkgPtr;
 
-			// TODO: load dependency
+			// TODO: load dependency (and bind it to shared pointer)
+			{
+				Package pkg = loadPackageByName(dep.packageName);
 
-			auto pkg = std::make_shared<Package>(loadPackageByName(dep.packageName));
+				if (!pkg.findProject(dep.projectName))
+					throw std::runtime_error(fmt::format("Package \"{}\" doesn't contain project \"{}\"", dep.packageName, dep.projectName));
+
+				if (this->wasPackageLoaded(pkg.root))
+					continue; // ignore package, was loaded yet
+
+				if (dep.packageName.empty())
+					fmt::print("Loaded dependency \"{}\"\n", dep.projectName);
+				else
+					fmt::print("Loaded dependency \"{}\":\"{}\"\n", dep.packageName, dep.projectName);
+		
+				pkgPtr = std::make_shared<Package>(std::move(pkg));
+			}
 
 			// Assign loaded package:
-			dep.package = pkg;
+			dep.package = pkgPtr;
 
-			dependencies.push_back(std::move(pkg));
+			// Insert in sorted order:
+			{
+				auto it = std::upper_bound(
+						loadedPackages.begin(), loadedPackages.end(),
+						pkgPtr->root,
+						[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
+					);
+
+				loadedPackages.insert(it, pkgPtr);
+			}
+
+			buildQueue.push_back(dep);
+
+			this->loadDependencies(*pkgPtr);
 		}
 	}
 }

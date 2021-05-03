@@ -9,11 +9,16 @@ namespace gen
 
 class Premake5
 {
-	std::vector<PackagePtr> dependencies;
+	std::vector<PackagePtr> loadedPackages;
+	std::vector<Dependency> buildQueue;
 
-	void loadDependencies(Package pkg_);
+	void prepareBuildQueue();
+	bool wasPackageLoaded(fs::path root_) const;
+	PackagePtr findPackageByRoot(fs::path root_) const;
+	void loadDependencies(Package &pkg_);
+	static bool compareDependency(Dependency const& left_, Dependency const& right_);
 public:
-	void generate(Package const& package_);
+	void generate(Package & package_);
 };
 
 }
