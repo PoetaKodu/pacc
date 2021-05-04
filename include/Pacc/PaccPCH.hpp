@@ -13,6 +13,7 @@
 #include <tuple>
 #include <stdexcept>
 #include <optional>
+#include <variant>
 #include <thread>
 #include <chrono>
 #include <memory>

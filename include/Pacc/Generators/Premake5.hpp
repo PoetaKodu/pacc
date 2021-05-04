@@ -10,7 +10,7 @@ namespace gen
 class Premake5
 {
 	std::vector<PackagePtr> loadedPackages;
-	std::vector<Dependency> buildQueue;
+	std::vector<Dependency> configQueue;
 
 	void prepareBuildQueue();
 	bool wasPackageLoaded(fs::path root_) const;

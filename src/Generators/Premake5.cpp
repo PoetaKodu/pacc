@@ -169,10 +169,32 @@ bool Premake5::compareDependency(Dependency const& left_, Dependency const& righ
 	if (&left_ == &right_)
 		return true;
 
-	if (left_.projectName == right_.projectName &&
-		left_.packageName == right_.packageName)
+	if (left_.type() != right_.type())
+		return false;
+
+	// Doesn't matter if we use `left_` or `right_`:
+	switch(left_.type())
 	{
-		return true;
+	case Dependency::Raw:
+	{
+		return left_.raw() == right_.raw();
+
+		break;
+	}
+	case Dependency::Package:
+	{
+		// TODO: improve it
+		auto const& leftPkg 	= left_.package();
+		auto const& rightPkg 	= right_.package();
+
+		if (leftPkg.version 	== rightPkg.version &&
+			leftPkg.packageName == rightPkg.packageName)
+		{
+			return true;
+		}
+
+		break;
+	}
 	}
 
 	return false;
@@ -214,45 +236,59 @@ void Premake5::loadDependencies(Package & pkg_)
 {
 	for(auto p : pkg_.projects)
 	{
-		for(auto dep : p.dependencies)
+		for(auto& dep : p.dependencies)
 		{
-			PackagePtr pkgPtr;
-
-			// TODO: load dependency (and bind it to shared pointer)
+			switch(dep.type())
 			{
-				Package pkg = loadPackageByName(dep.packageName);
-
-				if (!pkg.findProject(dep.projectName))
-					throw std::runtime_error(fmt::format("Package \"{}\" doesn't contain project \"{}\"", dep.packageName, dep.projectName));
-
-				if (this->wasPackageLoaded(pkg.root))
-					continue; // ignore package, was loaded yet
-
-				if (dep.packageName.empty())
-					fmt::print("Loaded dependency \"{}\"\n", dep.projectName);
-				else
-					fmt::print("Loaded dependency \"{}\":\"{}\"\n", dep.packageName, dep.projectName);
-		
-				pkgPtr = std::make_shared<Package>(std::move(pkg));
-			}
-
-			// Assign loaded package:
-			dep.package = pkgPtr;
-
-			// Insert in sorted order:
+			case Dependency::Raw:
 			{
-				auto it = std::upper_bound(
-						loadedPackages.begin(), loadedPackages.end(),
-						pkgPtr->root,
-						[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
-					);
-
-				loadedPackages.insert(it, pkgPtr);
+				auto& rawDep = dep.raw();
+				fmt::print("Added raw dependency \"{}\"", rawDep);
+				// TODO: add to "calculated" libraries field
+				break;
 			}
+			case Dependency::Package:
+			{
+				auto& pkgDep = dep.package();
 
-			buildQueue.push_back(dep);
+				PackagePtr pkgPtr;
 
-			this->loadDependencies(*pkgPtr);
+				// TODO: load dependency (and bind it to shared pointer)
+				{
+					Package pkg = loadPackageByName(pkgDep.packageName);
+
+					if (this->wasPackageLoaded(pkg.root))
+						continue; // ignore package, was loaded yet
+
+					if (pkgDep.version.empty())
+						fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
+					else
+						fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+			
+					pkgPtr = std::make_shared<Package>(std::move(pkg));
+				}
+
+				// Assign loaded package:
+				pkgDep.package = pkgPtr;
+
+				// Insert in sorted order:
+				{
+					auto it = std::upper_bound(
+							loadedPackages.begin(), loadedPackages.end(),
+							pkgPtr->root,
+							[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
+						);
+
+					loadedPackages.insert(it, pkgPtr);
+				}
+
+				configQueue.push_back(dep);
+
+				this->loadDependencies(*pkgPtr);
+
+				break;
+			}
+			}
 		}
 	}
 }
@@ -351,8 +387,8 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			appendPremake5Lang(fmt_, project_.language);
 		else {
 			// TODO: use configuration file to get default values
-			fmt_.write("language(\"C++\")\n", project_.language);
-			fmt_.write("cppdialect(\"C++17\")\n", project_.cppStandard);
+			fmt_.write("language(\"C++\")\n");
+			fmt_.write("cppdialect(\"C++17\")\n");
 		}
 
 		appendPropWithAccess(fmt_, "files", 		project_.files);

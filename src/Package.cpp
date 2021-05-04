@@ -6,22 +6,34 @@
 #include <Pacc/Readers/JSONReader.hpp>
 
 
+using StringPair = std::pair<std::string, std::string>;
+
+StringPair splitBy(std::string_view s, char c)
+{
+	auto pos = s.find(c);
+	if (pos != std::string_view::npos)
+		return StringPair{ s.substr(0, pos), s.substr(pos + 1) };
+	else
+		return StringPair{ s, std::string{} };
+}
+
 ///////////////////////////////////////////////////////////////
-Dependency Dependency::from(std::string_view depPattern)
+PackageDependency PackageDependency::from(std::string_view depPattern)
 {
 	if (depPattern.empty())
 		throw std::runtime_error(fmt::format("Invalid dependency pattern \"{}\"", depPattern));
 
-	auto pkgSep = depPattern.find(':');
+	auto versionSep = depPattern.find('@');
 	
-	if (pkgSep != std::string::npos)
+	// TODO: parse version
+	if (versionSep != std::string::npos)
 	{
-		return Dependency{
-				std::string(depPattern.substr(0, pkgSep)),
-				std::string(depPattern.substr(pkgSep + 1))
+		return PackageDependency{
+				std::string(depPattern.substr(0, versionSep)),
+				std::string(depPattern.substr(versionSep + 1))
 			};	
 	}
-	return Dependency{ std::string(""), std::string(depPattern) };
+	return PackageDependency{ std::string(depPattern) };
 }
 
 ///////////////////////////////////////////////////
@@ -94,10 +106,58 @@ Project const* Package::findProject(std::string_view name_) const
 }
 
 ///////////////////////////////////////////////////
+template <json::value_t type>
+json* expect(json &j)
+{
+	if (j.type() == type)
+		return &j;
+	else
+		return nullptr;
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json* expectSub(json &j, std::string_view subfieldName)
+{
+	auto it = j.find(subfieldName);
+	if (it != j.end() && it->type() == type)
+	{
+		return (&(*it));
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json& require(json &j)
+{
+	if (j.type() == type)
+		return j;
+	else
+		throw std::runtime_error("invalid type");
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json& requireSub(json &j, std::string_view subfieldName)
+{
+	auto it = j.find(subfieldName);
+	if (it != j.end() && it->type() == type)
+	{
+		return (*it);
+	}
+
+	throw std::runtime_error("invalid subfield type");
+}
+
+
+///////////////////////////////////////////////////
 Package Package::loadFromJSON(std::string const& packageContent_)
 {
 	using namespace reader;
 
+	using json_vt = json::value_t;
 
 	Package result;
 
@@ -185,27 +245,55 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();
 
-		// TODO: type and value validation
-		if (auto it = jsonProject.find("cppStandard"); it != jsonProject.end())
-			project.cppStandard = it->get<std::string>();
-
-		// TODO: type and value validation
-		if (auto it = jsonProject.find("cStandard"); it != jsonProject.end())
-			project.cStandard = it->get<std::string>();
-
-		VecOfStr dependencyPatterns;
-		dependencyPatterns 		= loadVecOfStrField(jsonProject, "dependencies");
 		project.files 			= loadVecOfStrField(jsonProject, "files");
 		project.defines 		= loadVecOfStrAccField(jsonProject, "defines");
 		project.includeFolders 	= loadVecOfStrAccField(jsonProject, "includeFolders");
 		project.linkedLibraries = loadVecOfStrAccField(jsonProject, "linkedLibraries");
 		project.linkerFolders 	= loadVecOfStrAccField(jsonProject, "linkerFolders");
 		
-		project.dependencies.reserve(dependencyPatterns.size());
-		for(std::string_view p : dependencyPatterns)
+		// TODO: move to other function:
+		if (json* deps = expectSub<json_vt::array>(jsonProject, "dependencies"))
 		{
-			project.dependencies.push_back( Dependency::from(p) );
+			project.dependencies.reserve(deps->size());
+
+			for(auto &item : deps->items())
+			{
+				if (json* rawDep = expect<json_vt::string>(item.value()))
+				{
+					project.dependencies.push_back(
+							Dependency::raw( std::move( rawDep->get<std::string>() ) )
+						);
+				}
+				else if (json* pkgDep = expect<json_vt::object>(item.value()))
+				{
+					// Required fields:
+					json& name 		= requireSub<json_vt::string>(*pkgDep, "name");
+					json& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
+					// Optional fields:
+					json* version 	= expectSub<json_vt::string>(*pkgDep, "version");
+
+					// Configure dependency:
+					PackageDependency pd;
+
+					// Required:
+					pd.packageName = name;
+					// TODO: support more projects:
+					// pd.projects = projects;
+
+					// Optional
+					if (version) {
+						pd.version = version->get<std::string>();
+					}
+
+					project.dependencies.push_back(
+							Dependency::package( std::move(pd) )
+						);
+				}
+				else
+					throw std::runtime_error("Invalid dependency type");
+			}
 		}
+
 		
 		result.projects.push_back(std::move(project));
 	}

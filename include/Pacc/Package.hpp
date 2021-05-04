@@ -14,18 +14,82 @@ struct VecOfStrAcc
 	VecOfStr interface_;
 };
 
-struct Dependency
+
+using RawDependency = std::string;
+
+struct PackageDependency
 {
-	std::string packageName;
 	std::string projectName;
+	std::string packageName;
+	std::string version;
 
 	// Resolved (or not) package pointer.
 	PackagePtr 	package;
-	// std::string version; // TODO add version support
+
 	// TODO: add config support
 
-	static Dependency from(std::string_view depPattern);
+	static PackageDependency from(std::string_view depPattern);
 };
+
+class Dependency
+{
+	
+	using ValType = std::variant<RawDependency, PackageDependency>;
+	ValType val;
+	Dependency(ValType v) {
+		val = std::move(v);
+	}
+public:	
+	Dependency() = default;
+
+	enum Type
+	{
+		Raw,
+		Package,
+		None
+	};
+
+	bool isRaw() const {
+		return val.index() == 0;
+	}
+	bool isPackage() const {
+		return val.index() == 1;
+	}
+
+	Type type() const
+	{
+		if (this->isRaw())
+			return Type::Raw;
+		else if (this->isPackage())
+			return Type::Package;
+		
+		return Type::None;
+	}	
+
+	auto const& raw() const {
+		return std::get<RawDependency>(val);
+	}
+	auto const& package() const {
+		return std::get<PackageDependency>(val);
+	}
+	
+	auto& raw() {
+		return std::get<RawDependency>(val);
+	}
+	auto& package() {
+		return std::get<PackageDependency>(val);
+	}
+
+	static Dependency raw(RawDependency d) {
+		return Dependency{ std::move(d) }; 
+	}
+	static Dependency package(PackageDependency d) {
+		return Dependency{ std::move(d) }; 
+	}
+};
+
+
+
 
 struct TargetBase
 {
@@ -43,8 +107,6 @@ struct Project : TargetBase
 {
 	std::string		type;
 	std::string		language;
-	std::string		cppStandard;
-	std::string		cStandard;
 };
 
 struct Package : TargetBase
