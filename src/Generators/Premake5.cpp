@@ -378,6 +378,9 @@ void Premake5::loadDependencies(Package & pkg_)
 						loadedPackages.insert(it, pkgPtr);
 					}
 
+					configQueue.push_back(dep);
+					this->loadDependencies(*pkgPtr);
+
 					auto resolvePath = [&](auto const& pathElem) {
 							fs::path path = fs::u8path(pathElem);
 							if (path.is_relative())
@@ -395,10 +398,7 @@ void Premake5::loadDependencies(Package & pkg_)
 						mergeAccesses(p.linkedLibraries, 	remoteProj->linkedLibraries, 	methodsLoop[methodIdx]);
 					}
 
-					configQueue.push_back(dep);
-
-					this->loadDependencies(*pkgPtr);
-
+					
 					break;
 				}
 				}
