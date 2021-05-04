@@ -43,7 +43,6 @@ Package Package::load(fs::path dir_)
 	else if (fs::exists(dir_ / PackageJSON))
 	{
 		pkgSrcFile = PackageFileSource::JSON;
-		pkg.root = dir_ / PackageJSON;
 	}
 	else
 		throw std::exception(errors::NoPackageSourceFile.data());
@@ -57,14 +56,17 @@ Package Package::load(fs::path dir_)
 		std::cout << "Loading \"" << PackageJSON << "\" file\n";\
 
 		pkg = Package::loadFromJSON(reader::readFileContents(dir_ / PackageJSON));
+		pkg.root = dir_ / PackageJSON;
 		break;
 	}
 	case PackageFileSource::LuaScript:
 	{
 		std::cout << "Loading \"" << PackageLUA << "\" file\n";
 
+
 		// TODO: implement this.
 		std::cout << "This function is not implemented yet." << std::endl;
+		pkg.root = dir_ / PackageLUA;
 		break;
 	}
 	}
@@ -139,7 +141,6 @@ void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
 	if (deps_.type() != json_vt::array)
 		throw std::runtime_error("invalid type of dependencies subfield - array required");
 
-	// TODO: change this
 	target_.reserve(deps_.size());
 
 	for(auto &item : deps_.items())
@@ -269,14 +270,15 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 			return result;
 		};
 
+	// Read projects:
 	for(auto it : projects->items())
 	{
 		auto& jsonProject = it.value();
 
 		Project project;
 
-		project.name 			= jsonProject["name"].get<std::string>();
-		project.type 			= jsonProject["type"].get<std::string>();
+		project.name 					= jsonProject["name"].get<std::string>();
+		project.type 					= jsonProject["type"].get<std::string>();
 
 		// TODO: type and value validation
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
@@ -286,8 +288,8 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		project.defines.self	 		= loadVecOfStrAccField(jsonProject, "defines");
 		project.includeFolders.self	 	= loadVecOfStrAccField(jsonProject, "includeFolders");
 		project.linkerFolders.self	 	= loadVecOfStrAccField(jsonProject, "linkerFolders");
-		
-		// TODO: move to other function:
+
+		// Load dependencies:		
 		auto depsIt = jsonProject.find("dependencies");
 		if (depsIt != jsonProject.end())
 		{

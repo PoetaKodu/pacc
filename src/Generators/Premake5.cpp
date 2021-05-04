@@ -2,6 +2,7 @@
 
 #include <Pacc/Generators/Premake5.hpp>
 #include <Pacc/OutputFormatter.hpp>
+#include <Pacc/Filesystem.hpp>
 #include <Pacc/Environment.hpp>
 
 using namespace fmt;
@@ -266,18 +267,30 @@ auto& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
 	}
 }
 
-template <typename T>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_)
+template <typename T, typename TMapValueFn = std::nullptr_t>
+void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr)
 {
-	into_.insert(
-			into_.end(),
-			from_.begin(),
-			from_.end()
-		);
+	// Do not map values
+	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
+	{
+		into_.insert(
+				into_.end(),
+				from_.begin(),
+				from_.end()
+			);
+	}
+	else
+	{
+		into_.reserve(from_.size());
+		for(auto const & elem : from_)
+		{
+			into_.push_back( mapValueFn_(elem));
+		}
+	}
 }
 
-template <typename T>
-void mergeAccesses(T &into_, T const & from_, AccessType method_)
+template <typename T, typename TMapValueFn = std::nullptr_t>
+void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr)
 {
 	
 	auto& target = targetByAccessType(into_.computed, method_); // by default
@@ -294,8 +307,8 @@ void mergeAccesses(T &into_, T const & from_, AccessType method_)
 	auto mergeFieldsTarget =
 		[&](auto &selfOrComputed)
 		{
-			mergeFields(target, selfOrComputed.interface_);
-			mergeFields(target, selfOrComputed.public_);
+			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
+			mergeFields(target, selfOrComputed.public_, mapValueFn_);
 		};
 
 	forBoth(from_, mergeFieldsTarget);
@@ -365,13 +378,20 @@ void Premake5::loadDependencies(Package & pkg_)
 						loadedPackages.insert(it, pkgPtr);
 					}
 
+					auto resolvePath = [&](auto const& pathElem) {
+							fs::path path = fs::u8path(pathElem);
+							if (path.is_relative())
+								return fsx::fwd(pkgPtr->root.parent_path() / path).string();
+							else 
+								return pathElem;
+						};
 					for (auto const & depProjName : pkgDep.projects)
 					{
 						Project const* remoteProj = pkgPtr->findProject(depProjName);
 
 						mergeAccesses(p.defines, 			remoteProj->defines, 			methodsLoop[methodIdx]);
-						mergeAccesses(p.includeFolders, 	remoteProj->includeFolders, 	methodsLoop[methodIdx]);
-						mergeAccesses(p.linkerFolders, 		remoteProj->linkerFolders, 		methodsLoop[methodIdx]);
+						mergeAccesses(p.includeFolders, 	remoteProj->includeFolders, 	methodsLoop[methodIdx], resolvePath);
+						mergeAccesses(p.linkerFolders, 		remoteProj->linkerFolders, 		methodsLoop[methodIdx], resolvePath);
 						mergeAccesses(p.linkedLibraries, 	remoteProj->linkedLibraries, 	methodsLoop[methodIdx]);
 					}
 
