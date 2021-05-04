@@ -6,29 +6,33 @@ constexpr std::string_view PackageJSON 	= "cpackage.json";
 constexpr std::string_view PackageLUA 	= "cpackage.lua";
 
 using VecOfStr 		= std::vector< std::string >;
+using VecOfStrPtr 	= std::vector< std::string* >;
 using PackagePtr 	= std::shared_ptr<struct Package>;
-struct VecOfStrAcc
+
+template <typename T>
+struct AccessSplit
 {
-	VecOfStr public_;
-	VecOfStr private_;
-	VecOfStr interface_;
+	T public_;
+	T private_;
+	T interface_;
 };
+template <typename T>
+using AccessSplitVec 	= AccessSplit<std::vector<T>>;
 
-
-using RawDependency = std::string;
+using VecOfStrAcc 		= AccessSplitVec<std::string>;
+using RawDependency 	= std::string;
 
 struct PackageDependency
 {
-	std::string projectName;
+	VecOfStr 	projects;
 	std::string packageName;
-	std::string version;
+	std::string version{};
 
 	// Resolved (or not) package pointer.
-	PackagePtr 	package;
+	PackagePtr 	package{};
 
 	// TODO: add config support
 
-	static PackageDependency from(std::string_view depPattern);
 };
 
 class Dependency
@@ -95,12 +99,20 @@ struct TargetBase
 {
 	std::string 	name;
 
-	VecOfStr 				files;
-	std::vector<Dependency> dependencies;
-	VecOfStrAcc 			defines;
-	VecOfStrAcc 			includeFolders;
-	VecOfStrAcc 			linkerFolders;
-	VecOfStrAcc 			linkedLibraries;
+	template <typename T>
+	struct SelfAndComputed {
+		T self;
+		T computed;
+	};
+	template <typename T>
+	using SaC = SelfAndComputed<T>;
+
+	VecOfStr					 	files;
+	SaC<AccessSplitVec<Dependency>> dependencies;
+	SaC<VecOfStrAcc>			 	defines;
+	SaC<VecOfStrAcc>			 	includeFolders;
+	SaC<VecOfStrAcc>			 	linkerFolders;
+	SaC<VecOfStrAcc>			 	linkedLibraries;
 };
 
 struct Project : TargetBase

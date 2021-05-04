@@ -102,13 +102,30 @@ auto getNumElements(VecOfStrAcc const& v)
 
 
 /////////////////////////////////////////////////
-auto getAccesses(VecOfStr const& v)
+template <typename T>
+auto getAccesses(std::vector<T> const& v)
 {
 	return std::vector{ &v };
 }
 
 /////////////////////////////////////////////////
-auto getAccesses(VecOfStrAcc const& v)
+template <typename T>
+auto getAccesses(AccessSplitVec<T> const& v)
+{
+	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+}
+
+
+/////////////////////////////////////////////////
+template <typename T>
+auto getAccesses(std::vector<T>& v)
+{
+	return std::vector<T*>{ &v };
+}
+
+/////////////////////////////////////////////////
+template <typename T>
+auto getAccesses(AccessSplitVec<T>& v)
 {
 	return std::vector{ &v.private_, &v.public_, &v.interface_ };
 }
@@ -231,64 +248,143 @@ bool Premake5::wasPackageLoaded(fs::path root_) const
 	return false;
 }
 
+enum class AccessType
+{
+	Private,
+	Public,
+	Interface
+};
+
+template <typename T>
+auto& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
+{
+	switch(type_)
+	{
+	case AccessType::Private: 		return accessSplit_.private_;
+	case AccessType::Public: 		return accessSplit_.public_;
+	case AccessType::Interface: 	return accessSplit_.interface_;
+	}
+}
+
+template <typename T>
+void mergeFields(std::vector<T>& into_, std::vector<T> const& from_)
+{
+	into_.insert(
+			into_.end(),
+			from_.begin(),
+			from_.end()
+		);
+}
+
+template <typename T>
+void mergeAccesses(T &into_, T const & from_, AccessType method_)
+{
+	
+	auto& target = targetByAccessType(into_.computed, method_); // by default
+
+	// Private is private
+	// Merge only interface and public:
+	auto forBoth =
+		[](auto & selfAndComputed, auto const& whatToDo)
+		{
+			whatToDo(selfAndComputed.computed);
+			whatToDo(selfAndComputed.self);
+		};
+
+	auto mergeFieldsTarget =
+		[&](auto &selfOrComputed)
+		{
+			mergeFields(target, selfOrComputed.interface_);
+			mergeFields(target, selfOrComputed.public_);
+		};
+
+	forBoth(from_, mergeFieldsTarget);
+}
+
 /////////////////////////////////////////////////
 void Premake5::loadDependencies(Package & pkg_)
 {
-	for(auto p : pkg_.projects)
+	const std::array<AccessType, 3> methodsLoop = {
+			AccessType::Private,
+			AccessType::Public,
+			AccessType::Interface
+		};
+	size_t methodIdx = 0;
+
+	for(auto & p : pkg_.projects)
 	{
-		for(auto& dep : p.dependencies)
+		methodIdx = 0;
+		for(auto* access : getAccesses(p.dependencies.self))
 		{
-			switch(dep.type())
+			for(auto& dep : *access)
 			{
-			case Dependency::Raw:
-			{
-				auto& rawDep = dep.raw();
-				fmt::print("Added raw dependency \"{}\"", rawDep);
-				// TODO: add to "calculated" libraries field
-				break;
-			}
-			case Dependency::Package:
-			{
-				auto& pkgDep = dep.package();
-
-				PackagePtr pkgPtr;
-
-				// TODO: load dependency (and bind it to shared pointer)
+				switch(dep.type())
 				{
-					Package pkg = loadPackageByName(pkgDep.packageName);
+				case Dependency::Raw:
+				{
+					auto& rawDep = dep.raw();
+					fmt::print("Added raw dependency \"{}\"", rawDep);
 
-					if (this->wasPackageLoaded(pkg.root))
-						continue; // ignore package, was loaded yet
+					auto& target = targetByAccessType(p.linkedLibraries.computed, methodsLoop[methodIdx]);
+					// TODO: improve this:
+					target.push_back( rawDep );
+					break;
+				}
+				case Dependency::Package:
+				{
+					auto& pkgDep = dep.package();
 
-					if (pkgDep.version.empty())
-						fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
-					else
-						fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+					PackagePtr pkgPtr;
+
+					// TODO: load dependency (and bind it to shared pointer)
+					{
+						Package pkg = loadPackageByName(pkgDep.packageName);
+
+						if (this->wasPackageLoaded(pkg.root))
+							continue; // ignore package, was loaded yet
+
+						if (pkgDep.version.empty())
+							fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
+						else
+							fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+				
+						pkgPtr = std::make_shared<Package>(std::move(pkg));
+					}
+
+					// Assign loaded package:
+					pkgDep.package = pkgPtr;
+
+					// Insert in sorted order:
+					{
+						auto it = std::upper_bound(
+								loadedPackages.begin(), loadedPackages.end(),
+								pkgPtr->root,
+								[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
+							);
+
+						loadedPackages.insert(it, pkgPtr);
+					}
+
+					for (auto const & depProjName : pkgDep.projects)
+					{
+						Project const* remoteProj = pkgPtr->findProject(depProjName);
+
+						mergeAccesses(p.defines, 			remoteProj->defines, 			methodsLoop[methodIdx]);
+						mergeAccesses(p.includeFolders, 	remoteProj->includeFolders, 	methodsLoop[methodIdx]);
+						mergeAccesses(p.linkerFolders, 		remoteProj->linkerFolders, 		methodsLoop[methodIdx]);
+						mergeAccesses(p.linkedLibraries, 	remoteProj->linkedLibraries, 	methodsLoop[methodIdx]);
+					}
+
+					configQueue.push_back(dep);
+
+					this->loadDependencies(*pkgPtr);
+
+					break;
+				}
+				}
+			}
 			
-					pkgPtr = std::make_shared<Package>(std::move(pkg));
-				}
-
-				// Assign loaded package:
-				pkgDep.package = pkgPtr;
-
-				// Insert in sorted order:
-				{
-					auto it = std::upper_bound(
-							loadedPackages.begin(), loadedPackages.end(),
-							pkgPtr->root,
-							[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
-						);
-
-					loadedPackages.insert(it, pkgPtr);
-				}
-
-				configQueue.push_back(dep);
-
-				this->loadDependencies(*pkgPtr);
-
-				break;
-			}
-			}
+			methodIdx++;
 		}
 	}
 }
@@ -391,11 +487,21 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			fmt_.write("cppdialect(\"C++17\")\n");
 		}
 
+		// TODO: Refactor this code
+
+		// Computed:
+		appendPropWithAccess(fmt_, "defines", 		project_.defines.computed);
+		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries.computed);
+		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders.computed);
+		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders.computed);
+
+		
 		appendPropWithAccess(fmt_, "files", 		project_.files);
-		appendPropWithAccess(fmt_, "defines", 		project_.defines);
-		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries);
-		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders);
-		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders);
+		appendPropWithAccess(fmt_, "defines", 		project_.defines.self);
+		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries.self);
+		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders.self);
+		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders.self);
+
 	}
 }
 

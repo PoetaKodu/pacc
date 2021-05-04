@@ -150,52 +150,28 @@
 					"markdownDescription": "# Project files\n\nFiles used to build a project. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
 				},
 				"dependencies": {
-					"type": "array",
-					"items": {
-						"type": [ "object", "string" ],
-						"minLength": "1",
-						"properties": {
-							"name": {
-								"type": "string",
-								"description": "File or package name",
-								"markdownDescription": "File or package name"
-							},
-							"projects": {
-								"$ref": "#/definitions/stringOrVec"
-							},
-							"version": {
-								"type": "string"
-							},
-							"path": {
-								"type": "string"
+					"oneOf": [
+						{
+							"type": "object",
+							"properties": {
+								"public": {
+									"$ref": "#/definitions/arrayOfDeps",
+									"decription": "Dependencies of the current project and propagated to projects that use it as a dependency."
+								},
+								"private": {
+									"$ref": "#/definitions/arrayOfDeps",
+									"decription": "Dependencies of the current project only."
+								},
+								"interface": {
+									"$ref": "#/definitions/arrayOfDeps",
+									"decription": "Dependencies propagated to projects that use the current project as a dependency."
+								}
 							}
 						},
-						"required": [ "name", "projects" ],
-						"defaultSnippets": [
-							{
-								"label": "Pacc dependency",
-								"description": "Dependency loaded from pacc repository.",
-								"markdownDescription": "Dependency loaded from `pacc` repository.",
-								"body": {
-									"name": "${1:PackageName}",
-									"projects": [ "${2:ProjectName}" ],
-									"version": "${3:^1.0.0}"
-								}
-							},
-							{
-								"label": "Local dependency",
-								"description": "Dependency loaded from local disk.",
-								"body": {
-									"name": "${1:PackageName}",
-									"projects": [ "${2:ProjectName}" ],
-									"version": "${3:^1.0.0}",
-									"path": "${4:/path/to/folder/with/cpackage.json_or_lua}"
-								}
-							}
-						]
-					},
-					"description": "Projects within packages that this project depends on.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]",
-					"markdownDescription": "# Dependencies\n\nProjects within packages that this project depends on. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
+						{
+							"$ref": "#/definitions/arrayOfDeps"
+						}
+					]
 				},
 				"linkedLibraries": {
 					"$ref": "#/definitions/stringOrVecAcc",
@@ -307,6 +283,54 @@
 					}
 				]
 			}
+		},
+		"arrayOfDeps": {
+			"type": "array",
+			"items": {
+				"type": [ "object", "string" ],
+				"minLength": "1",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "File or package name",
+						"markdownDescription": "File or package name"
+					},
+					"projects": {
+						"$ref": "#/definitions/stringOrVec"
+					},
+					"version": {
+						"type": "string"
+					},
+					"path": {
+						"type": "string"
+					}
+				},
+				"required": [ "name", "projects" ],
+				"defaultSnippets": [
+					{
+						"label": "Pacc dependency",
+						"description": "Dependency loaded from pacc repository.",
+						"markdownDescription": "Dependency loaded from `pacc` repository.",
+						"body": {
+							"name": "${1:PackageName}",
+							"projects": [ "${2:ProjectName}" ],
+							"version": "${3:^1.0.0}"
+						}
+					},
+					{
+						"label": "Local dependency",
+						"description": "Dependency loaded from local disk.",
+						"body": {
+							"name": "${1:PackageName}",
+							"projects": [ "${2:ProjectName}" ],
+							"version": "${3:^1.0.0}",
+							"path": "${4:/path/to/folder/with/cpackage.json_or_lua}"
+						}
+					}
+				]
+			},
+			"description": "Projects within packages that this project depends on.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]",
+			"markdownDescription": "# Dependencies\n\nProjects within packages that this project depends on. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
 		}
 	}
 }
