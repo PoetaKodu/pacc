@@ -104,12 +104,25 @@
 				},
 				"type": {
 					"type": "string",
-					"description": "Type of the project (causes different build results)",
+					"title": "Type of the project (causes different build results)",
 					"oneOf": [
-						{"enum": ["app"], 			"title": "An executable application (EXE on Windows systems)."},
-						{"enum": ["static lib"], 	"title": "A library that is compiled into binaries while linking (integrated into one file, bigger file sizes)."},
-						{"enum": ["shared lib"], 	"title": "A standalone library (sharable between binaries)."},
-						{"enum": ["interface"], 	"title": "A project that doesn't result in a binary itself, instead it provides configuration to other projects."}
+						{
+							"enum": ["app"],
+							"description": "An executable application (EXE on Windows systems)."
+						},
+						{
+							"enum": ["static lib"],
+							"description": "A library that is compiled into binaries while linking (integrated into one file, bigger file sizes).",
+							"markdownDescription": "# Static library\n\nA library that is compiled into binaries while linking (integrated into one file, bigger file sizes).\n\n## Recommendations\n\nUse following project structure:\n- `include/LibName/<header files>`\n- `src/<source files>`\n\nTo use this library in other project add it as a dependency:\n```json\n\"dependencies\": [\n\t{\n\t\t\"name\": \"PackageName\",\n\t\t\"projects\": [ \"LibName\" ]\n\t}\n]\n```\n(dont forget to add `include` folder to **public** subfield of `includeFolders` of the library project)\n\nWhen library is added as dependency, you can use it by including it's header files:\n```cpp\n#include <LibName/Header.hpp>\n```\n"
+						},
+						{
+							"enum": ["shared lib"],
+							"description": "A standalone library (sharable between binaries)."
+						},
+						{
+							"enum": ["interface"],
+							"description": "A project that doesn't result in a binary itself, instead it provides configuration to other projects."
+						}
 					]
 				},
 				"language": {
@@ -135,6 +148,54 @@
 					"$ref": "#/definitions/stringOrVec",
 					"description": "Files that this project uses.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]",
 					"markdownDescription": "# Project files\n\nFiles used to build a project. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
+				},
+				"dependencies": {
+					"type": "array",
+					"items": {
+						"type": [ "object", "string" ],
+						"minLength": "1",
+						"properties": {
+							"name": {
+								"type": "string",
+								"description": "File or package name",
+								"markdownDescription": "File or package name"
+							},
+							"projects": {
+								"$ref": "#/definitions/stringOrVec"
+							},
+							"version": {
+								"type": "string"
+							},
+							"path": {
+								"type": "string"
+							}
+						},
+						"required": [ "name", "projects" ],
+						"defaultSnippets": [
+							{
+								"label": "Pacc dependency",
+								"description": "Dependency loaded from pacc repository.",
+								"markdownDescription": "Dependency loaded from `pacc` repository.",
+								"body": {
+									"name": "${1:PackageName}",
+									"projects": [ "${2:ProjectName}" ],
+									"version": "${3:^1.0.0}"
+								}
+							},
+							{
+								"label": "Local dependency",
+								"description": "Dependency loaded from local disk.",
+								"body": {
+									"name": "${1:PackageName}",
+									"projects": [ "${2:ProjectName}" ],
+									"version": "${3:^1.0.0}",
+									"path": "${4:/path/to/folder/with/cpackage.json_or_lua}"
+								}
+							}
+						]
+					},
+					"description": "Projects within packages that this project depends on.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]",
+					"markdownDescription": "# Dependencies\n\nProjects within packages that this project depends on. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
 				},
 				"linkedLibraries": {
 					"$ref": "#/definitions/stringOrVecAcc",
@@ -212,7 +273,10 @@
 							"includeFolders": {
 								"public": "include"
 							},
-							"files": "${2:src/Main.cpp}",
+							"files": [
+								"include/${1}/**.hpp",
+								"${2:src/**.cpp}"
+							],
 							"description": "A static library project. Hover mouse over a `type` field to see available fields."
 						}
 					},
