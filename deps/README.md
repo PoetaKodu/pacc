@@ -53,4 +53,4 @@ ln -s /path/to/folder/link /path/to/existing/folder
 
 ## Goals
 
-Make Blocc powerful enough to handle its dependencies by itself.
+Make Pacc powerful enough to handle its dependencies by itself.
