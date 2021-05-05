@@ -140,62 +140,13 @@ template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
 
 template <typename T>
-auto& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
-{
-	switch(type_)
-	{
-	case AccessType::Private: 		return accessSplit_.private_;
-	case AccessType::Public: 		return accessSplit_.public_;
-	case AccessType::Interface: 	return accessSplit_.interface_;
-	}
-}
+T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
 
 template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr)
-{
-	// Do not map values
-	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
-	{
-		into_.insert(
-				into_.end(),
-				from_.begin(),
-				from_.end()
-			);
-	}
-	else
-	{
-		into_.reserve(from_.size());
-		for(auto const & elem : from_)
-		{
-			into_.push_back( mapValueFn_(elem));
-		}
-	}
-}
+void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr);
 
 template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr)
-{
-	
-	auto& target = targetByAccessType(into_.computed, method_); // by default
-
-	// Private is private
-	// Merge only interface and public:
-	auto forBoth =
-		[](auto & selfAndComputed, auto const& whatToDo)
-		{
-			whatToDo(selfAndComputed.computed);
-			whatToDo(selfAndComputed.self);
-		};
-
-	auto mergeFieldsTarget =
-		[&](auto &selfOrComputed)
-		{
-			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
-			mergeFields(target, selfOrComputed.public_, mapValueFn_);
-		};
-
-	forBoth(from_, mergeFieldsTarget);
-}
+void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr);
 
 
 /////////////////////////////////////////////////
@@ -665,5 +616,66 @@ void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
 		fmt_.write("\"{}\",\n", str);
 }
 
+
+/////////////////////////////////////////////////
+template <typename T>
+T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
+{
+	switch(type_)
+	{
+	case AccessType::Private: 		return accessSplit_.private_;
+	case AccessType::Public: 		return accessSplit_.public_;
+	case AccessType::Interface: 	return accessSplit_.interface_;
+	}
+}
+
+/////////////////////////////////////////////////
+template <typename T, typename TMapValueFn>
+void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_)
+{
+	// Do not map values
+	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
+	{
+		into_.insert(
+				into_.end(),
+				from_.begin(),
+				from_.end()
+			);
+	}
+	else
+	{
+		into_.reserve(from_.size());
+		for(auto const & elem : from_)
+		{
+			into_.push_back( mapValueFn_(elem));
+		}
+	}
+}
+
+/////////////////////////////////////////////////
+template <typename T, typename TMapValueFn>
+void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_)
+{
+	
+	auto& target = targetByAccessType(into_.computed, method_); // by default
+
+	// Private is private
+	// Merge only interface and public:
+	auto forBoth =
+		[](auto & selfAndComputed, auto const& whatToDo)
+		{
+			whatToDo(selfAndComputed.computed);
+			whatToDo(selfAndComputed.self);
+		};
+
+	auto mergeFieldsTarget =
+		[&](auto &selfOrComputed)
+		{
+			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
+			mergeFields(target, selfOrComputed.public_, mapValueFn_);
+		};
+
+	forBoth(from_, mergeFieldsTarget);
+}
 
 }
