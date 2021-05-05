@@ -153,6 +153,9 @@ template <typename T>
 typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v);
 
 /////////////////////////////////////////////////
+bool compareIgnoreCase(std::string_view l, std::string_view r);
+
+/////////////////////////////////////////////////
 void Premake5::generate(Package & pkg_)
 {
 	// Prepare output buffer
@@ -481,19 +484,6 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 	}
 }
 
-/////////////////////////////////////////////////
-bool compareIgnoreCase(std::string_view l, std::string_view r)
-{
-	if (l.length() != r.length()) return false;
-
-	for(std::size_t i = 0; i < l.size(); i++)
-	{
-		if ( std::tolower(int(l[i])) != std::tolower(int(r[i])) )
-			return false;
-	}
-
-	return true;
-}
 
 
 
@@ -620,8 +610,6 @@ typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_vie
 	return dict_.end();
 }
 
-
-
 /////////////////////////////////////////////////
 template <typename T>
 T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
@@ -682,5 +670,20 @@ void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn ma
 
 	forBoth(from_, mergeFieldsTarget);
 }
+
+/////////////////////////////////////////////////
+bool compareIgnoreCase(std::string_view l, std::string_view r)
+{
+	if (l.length() != r.length()) return false;
+
+	for(std::size_t i = 0; i < l.size(); i++)
+	{
+		if ( std::tolower(int(l[i])) != std::tolower(int(r[i])) )
+			return false;
+	}
+
+	return true;
+}
+
 
 }
