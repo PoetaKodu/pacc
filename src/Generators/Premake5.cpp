@@ -139,6 +139,64 @@ void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T c
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
 
+template <typename T>
+auto& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
+{
+	switch(type_)
+	{
+	case AccessType::Private: 		return accessSplit_.private_;
+	case AccessType::Public: 		return accessSplit_.public_;
+	case AccessType::Interface: 	return accessSplit_.interface_;
+	}
+}
+
+template <typename T, typename TMapValueFn = std::nullptr_t>
+void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr)
+{
+	// Do not map values
+	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
+	{
+		into_.insert(
+				into_.end(),
+				from_.begin(),
+				from_.end()
+			);
+	}
+	else
+	{
+		into_.reserve(from_.size());
+		for(auto const & elem : from_)
+		{
+			into_.push_back( mapValueFn_(elem));
+		}
+	}
+}
+
+template <typename T, typename TMapValueFn = std::nullptr_t>
+void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr)
+{
+	
+	auto& target = targetByAccessType(into_.computed, method_); // by default
+
+	// Private is private
+	// Merge only interface and public:
+	auto forBoth =
+		[](auto & selfAndComputed, auto const& whatToDo)
+		{
+			whatToDo(selfAndComputed.computed);
+			whatToDo(selfAndComputed.self);
+		};
+
+	auto mergeFieldsTarget =
+		[&](auto &selfOrComputed)
+		{
+			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
+			mergeFields(target, selfOrComputed.public_, mapValueFn_);
+		};
+
+	forBoth(from_, mergeFieldsTarget);
+}
+
 
 /////////////////////////////////////////////////
 void Premake5::generate(Package & pkg_)
@@ -150,6 +208,45 @@ void Premake5::generate(Package & pkg_)
 	OutputFormatter fmt{out};
 
 	this->loadDependencies(pkg_);
+
+	auto q = this->setupConfigQueue();
+
+	fmt::print("Configuration steps: {}\n", q.size());
+	size_t stepCounter = 0;
+	for(auto & step : q)
+	{
+		fmt::print("Step {}: [ ", stepCounter++);
+		size_t depCounter = 0;
+		for(auto & dep : step)
+		{
+			if (depCounter++ != 0)
+				fmt::print(", ");
+			fmt::print("\"{}\"", dep.project->name);
+
+			auto& pkgDep = dep.dep->package();
+
+			auto resolvePath = [&](auto const& pathElem) {
+					fs::path path = fs::u8path(pathElem);
+					if (path.is_relative())
+						return fsx::fwd(pkgDep.package->root.parent_path() / path).string();
+					else 
+						return pathElem;
+				};
+			for (auto const & depProjName : pkgDep.projects)
+			{
+				Project const* remoteProj = pkgDep.package->findProject(depProjName);
+
+				mergeAccesses(dep.project->defines, 			remoteProj->defines, 			dep.dep->accessType);
+				mergeAccesses(dep.project->includeFolders, 		remoteProj->includeFolders, 	dep.dep->accessType, resolvePath);
+				mergeAccesses(dep.project->linkerFolders, 		remoteProj->linkerFolders, 		dep.dep->accessType, resolvePath);
+				mergeAccesses(dep.project->linkedLibraries, 	remoteProj->linkedLibraries, 	dep.dep->accessType);
+			}
+
+		}
+		fmt::print(" ]\n", stepCounter++);
+	}
+
+
 	appendWorkspace(fmt, pkg_);
 
 	// Store the output in the premake file
@@ -249,71 +346,6 @@ bool Premake5::wasPackageLoaded(fs::path root_) const
 	return false;
 }
 
-enum class AccessType
-{
-	Private,
-	Public,
-	Interface
-};
-
-template <typename T>
-auto& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
-{
-	switch(type_)
-	{
-	case AccessType::Private: 		return accessSplit_.private_;
-	case AccessType::Public: 		return accessSplit_.public_;
-	case AccessType::Interface: 	return accessSplit_.interface_;
-	}
-}
-
-template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr)
-{
-	// Do not map values
-	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
-	{
-		into_.insert(
-				into_.end(),
-				from_.begin(),
-				from_.end()
-			);
-	}
-	else
-	{
-		into_.reserve(from_.size());
-		for(auto const & elem : from_)
-		{
-			into_.push_back( mapValueFn_(elem));
-		}
-	}
-}
-
-template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr)
-{
-	
-	auto& target = targetByAccessType(into_.computed, method_); // by default
-
-	// Private is private
-	// Merge only interface and public:
-	auto forBoth =
-		[](auto & selfAndComputed, auto const& whatToDo)
-		{
-			whatToDo(selfAndComputed.computed);
-			whatToDo(selfAndComputed.self);
-		};
-
-	auto mergeFieldsTarget =
-		[&](auto &selfOrComputed)
-		{
-			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
-			mergeFields(target, selfOrComputed.public_, mapValueFn_);
-		};
-
-	forBoth(from_, mergeFieldsTarget);
-}
-
 /////////////////////////////////////////////////
 void Premake5::loadDependencies(Package & pkg_)
 {
@@ -331,6 +363,8 @@ void Premake5::loadDependencies(Package & pkg_)
 		{
 			for(auto& dep : *access)
 			{
+				dep.accessType = methodsLoop[methodIdx];
+
 				switch(dep.type())
 				{
 				case Dependency::Raw:
@@ -338,7 +372,7 @@ void Premake5::loadDependencies(Package & pkg_)
 					auto& rawDep = dep.raw();
 					// fmt::print("Added raw dependency \"{}\"\n", rawDep);
 
-					auto& target = targetByAccessType(p.linkedLibraries.computed, methodsLoop[methodIdx]);
+					auto& target = targetByAccessType(p.linkedLibraries.computed, dep.accessType);
 					// TODO: improve this:
 					target.push_back( rawDep );
 					break;
@@ -378,26 +412,8 @@ void Premake5::loadDependencies(Package & pkg_)
 						loadedPackages.insert(it, pkgPtr);
 					}
 
-					configQueue.push_back(dep);
+					pendingDeps.push_back( { &p, &dep } );
 					this->loadDependencies(*pkgPtr);
-
-					auto resolvePath = [&](auto const& pathElem) {
-							fs::path path = fs::u8path(pathElem);
-							if (path.is_relative())
-								return fsx::fwd(pkgPtr->root.parent_path() / path).string();
-							else 
-								return pathElem;
-						};
-					for (auto const & depProjName : pkgDep.projects)
-					{
-						Project const* remoteProj = pkgPtr->findProject(depProjName);
-
-						mergeAccesses(p.defines, 			remoteProj->defines, 			methodsLoop[methodIdx]);
-						mergeAccesses(p.includeFolders, 	remoteProj->includeFolders, 	methodsLoop[methodIdx], resolvePath);
-						mergeAccesses(p.linkerFolders, 		remoteProj->linkerFolders, 		methodsLoop[methodIdx], resolvePath);
-						mergeAccesses(p.linkedLibraries, 	remoteProj->linkedLibraries, 	methodsLoop[methodIdx]);
-					}
-
 					
 					break;
 				}
@@ -407,6 +423,90 @@ void Premake5::loadDependencies(Package & pkg_)
 			methodIdx++;
 		}
 	}
+}
+
+/////////////////////////////////////////////////
+Premake5::DepQueueStep Premake5::collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_)
+{
+	PendingDeps newPending;
+	newPending.reserve(pending_.size());
+
+	DepQueueStep nextStep;
+
+	for(auto depIt = pending_.begin(); depIt != pending_.end(); ++depIt)
+	{
+		auto& dep = *depIt;
+
+		bool ready = true;
+
+		auto& depPkg = dep.dep->package();
+		for (auto const& depProject : depPkg.projects)
+		{
+			auto accesses = getAccesses(depPkg.package->findProject(depProject)->dependencies.self);
+			for (auto access : accesses)
+			{
+				bool accessFailed = false;
+				for(auto& depOfDep : *access)
+				{
+					if (depOfDep.isPackage())
+					{
+						bool foundInAny = false;
+						for (auto const& step : ready_)
+						{
+							// TODO: Can be done better (binary search on sorted range)
+							auto it = std::find_if(step.begin(), step.cend(), [&](auto const& readyDep)
+								{
+									return readyDep.dep == &depOfDep;
+								});
+							if (it != step.end())
+							{
+								foundInAny = true;
+								break;
+							}
+						}
+						
+						if (!foundInAny)
+						{
+							ready = false;
+							break;
+						}
+					}
+				}
+				if (!ready)
+					break;
+			}
+		}
+
+		if (!ready)
+			newPending.push_back(dep);
+		else
+			nextStep.push_back(dep);
+	}
+
+	pending_ = std::move(newPending);
+	return nextStep;
+}
+
+/////////////////////////////////////////////////
+Premake5::DepQueue Premake5::setupConfigQueue()
+{
+	DepQueue q;
+
+	std::size_t totalDeps = pendingDeps.size();
+	std::size_t totalCollected = 0;
+	while(totalCollected < totalDeps)
+	{
+		DepQueueStep step = this->collectReadyDeps(q, pendingDeps);
+		// Could not collect any?
+		if (step.empty())
+			throw std::runtime_error("cyclic dependency detected");
+
+		totalCollected += step.size();
+
+		q.push_back( std::move(step) );
+	}
+
+	return q;
 }
 
 /////////////////////////////////////////////////

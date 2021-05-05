@@ -9,6 +9,13 @@ using VecOfStr 		= std::vector< std::string >;
 using VecOfStrPtr 	= std::vector< std::string* >;
 using PackagePtr 	= std::shared_ptr<struct Package>;
 
+enum class AccessType
+{
+	Private,
+	Public,
+	Interface
+};
+
 template <typename T>
 struct AccessSplit
 {
@@ -52,6 +59,8 @@ public:
 		Package,
 		None
 	};
+
+	AccessType accessType;
 
 	bool isRaw() const {
 		return val.index() == 0;
