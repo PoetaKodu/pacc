@@ -148,6 +148,9 @@ void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn
 template <typename T, typename TMapValueFn = std::nullptr_t>
 void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr);
 
+/////////////////////////////////////////////////
+template <typename T>
+typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v);
 
 /////////////////////////////////////////////////
 void Premake5::generate(Package & pkg_)
@@ -493,17 +496,6 @@ bool compareIgnoreCase(std::string_view l, std::string_view r)
 }
 
 
-/////////////////////////////////////////////////
-template <typename T>
-auto mapString(Dict<T> const& dict_, std::string_view v)
-{
-	for(auto it = dict_.begin(); it != dict_.end(); it++)
-	{
-		if (compareIgnoreCase(std::get<0>(*it), v))
-			return it;
-	}
-	return dict_.end();
-}
 
 /////////////////////////////////////////////////
 std::string_view mapToPremake5Kind(std::string_view projectType_)
@@ -594,7 +586,6 @@ void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T co
 }
 
 
-
 /////////////////////////////////////////////////
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_)
@@ -615,6 +606,20 @@ void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
 	for(auto const & str : vec_)
 		fmt_.write("\"{}\",\n", str);
 }
+
+
+/////////////////////////////////////////////////
+template <typename T>
+typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v)
+{
+	for(auto it = dict_.begin(); it != dict_.end(); it++)
+	{
+		if (compareIgnoreCase(std::get<0>(*it), v))
+			return it;
+	}
+	return dict_.end();
+}
+
 
 
 /////////////////////////////////////////////////
