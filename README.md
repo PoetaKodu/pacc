@@ -1,11 +1,51 @@
 # Pacc
 
 An easy to use and powerful C++ package manager with an integrated build tools.
-## Overview (04.2021)
 
+<hr/>
+
+**Note**: this project is under development. Wait for first alpha release.
+
+<hr/>
+
+## Overview (early 05.2021)
+
+
+### Configure projects easily with JSON
+
+
+
+```json
+{
+	"name": "HelloWorldProject",
+	"type": "app",
+	"files": "src/Main.hpp"
+}
+```
+
+### Rich editor support
+
+- Self-explainatory syntax and naming
+- Good docs
+- Rapid development
+- Editor does most of the job for you
 
 <p align="center">
-	<img src="res/img/overview_04_2021.gif" alt="Overview"/>
+	<img src="res/img/support.gif" alt="Support"/>
+</p>
+
+Set up libraries and applications with few clicks or keystrokes.
+
+### Build with ease
+
+All you need is a single command.
+
+```
+pacc build
+```
+
+<p align="center">
+	<img src="res/img/build.gif" alt="Build"/>
 </p>
 
 ## 1. Quick Start
@@ -47,7 +87,7 @@ Folder contents:
 {
 	"name": "HelloWorld",
 	"type": "app",
-	"files": [ "src/*.cpp" ]
+	"files": "src/*.cpp"
 }
 ```
 
