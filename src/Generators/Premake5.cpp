@@ -336,7 +336,7 @@ void Premake5::loadDependencies(Package & pkg_)
 				case Dependency::Raw:
 				{
 					auto& rawDep = dep.raw();
-					fmt::print("Added raw dependency \"{}\"", rawDep);
+					// fmt::print("Added raw dependency \"{}\"\n", rawDep);
 
 					auto& target = targetByAccessType(p.linkedLibraries.computed, methodsLoop[methodIdx]);
 					// TODO: improve this:

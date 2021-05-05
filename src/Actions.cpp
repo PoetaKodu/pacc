@@ -41,8 +41,7 @@ void initPackage()
 	}
 
 	std::ofstream("cpackage.json") <<
-R"PKG({
-	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
+R"PKG({c
 	"name": "MyWorkspace",
 	"projects": [
 		{
@@ -164,7 +163,10 @@ void generateProjectFiles()
 	auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
 
 	if (exitStatus.has_value())
-		std::cout << "Premake5 finished with exit code " << exitStatus.value() << std::endl;
+	{
+		if (exitStatus.value() == 0)
+			std::cout << "Premake5 finished (success) " << std::endl;
+	}
 	else
 		std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
 
@@ -196,7 +198,10 @@ void buildProjects(Package const& pkg_)
 	auto exitStatus = runChildProcessSync(buildCommand, "build", 30);
 
 	if (exitStatus.has_value())
-		std::cout << "MSBuild finished with exit code " << exitStatus.value() << std::endl;
+	{
+		if (exitStatus.value() == 0)
+			std::cout << "MSBuild finished building projects (success)" << std::endl;
+	}
 	else
 		std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
 
@@ -245,16 +250,16 @@ std::optional<int> runChildProcessSync(std::string const& command_, std::string 
 		// Handle stdout:
 		[](const char *bytes, size_t n)
 		{
-			std::cout << std::string(bytes, n);
-			if(bytes[n - 1] != '\n')
-				std::cout << std::endl;
+			// std::cout << std::string(bytes, n);
+			// if(bytes[n - 1] != '\n')
+			// 	std::cout << std::endl;
 		},
 		// Handle stderr:
 		[](const char *bytes, size_t n)
 		{
-			std::cerr << std::string(bytes, n);
-			if(bytes[n - 1] != '\n')
-				std::cout << std::endl;
+			// std::cerr << std::string(bytes, n);
+			// if(bytes[n - 1] != '\n')
+			// 	std::cout << std::endl;
 		}
 	);
 

@@ -53,7 +53,7 @@ Package Package::load(fs::path dir_)
 	{
 	case PackageFileSource::JSON:
 	{
-		std::cout << "Loading \"" << PackageJSON << "\" file\n";\
+		// std::cout << "Loading \"" << PackageJSON << "\" file\n";\
 
 		pkg = Package::loadFromJSON(reader::readFileContents(dir_ / PackageJSON));
 		pkg.root = dir_ / PackageJSON;
@@ -61,7 +61,7 @@ Package Package::load(fs::path dir_)
 	}
 	case PackageFileSource::LuaScript:
 	{
-		std::cout << "Loading \"" << PackageLUA << "\" file\n";
+		// std::cout << "Loading \"" << PackageLUA << "\" file\n";
 
 
 		// TODO: implement this.
