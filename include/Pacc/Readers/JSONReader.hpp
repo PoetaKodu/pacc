@@ -11,5 +11,9 @@ class PackageJsonReader
 public:
 	using BasicJsonView::BasicJsonView;
 
+	/// <summary>
+	/// 	Makes sure that provided json can be further processed,
+	/// 	f.e.: ensures that projects are inside a workspace.
+	/// </summary>
 	void makeConformant();
 };

@@ -10,6 +10,8 @@
 #include <Pacc/Generators/Premake5.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
+#include <Pacc/Helpers/Formatting.hpp>
+#include <Pacc/Helpers/Exceptions.hpp>
 
 namespace actions
 {
@@ -73,20 +75,20 @@ void linkPackage(ProgramArgs const& args_)
 	{
 		if (fs::is_symlink(targetSymlink))
 		{
-			throw std::runtime_error(fmt::format(
-					"Package \"{}\" is already linked to {}.\n"
-					"If you want to update the link, use \"pacc unlink\" first.",
+			throw PaccException(
+					"Package \"{}\" is already linked to {}.\n",
 					pkg.name,
 					fs::read_symlink(targetSymlink).string()
-				));
+				)
+				.withHelp("If you want to update the link, use \"pacc unlink\" first.");
 		}
 		else
 		{
-			throw std::runtime_error(fmt::format(
-					"Package \"{}\" is already installed in users environment.\n"
-					"If you want to link current package, uninstall existing one with \"pacc uninstall\" first.",
+			throw PaccException(
+					"Package \"{}\" is already installed in users environment.\n",
 					pkg.name
-				));
+				)
+				.withHelp("If you want to link current package, uninstall existing one with \"pacc uninstall\" first.");
 		}
 	}
 	else
@@ -118,11 +120,10 @@ void unlinkPackage(ProgramArgs const& args_)
 	}
 	else
 	{
-		throw std::runtime_error(fmt::format(
-				"Package \"{}\" is not linked within user environment.\n"
-				"If you want to link current package, use \"pacc link\" first.",
+		throw PaccException(
+				"Package \"{}\" is not linked within user environment.\n",
 				pkgName
-			));
+			).withHelp("If you want to link current package, use \"pacc link\" first.");
 	}	
 }
 
@@ -168,10 +169,12 @@ void generateProjectFiles()
 			std::cout << "Premake5 finished (success) " << std::endl;
 	}
 	else
-		std::cerr << "Premake5 generation was aborted (reason: timeout)" << std::endl;
+		fmt::printErr("Premake5 generation was aborted (reason: timeout)\n");
 
-	if (exitStatus.value_or(1) != 0)
-		throw std::runtime_error("Failed to generate project files");
+	if (int es = exitStatus.value_or(1))
+	{
+		throw PaccException("Failed to generate project files (Premake5 exit code: {})", es);
+	}
 }
 
 ///////////////////////////////////////////////////
@@ -215,14 +218,15 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 	auto programName = fs::u8path(args_[0]).stem();
 
 	// Introduction:
-	std::cout 	<< "A C++ package manager.\n\n"
-			 	<< "USAGE: " << programName.string() << " [action] <params>\n\n";
+	fmt::print( "A C++ package manager.\n\n"
+				"USAGE: {} [action] <params>\n\n",
+				programName.string()
+			);
 
 	// 
 	if (abbrev_)
 	{
-		std::cout 	<< "Use \"" << programName.string() << " help\" for more information"
-					<< std::endl;
+		fmt::print("Use \"{} help\" for more information\n", programName.string());
 	}
 	else
 	{
@@ -231,7 +235,7 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 					
 		for (auto action : help::actions)
 		{
-			std::cout << "\t" << action.first << "\t\t" << action.second << "\n";
+			fmt::print("\t{}\t\t{}\n", action.first, action.second);
 		}
 		std::cout << std::endl;
 	}
