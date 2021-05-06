@@ -51,7 +51,7 @@ void PackageJSONView::expect(json &j, std::string_view name, json::value_t type)
 }
 
 //////////////////////////////////////////////////
-void PackageJSONView::expectType(json const& j, std::string_view name, json::value_t type)
+void PackageJSONView::requireType(json const& j, std::string_view name, json::value_t type)
 {
 	using namespace fmt;
 
@@ -81,7 +81,7 @@ void PackageJSONView::makeConformant()
 			it != root.end())
 		{
 			// Has to be an array
-			expectType(*it, "projects", jtype::array);
+			requireType(*it, "projects", jtype::array);
 
 			// At least one project
 			if (it->size() < 1)
@@ -102,7 +102,7 @@ void PackageJSONView::makeConformant()
 			// Treat as workspace:
 			auto name = root.find("name");
 			if (name != root.end())
-				expectType(*name, "name", jtype::string);
+				requireType(*name, "name", jtype::string);
 			else
 			{
 				// Use first project's name

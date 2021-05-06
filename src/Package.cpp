@@ -7,8 +7,38 @@
 #include <Pacc/Readers/JSONReader.hpp>
 
 
+///////////////////////////////////////////////////
+// Private functions (forward declaration)
+///////////////////////////////////////////////////
+
+template <json::value_t type>
+json* expect(json &j);
+
+template <json::value_t type>
+json* expectSub(json &j, std::string_view subfieldName);
+
+template <json::value_t type>
+json& require(json &j);
+
+template <json::value_t type>
+json& requireSub(json &j, std::string_view subfieldName);
+
+json const* 	selfOrSubfieldOpt(json const &self, std::string_view fieldName = "");
+json const& 	selfOrSubfieldReq(json const &self, std::string_view fieldName = "");
+json const* 	selfOrSubfield(json const &self, std::string_view fieldName, bool required = false);
+
+void 			readDependencyAccess(json &deps_, std::vector<Dependency> &target_);
+VecOfStr 		loadVecOfStrField(json const &j, std::string_view fieldName, bool direct = false, bool required = false);
+VecOfStrAcc 	loadVecOfStrAccField(json const &j, std::string_view fieldName);
+
+
+///////////////////////////////////////////////////
+// Public functions
+///////////////////////////////////////////////////
+
 using StringPair = std::pair<std::string, std::string>;
 
+///////////////////////////////////////////////////
 StringPair splitBy(std::string_view s, char c)
 {
 	auto pos = s.find(c);
@@ -115,108 +145,6 @@ Project const* Package::findProject(std::string_view name_) const
 }
 
 ///////////////////////////////////////////////////
-template <json::value_t type>
-json* expect(json &j)
-{
-	if (j.type() == type)
-		return &j;
-	else
-		return nullptr;
-}
-
-///////////////////////////////////////////////////
-template <json::value_t type>
-json* expectSub(json &j, std::string_view subfieldName)
-{
-	auto it = j.find(subfieldName);
-	if (it != j.end() && it->type() == type)
-	{
-		return (&(*it));
-	}
-
-	return nullptr;
-}
-
-///////////////////////////////////////////////////
-template <json::value_t type>
-json& require(json &j)
-{
-	if (j.type() == type)
-		return j;
-	else
-		throw std::runtime_error("invalid type");
-}
-
-///////////////////////////////////////////////////
-template <json::value_t type>
-json& requireSub(json &j, std::string_view subfieldName)
-{
-	auto it = j.find(subfieldName);
-	if (it != j.end() && it->type() == type)
-	{
-		return (*it);
-	}
-
-	throw std::runtime_error("invalid subfield type");
-}
-
-void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
-{
-	using json_vt = json::value_t;
-
-	if (deps_.type() != json_vt::array)
-		throw std::runtime_error("invalid type of dependencies subfield - array required");
-
-	target_.reserve(deps_.size());
-
-	for(auto &item : deps_.items())
-	{
-		if (json* rawDep = expect<json_vt::string>(item.value()))
-		{
-			target_.push_back(
-					Dependency::raw( std::move( rawDep->get<std::string>() ) )
-				);
-		}
-		else if (json* pkgDep = expect<json_vt::object>(item.value()))
-		{
-			// Required fields:
-			json& name 		= requireSub<json_vt::string>(*pkgDep, "name");
-			json& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
-			// Optional fields:
-			json* version 	= expectSub<json_vt::string>(*pkgDep, "version");
-
-			// Configure dependency:
-			PackageDependency pd;
-
-			// Required:
-			pd.packageName = name;
-			
-			pd.projects.reserve(projects.size());
-			for(auto & proj : projects.items())
-			{
-				json& projName = require<json_vt::string>(proj.value());
-
-				pd.projects.push_back(projName.get<std::string>());
-			}
-
-			// Optional
-			if (version) {
-				pd.version = version->get<std::string>();
-			}
-
-			target_.push_back(
-					Dependency::package( std::move(pd) )
-				);
-		}
-		else
-			throw std::runtime_error("Invalid dependency type");
-	}
-
-	
-}
-
-
-///////////////////////////////////////////////////
 Package Package::loadFromJSON(std::string const& packageContent_)
 {
 	using namespace reader;
@@ -241,60 +169,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 
 	result.projects.reserve(projects->size());
 
-	auto loadVecOfStrField = [](json const &j, std::string_view fieldName, bool direct = false, bool required = false)
-		{
-			VecOfStr result;
-			std::string const elemName = std::string(fieldName) + " element";
-
-			// Either subfield or the `j` itself (direct => `j` is an array)
-			json const* val = nullptr;
-			if (direct)
-				val = &j;
-			else if (auto it = j.find(fieldName); it != j.end())
-				val = &it.value();
-			else
-			{
-				if (required)
-					throw std::runtime_error(fmt::format("field {0} not found", fieldName));
-				else
-					return result;
-			}
-			if (val->type() == json::value_t::string)
-			{
-				result.push_back(*val);
-			}
-			else
-			{
-				PackageJSONView::expectType(*val, fieldName, json::value_t::array);
-				
-				// Read the array:
-				result.reserve(val->size());
-
-				for(auto elem : val->items())
-				{
-					PackageJSONView::expectType(elem.value(), elemName, json::value_t::string);
-					result.push_back(elem.value());
-				}
-			}
-			return result;
-		};
-
-	auto loadVecOfStrAccField = [&](json const &j, std::string_view fieldName)
-		{
-			VecOfStrAcc result;
-			if (auto it = j.find(fieldName); it != j.end())
-			{
-				if (it.value().type() == json::value_t::array)
-					result.private_ = loadVecOfStrField(*it, fieldName, true);
-				else
-				{
-					result.private_ 	= loadVecOfStrField(*it, "private");
-					result.public_ 		= loadVecOfStrField(*it, "public");
-					result.interface_ 	= loadVecOfStrField(*it, "interface");
-				}
-			}	
-			return result;
-		};
+	
 
 	// Read projects:
 	for(auto it : projects->items())
@@ -353,5 +228,191 @@ std::size_t getNumElements(VecOfStrAcc const& v)
 	return v.public_.size() + v.private_.size() + v.interface_.size();
 }
 
+///////////////////////////////////////////////////
+// Private functions
+///////////////////////////////////////////////////
+
+///////////////////////////////////////////////////
+void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
+{
+	using json_vt = json::value_t;
+
+	if (deps_.type() != json_vt::array)
+		throw std::runtime_error("invalid type of dependencies subfield - array required");
+
+	target_.reserve(deps_.size());
+
+	for(auto &item : deps_.items())
+	{
+		if (json* rawDep = expect<json_vt::string>(item.value()))
+		{
+			target_.push_back(
+					Dependency::raw( std::move( rawDep->get<std::string>() ) )
+				);
+		}
+		else if (json* pkgDep = expect<json_vt::object>(item.value()))
+		{
+			// Required fields:
+			json& name 		= requireSub<json_vt::string>(*pkgDep, "name");
+			json& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
+			// Optional fields:
+			json* version 	= expectSub<json_vt::string>(*pkgDep, "version");
+
+			// Configure dependency:
+			PackageDependency pd;
+
+			// Required:
+			pd.packageName = name;
+			
+			pd.projects.reserve(projects.size());
+			for(auto & proj : projects.items())
+			{
+				json& projName = require<json_vt::string>(proj.value());
+
+				pd.projects.push_back(projName.get<std::string>());
+			}
+
+			// Optional
+			if (version) {
+				pd.version = version->get<std::string>();
+			}
+
+			target_.push_back(
+					Dependency::package( std::move(pd) )
+				);
+		}
+		else
+			throw std::runtime_error("Invalid dependency type");
+	}
+
+	
+}
 
 
+///////////////////////////////////////////////////
+json const* selfOrSubfieldOpt(json const &self, std::string_view fieldName)
+{
+	if (fieldName == "")
+		return &self;
+	else
+	{
+		if (auto it = self.find(fieldName); it != self.end())
+			return &it.value();
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////
+json const& selfOrSubfieldReq(json const &self, std::string_view fieldName)
+{
+	json const* v = selfOrSubfieldOpt(self, fieldName);
+	if (!v)
+		throw std::runtime_error(fmt::format("field {0} not found", fieldName));
+	else
+		return *v;
+}
+
+///////////////////////////////////////////////////
+json const* selfOrSubfield(json const &self, std::string_view fieldName, bool required)
+{
+	if (required)
+		return &selfOrSubfieldReq(self, fieldName);
+	else
+		return selfOrSubfieldOpt(self, fieldName);
+}
+
+///////////////////////////////////////////////////
+VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
+{
+	using namespace reader;
+
+	VecOfStr result;
+	std::string const elemName = std::string(fieldName) + " element";
+
+	// Either subfield or the `j` itself (direct => `j` is an array)
+	json const* val = selfOrSubfield(j, direct ? fieldName : "", required);
+
+	if (val->type() == json::value_t::string)
+	{
+		result.push_back(*val);
+	}
+	else
+	{
+		PackageJSONView::requireType(*val, fieldName, json::value_t::array);
+		
+		// Read the array:
+		result.reserve(val->size());
+
+		for(auto elem : val->items())
+		{
+			PackageJSONView::requireType(elem.value(), elemName, json::value_t::string);
+			result.push_back(elem.value());
+		}
+	}
+	return result;
+}
+
+///////////////////////////////////////////////////
+VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName)
+{
+	VecOfStrAcc result;
+	if (auto it = j.find(fieldName); it != j.end())
+	{
+		if (it.value().type() == json::value_t::array)
+			result.private_ = loadVecOfStrField(*it, fieldName, true);
+		else
+		{
+			result.private_ 	= loadVecOfStrField(*it, "private");
+			result.public_ 		= loadVecOfStrField(*it, "public");
+			result.interface_ 	= loadVecOfStrField(*it, "interface");
+		}
+	}	
+	return result;
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json* expect(json &j)
+{
+	if (j.type() == type)
+		return &j;
+	else
+		return nullptr;
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json* expectSub(json &j, std::string_view subfieldName)
+{
+	auto it = j.find(subfieldName);
+	if (it != j.end() && it->type() == type)
+	{
+		return (&(*it));
+	}
+
+	return nullptr;
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json& require(json &j)
+{
+	if (j.type() == type)
+		return j;
+	else
+		throw std::runtime_error("invalid type");
+}
+
+///////////////////////////////////////////////////
+template <json::value_t type>
+json& requireSub(json &j, std::string_view subfieldName)
+{
+	auto it = j.find(subfieldName);
+	if (it != j.end() && it->type() == type)
+	{
+		return (*it);
+	}
+
+	throw std::runtime_error("invalid subfield type");
+}
