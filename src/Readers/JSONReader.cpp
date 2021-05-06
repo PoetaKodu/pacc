@@ -1,67 +1,12 @@
 #include PACC_PCH
 
-#include <Pacc/Readers/JSONReader.hpp>
+#include <Pacc/Readers/JsonReader.hpp>
+
 
 //////////////////////////////////////////////////
-constexpr std::string_view jsonTypeName(json::value_t type)
+void PackageJsonReader::makeConformant()
 {
-	switch(type)
-	{
-		case json::value_t::null:
-			return "null";
-		case json::value_t::object:
-			return "object";
-		case json::value_t::array:
-			return "array";
-		case json::value_t::string:
-			return "string";
-		case json::value_t::boolean:
-			return "boolean";
-		case json::value_t::binary:
-			return "binary";
-		case json::value_t::discarded:
-			return "discarded";
-		default:
-			return "number";
-	}
-}
-
-//////////////////////////////////////////////////
-void PackageJSONView::expect(json &j, std::string_view name, json::value_t type)
-{
-	using namespace fmt;
-
-	constexpr std::string_view WrongTypeMsg =
-		"field \"{}\" expected to be of type \"{}\", but \"{}\" given instead";
-	constexpr std::string_view NoFieldMsg =
-		"field \"{}\" expected to be of type \"{}\" does not exist";
-
-	auto it = j.find(name);
-
-	if (it != j.end())
-	{
-		if (it->type() != type)
-			throw std::runtime_error(fmt::format(WrongTypeMsg, name, jsonTypeName(type), it->type_name()) );
-	}
-	else
-		throw std::runtime_error(fmt::format(NoFieldMsg, name, jsonTypeName(type)) );
-}
-
-//////////////////////////////////////////////////
-void PackageJSONView::requireType(json const& j, std::string_view name, json::value_t type)
-{
-	using namespace fmt;
-
-	constexpr std::string_view WrongTypeMsg =
-		"field \"{}\" expected to be of type \"{}\", but \"{}\" given instead";
-
-	if (j.type() != type)
-		throw std::runtime_error(fmt::format(WrongTypeMsg, name, jsonTypeName(type), j.type_name()) );
-}
-
-//////////////////////////////////////////////////
-void PackageJSONView::makeConformant()
-{
+	using JV 	= JsonView;
 	using jtype = json::value_t;
 
 	if (root.is_array())
@@ -78,7 +23,7 @@ void PackageJSONView::makeConformant()
 			it != root.end())
 		{
 			// Has to be an array
-			requireType(*it, "projects", jtype::array);
+			JV{*it}.requireType("projects", jtype::array);
 
 			// At least one project
 			if (it->size() < 1)
@@ -92,14 +37,14 @@ void PackageJSONView::makeConformant()
 					throw std::runtime_error(fmt::format("each workspace project has to be an JSON object"));
 				
 				// Validate name and type
-				expect(proj, "name", jtype::string);
-				expect(proj, "type", jtype::string);
+				JV{proj}.expect("name", jtype::string);
+				JV{proj}.expect("type", jtype::string);
 			}
 
 			// Treat as workspace:
 			auto name = root.find("name");
 			if (name != root.end())
-				requireType(*name, "name", jtype::string);
+				JV{*name}.requireType("name", jtype::string);
 			else
 			{
 				// Use first project's name

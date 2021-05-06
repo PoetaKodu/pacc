@@ -3,13 +3,13 @@
 #include PACC_PCH
 
 #include <Pacc/Package.hpp>
+#include <Pacc/Helpers/Json.hpp>
 
-class PackageJSONView
+class PackageJsonReader
+	: public BasicJsonView<json> // non-const
 {
 public:
-	json& root;
+	using BasicJsonView::BasicJsonView;
 
-	static void expect(json &j, std::string_view name, json::value_t type);
-	static void requireType(json const& j, std::string_view name, json::value_t type);
 	void makeConformant();
 };

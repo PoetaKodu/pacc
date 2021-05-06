@@ -4,7 +4,7 @@
 #include <Pacc/Errors.hpp>
 #include <Pacc/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
-#include <Pacc/Readers/JSONReader.hpp>
+#include <Pacc/Readers/JsonReader.hpp>
 
 
 ///////////////////////////////////////////////////
@@ -153,7 +153,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 
 	// Parse and make conformant:
 	json j;
-	PackageJSONView view{ j };
+	PackageJsonReader view{ j };
 
 	j = json::parse(packageContent_);
 	view.makeConformant();
@@ -323,6 +323,8 @@ json const* selfOrSubfield(json const &self, std::string_view fieldName, bool re
 ///////////////////////////////////////////////////
 VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
 {
+	using JV = JsonView;
+
 	VecOfStr result;
 	std::string const elemName = std::string(fieldName) + " element";
 
@@ -335,14 +337,14 @@ VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direc
 	}
 	else
 	{
-		PackageJSONView::requireType(*val, fieldName, json::value_t::array);
+		JV(*val).requireType(fieldName, json::value_t::array);
 		
 		// Read the array:
 		result.reserve(val->size());
 
 		for(auto elem : val->items())
 		{
-			PackageJSONView::requireType(elem.value(), elemName, json::value_t::string);
+			JV{elem.value()}.requireType(elemName, json::value_t::string);
 			result.push_back(elem.value());
 		}
 	}

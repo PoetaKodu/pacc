@@ -9,7 +9,7 @@
 #include <Pacc/Filesystem.hpp>
 #include <Pacc/Generators/Premake5.hpp>
 #include <Pacc/Readers/General.hpp>
-#include <Pacc/Readers/JSONReader.hpp>
+#include <Pacc/Readers/JsonReader.hpp>
 
 namespace actions
 {
