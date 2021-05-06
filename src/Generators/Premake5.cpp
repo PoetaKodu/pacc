@@ -125,9 +125,11 @@ void Premake5::generate(Package & pkg_)
 
 	OutputFormatter fmt{out};
 
-	this->loadDependencies(pkg_);
+	ConfigQueue cfgQueue;
 
-	auto q = this->setupConfigQueue();
+	cfgQueue.loadDependencies(pkg_);
+
+	auto q = cfgQueue.setupConfigQueue();
 
 	fmt::print("Configuration steps: {}\n", q.size());
 	size_t stepCounter = 0;
@@ -197,44 +199,44 @@ Package loadPackageByName(std::string_view name)
 }
 
 /////////////////////////////////////////////////
-bool Premake5::compareDependency(Dependency const& left_, Dependency const& right_)
-{
-	if (&left_ == &right_)
-		return true;
+// bool Premake5::compareDependency(Dependency const& left_, Dependency const& right_)
+// {
+// 	if (&left_ == &right_)
+// 		return true;
 
-	if (left_.type() != right_.type())
-		return false;
+// 	if (left_.type() != right_.type())
+// 		return false;
 
-	// Doesn't matter if we use `left_` or `right_`:
-	switch(left_.type())
-	{
-	case Dependency::Raw:
-	{
-		return left_.raw() == right_.raw();
+// 	// Doesn't matter if we use `left_` or `right_`:
+// 	switch(left_.type())
+// 	{
+// 	case Dependency::Raw:
+// 	{
+// 		return left_.raw() == right_.raw();
 
-		break;
-	}
-	case Dependency::Package:
-	{
-		// TODO: improve it
-		auto const& leftPkg 	= left_.package();
-		auto const& rightPkg 	= right_.package();
+// 		break;
+// 	}
+// 	case Dependency::Package:
+// 	{
+// 		// TODO: improve it
+// 		auto const& leftPkg 	= left_.package();
+// 		auto const& rightPkg 	= right_.package();
 
-		if (leftPkg.version 	== rightPkg.version &&
-			leftPkg.packageName == rightPkg.packageName)
-		{
-			return true;
-		}
+// 		if (leftPkg.version 	== rightPkg.version &&
+// 			leftPkg.packageName == rightPkg.packageName)
+// 		{
+// 			return true;
+// 		}
 
-		break;
-	}
-	}
+// 		break;
+// 	}
+// 	}
 
-	return false;
-}
+// 	return false;
+// }
 
 /////////////////////////////////////////////////
-PackagePtr Premake5::findPackageByRoot(fs::path root_) const
+PackagePtr ConfigQueue::findPackageByRoot(fs::path root_) const
 {
 	auto it = std::lower_bound(
 			loadedPackages.begin(), loadedPackages.end(),
@@ -250,7 +252,7 @@ PackagePtr Premake5::findPackageByRoot(fs::path root_) const
 
 
 /////////////////////////////////////////////////
-bool Premake5::wasPackageLoaded(fs::path root_) const
+bool ConfigQueue::wasPackageLoaded(fs::path root_) const
 {
 	auto it = std::lower_bound(
 			loadedPackages.begin(), loadedPackages.end(),
@@ -265,7 +267,7 @@ bool Premake5::wasPackageLoaded(fs::path root_) const
 }
 
 /////////////////////////////////////////////////
-void Premake5::loadDependencies(Package & pkg_)
+void ConfigQueue::loadDependencies(Package & pkg_)
 {
 	const std::array<AccessType, 3> methodsLoop = {
 			AccessType::Private,
@@ -344,34 +346,30 @@ void Premake5::loadDependencies(Package & pkg_)
 }
 
 /////////////////////////////////////////////////
-bool wasDependencyQueued(Dependency const& dep, Premake5::DepQueue const& readyQueue_)
+bool wasDependencyQueued(Dependency const& dep, ConfigQueue::DepQueue const& readyQueue_)
 {
 	auto compareQueuedDep =
-		[&](Premake5::ProjectDep const& readyDep)
+		[&](ConfigQueue::ProjectDep const& readyDep)
 		{
 			return readyDep.dep == &dep;
 		};
 
-	if (dep.isPackage())
+	for (auto const& step : readyQueue_)
 	{
-		for (auto const& step : readyQueue_)
-		{
-			// TODO: Can be done better (binary search on sorted range)
-			auto it = std::find_if(step.begin(), step.cend(), compareQueuedDep);
+		// TODO: Can be done better (binary search on sorted range)
+		auto it = std::find_if(step.begin(), step.cend(), compareQueuedDep);
 
-			if (it != step.end())
-			{
-				return true;
-			}
+		if (it != step.end())
+		{
+			return true;
 		}
 	}
-
 
 	return false;
 }
 
 /////////////////////////////////////////////////
-bool projectHasPendingDependencies(Project const& project, Premake5::DepQueue const& readyQueue_)
+bool projectHasPendingDependencies(Project const& project, ConfigQueue::DepQueue const& readyQueue_)
 {
 	auto selfDepsAcc = getAccesses(project.dependencies.self);
 	
@@ -379,6 +377,9 @@ bool projectHasPendingDependencies(Project const& project, Premake5::DepQueue co
 	{
 		for(auto& selfDep : *access)
 		{
+			if (!selfDep.isPackage())
+				continue;
+
 			if (!wasDependencyQueued(selfDep, readyQueue_))
 				return true;
 		}
@@ -387,7 +388,7 @@ bool projectHasPendingDependencies(Project const& project, Premake5::DepQueue co
 }
 
 /////////////////////////////////////////////////
-bool packageHasPendingDependencies(PackageDependency & dep, Premake5::DepQueue const& readyQueue_)
+bool packageHasPendingDependencies(PackageDependency & dep, ConfigQueue::DepQueue const& readyQueue_)
 {
 	auto& packagePtr = dep.package;
 
@@ -404,7 +405,7 @@ bool packageHasPendingDependencies(PackageDependency & dep, Premake5::DepQueue c
 }
 
 /////////////////////////////////////////////////
-Premake5::DepQueueStep Premake5::collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_)
+ConfigQueue::DepQueueStep ConfigQueue::collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_)
 {
 	PendingDeps newPending;
 	newPending.reserve(pending_.size());
@@ -428,7 +429,7 @@ Premake5::DepQueueStep Premake5::collectReadyDeps(DepQueue const& ready_, Pendin
 }
 
 /////////////////////////////////////////////////
-Premake5::DepQueue Premake5::setupConfigQueue()
+ConfigQueue::DepQueue ConfigQueue::setupConfigQueue()
 {
 	DepQueue q;
 

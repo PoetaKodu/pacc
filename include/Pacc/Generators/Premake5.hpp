@@ -7,7 +7,7 @@
 namespace gen
 {
 
-class Premake5
+class ConfigQueue
 {
 public:
 	struct ProjectDep
@@ -21,25 +21,29 @@ public:
 		}
 	};
 
+
 	using DepQueueStep 		= std::vector<ProjectDep>;
 	using DepQueue 			= std::vector<DepQueueStep>;
 	using PendingDeps 		= DepQueueStep;
 
-	void generate(Package & package_);
-
-private:
-
 	std::vector<PackagePtr> loadedPackages;
 	PendingDeps 			pendingDeps;
 
+	void loadDependencies(Package &pkg_);
+	DepQueue setupConfigQueue();
 	void prepareBuildQueue();
+private:
 	bool wasPackageLoaded(fs::path root_) const;
 	PackagePtr findPackageByRoot(fs::path root_) const;
-	void loadDependencies(Package &pkg_);
-	static bool compareDependency(Dependency const& left_, Dependency const& right_);
 
 	DepQueueStep collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_);
-	DepQueue setupConfigQueue();
+};
+
+class Premake5
+{
+public:
+	void generate(Package & package_);
+	
 };
 
 }
