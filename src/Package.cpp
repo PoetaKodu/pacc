@@ -86,7 +86,7 @@ Package Package::load(fs::path dir_)
 	{
 		// std::cout << "Loading \"" << PackageJSON << "\" file\n";\
 
-		pkg = Package::loadFromJSON(reader::readFileContents(dir_ / PackageJSON));
+		pkg = Package::loadFromJSON(readFileContents(dir_ / PackageJSON));
 		pkg.root = dir_ / PackageJSON;
 		break;
 	}
@@ -147,8 +147,6 @@ Project const* Package::findProject(std::string_view name_) const
 ///////////////////////////////////////////////////
 Package Package::loadFromJSON(std::string const& packageContent_)
 {
-	using namespace reader;
-
 	using json_vt = json::value_t;
 
 	Package result;
@@ -325,8 +323,6 @@ json const* selfOrSubfield(json const &self, std::string_view fieldName, bool re
 ///////////////////////////////////////////////////
 VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
 {
-	using namespace reader;
-
 	VecOfStr result;
 	std::string const elemName = std::string(fieldName) + " element";
 

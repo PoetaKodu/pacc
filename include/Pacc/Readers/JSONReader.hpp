@@ -4,9 +4,6 @@
 
 #include <Pacc/Package.hpp>
 
-namespace reader
-{
-
 class PackageJSONView
 {
 public:
@@ -16,5 +13,3 @@ public:
 	static void requireType(json const& j, std::string_view name, json::value_t type);
 	void makeConformant();
 };
-
-}

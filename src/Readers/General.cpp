@@ -2,9 +2,6 @@
 
 #include <Pacc/Readers/General.hpp>
 
-namespace reader
-{
-
 ///////////////////////////////////////////////////
 std::string readFileContents(fs::path const& path_)
 {
@@ -21,6 +18,4 @@ std::string readFileContents(fs::path const& path_)
 	result.append(buf.data(), input.gcount());
 
 	return result;
-}
-
 }

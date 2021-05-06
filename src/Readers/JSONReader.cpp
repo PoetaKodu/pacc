@@ -2,9 +2,6 @@
 
 #include <Pacc/Readers/JSONReader.hpp>
 
-namespace reader
-{
-
 //////////////////////////////////////////////////
 constexpr std::string_view jsonTypeName(json::value_t type)
 {
@@ -114,7 +111,4 @@ void PackageJSONView::makeConformant()
 	}
 	else 
 		throw std::runtime_error(fmt::format("empty workspace not allowed"));			
-}
-
-
 }
