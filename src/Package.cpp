@@ -329,7 +329,11 @@ VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direc
 	std::string const elemName = std::string(fieldName) + " element";
 
 	// Either subfield or the `j` itself (direct => `j` is an array)
-	json const* val = selfOrSubfield(j, direct ? fieldName : "", required);
+	json const* val = selfOrSubfield(j, direct ? "" : fieldName, required);
+
+	// Can be null if `required` == false
+	if (!val)
+		return result;
 
 	if (val->type() == json::value_t::string)
 	{
