@@ -11,7 +11,6 @@ class Premake5
 {
 public:
 	void generate(Package & package_);
-	
 };
 
 }

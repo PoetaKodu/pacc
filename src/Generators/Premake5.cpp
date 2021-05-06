@@ -127,7 +127,7 @@ void Premake5::generate(Package & pkg_)
 
 	cfgQueue.recursiveLoad(pkg_);
 
-	auto const& q = cfgQueue.setupConfigQueue();
+	auto const& q = cfgQueue.setup();
 
 	fmt::print("Configuration steps: {}\n", q.size());
 	size_t stepCounter = 0;

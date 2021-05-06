@@ -2,6 +2,7 @@
 
 #include <Pacc/Package.hpp>
 #include <Pacc/Errors.hpp>
+#include <Pacc/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JSONReader.hpp>
 
@@ -71,6 +72,31 @@ Package Package::load(fs::path dir_)
 	}
 	}
 	return pkg;
+}
+
+/////////////////////////////////////////////////
+Package Package::loadByName(std::string_view name_)
+{
+	const std::vector<fs::path> candidates = {
+			fs::current_path() 					/ "pacc_packages",
+			env::getPaccDataStorageFolder() 	/ "packages"
+		};
+
+	// Get first matching candidate:
+	for(auto const& c : candidates)
+	{
+		auto pkgFolder = c / name_;
+		try {
+			return Package::load(pkgFolder);
+		}
+		catch(...)
+		{
+			// Could not load, ignore
+		}
+	}
+
+	// Found none.
+	throw std::runtime_error(fmt::format("Could not find package \"{}\" (TODO: help here).", name_));
 }
 
 
