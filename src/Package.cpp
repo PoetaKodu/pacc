@@ -315,4 +315,17 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 	return result;
 }
 
+/////////////////////////////////////////////////
+std::size_t getNumElements(VecOfStr const& v)
+{
+	return v.size();
+}
+
+/////////////////////////////////////////////////
+std::size_t getNumElements(VecOfStrAcc const& v)
+{
+	return v.public_.size() + v.private_.size() + v.interface_.size();
+}
+
+
 

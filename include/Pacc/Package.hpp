@@ -29,6 +29,12 @@ using AccessSplitVec 	= AccessSplit<std::vector<T>>;
 using VecOfStrAcc 		= AccessSplitVec<std::string>;
 using RawDependency 	= std::string;
 
+/////////////////////////////////////////////////
+std::size_t getNumElements(VecOfStr const& v);
+
+/////////////////////////////////////////////////
+std::size_t getNumElements(VecOfStrAcc const& v);
+
 struct PackageDependency
 {
 	VecOfStr 	projects;
@@ -142,6 +148,36 @@ struct Package : TargetBase
 private:
 	static Package loadFromJSON(std::string const& packageContent_);
 };
+
+// Definitions:
+
+// TODO: add C++20 support to use concepts
+template <typename T>
+auto getAccesses(std::vector<T> & v)
+{
+	return std::vector{ &v };
+}
+
+/////////////////////////////////////////////////
+template <typename T>
+auto getAccesses(AccessSplitVec<T> & v)
+{
+	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+}
+
+/////////////////////////////////////////////////
+template <typename T>
+auto getAccesses(std::vector<T> const & v)
+{
+	return std::vector{ &v };
+}
+
+/////////////////////////////////////////////////
+template <typename T>
+auto getAccesses(AccessSplitVec<T> const & v)
+{
+	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+}
 
 
 

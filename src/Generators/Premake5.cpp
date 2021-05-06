@@ -90,46 +90,7 @@ namespace gen
 {
 
 /////////////////////////////////////////////////
-auto getNumElements(VecOfStr const& v)
-{
-	return v.size();
-}
-
-/////////////////////////////////////////////////
-auto getNumElements(VecOfStrAcc const& v)
-{
-	return v.public_.size() + v.private_.size() + v.interface_.size();
-}
-
-
-/////////////////////////////////////////////////
-template <typename T>
-auto getAccesses(std::vector<T> const& v)
-{
-	return std::vector{ &v };
-}
-
-/////////////////////////////////////////////////
-template <typename T>
-auto getAccesses(AccessSplitVec<T> const& v)
-{
-	return std::vector{ &v.private_, &v.public_, &v.interface_ };
-}
-
-
-/////////////////////////////////////////////////
-template <typename T>
-auto getAccesses(std::vector<T>& v)
-{
-	return std::vector<T*>{ &v };
-}
-
-/////////////////////////////////////////////////
-template <typename T>
-auto getAccesses(AccessSplitVec<T>& v)
-{
-	return std::vector{ &v.private_, &v.public_, &v.interface_ };
-}
+// Helper functions and forward declarations:
 
 
 void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
@@ -383,6 +344,66 @@ void Premake5::loadDependencies(Package & pkg_)
 }
 
 /////////////////////////////////////////////////
+bool wasDependencyQueued(Dependency const& dep, Premake5::DepQueue const& readyQueue_)
+{
+	auto compareQueuedDep =
+		[&](Premake5::ProjectDep const& readyDep)
+		{
+			return readyDep.dep == &dep;
+		};
+
+	if (dep.isPackage())
+	{
+		for (auto const& step : readyQueue_)
+		{
+			// TODO: Can be done better (binary search on sorted range)
+			auto it = std::find_if(step.begin(), step.cend(), compareQueuedDep);
+
+			if (it != step.end())
+			{
+				return true;
+			}
+		}
+	}
+
+
+	return false;
+}
+
+/////////////////////////////////////////////////
+bool projectHasPendingDependencies(Project const& project, Premake5::DepQueue const& readyQueue_)
+{
+	auto selfDepsAcc = getAccesses(project.dependencies.self);
+	
+	for (auto access : selfDepsAcc)
+	{
+		for(auto& selfDep : *access)
+		{
+			if (!wasDependencyQueued(selfDep, readyQueue_))
+				return true;
+		}
+	}
+	return false;
+}
+
+/////////////////////////////////////////////////
+bool packageHasPendingDependencies(PackageDependency & dep, Premake5::DepQueue const& readyQueue_)
+{
+	auto& packagePtr = dep.package;
+
+	for (auto const& projectName : dep.projects)
+	{
+		// Find pointer to project:
+		auto project = packagePtr->findProject(projectName);
+
+		if (projectHasPendingDependencies(*project, readyQueue_))
+			return true;	
+	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////
 Premake5::DepQueueStep Premake5::collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_)
 {
 	PendingDeps newPending;
@@ -394,45 +415,7 @@ Premake5::DepQueueStep Premake5::collectReadyDeps(DepQueue const& ready_, Pendin
 	{
 		auto& dep = *depIt;
 
-		bool ready = true;
-
-		auto& depPkg = dep.dep->package();
-		for (auto const& depProject : depPkg.projects)
-		{
-			auto accesses = getAccesses(depPkg.package->findProject(depProject)->dependencies.self);
-			for (auto access : accesses)
-			{
-				bool accessFailed = false;
-				for(auto& depOfDep : *access)
-				{
-					if (depOfDep.isPackage())
-					{
-						bool foundInAny = false;
-						for (auto const& step : ready_)
-						{
-							// TODO: Can be done better (binary search on sorted range)
-							auto it = std::find_if(step.begin(), step.cend(), [&](auto const& readyDep)
-								{
-									return readyDep.dep == &depOfDep;
-								});
-							if (it != step.end())
-							{
-								foundInAny = true;
-								break;
-							}
-						}
-						
-						if (!foundInAny)
-						{
-							ready = false;
-							break;
-						}
-					}
-				}
-				if (!ready)
-					break;
-			}
-		}
+		bool ready = !packageHasPendingDependencies(dep.dep->package(), ready_);
 
 		if (!ready)
 			newPending.push_back(dep);

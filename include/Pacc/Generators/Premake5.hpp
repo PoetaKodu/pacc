@@ -9,6 +9,7 @@ namespace gen
 
 class Premake5
 {
+public:
 	struct ProjectDep
 	{
 		Project* 	project;
@@ -24,6 +25,10 @@ class Premake5
 	using DepQueue 			= std::vector<DepQueueStep>;
 	using PendingDeps 		= DepQueueStep;
 
+	void generate(Package & package_);
+
+private:
+
 	std::vector<PackagePtr> loadedPackages;
 	PendingDeps 			pendingDeps;
 
@@ -35,8 +40,6 @@ class Premake5
 
 	DepQueueStep collectReadyDeps(DepQueue const& ready_, PendingDeps & pending_);
 	DepQueue setupConfigQueue();
-public:
-	void generate(Package & package_);
 };
 
 }
