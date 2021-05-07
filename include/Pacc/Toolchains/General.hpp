@@ -4,6 +4,8 @@
 
 struct Toolchain
 {
-	std::string prettyName;
-	std::string version;
+	std::string 	prettyName;
+	std::string 	version;
+	
+	fs::path 		mainPath;
 };

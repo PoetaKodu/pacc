@@ -5,4 +5,7 @@
 struct GNUMakeToolchain : Toolchain
 {
 	static std::vector<GNUMakeToolchain> detect();
+
+private:
+	static fs::path findMake();
 };

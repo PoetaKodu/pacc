@@ -124,9 +124,17 @@ void toolchains(ProgramArgs const& args_)
 		
 	if (!tcs.empty())
 	{
+		using fmt::fg, fmt::color;
+		auto const& style = fmt_args::s();
+
 		for (auto& tc : tcs)
 		{
-			fmt::print("\tName: {:20} Version:{:10}\n", tc->prettyName, tc->version);
+			fmt::print("\t{Name}: {:20} {Version}: {:10}\n",
+					tc->prettyName,
+					tc->version,
+					FMT_INLINE_ARG("Name", 		fg(color::lime_green), "Name"),
+					FMT_INLINE_ARG("Version", 	fg(color::green), "Version")
+				);
 		}
 		std::cout << std::endl;
 	}
