@@ -54,6 +54,7 @@ struct Package : TargetBase
 	Project const* findProject(std::string_view name_) const;
 
 	fs::path predictOutputFolder(Project const& project_) const;
+	fs::path predictRealOutputFolder(Project const& project_) const;
 private:
 	static Package loadFromJSON(std::string const& packageContent_);
 };

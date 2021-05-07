@@ -153,6 +153,13 @@ fs::path Package::predictOutputFolder(Project const& project_) const
 }
 
 ///////////////////////////////////////////////////
+fs::path Package::predictRealOutputFolder(Project const& project_) const
+{
+	// TODO: make it configurable:
+	return this->root.parent_path() / "bin/x64/Debug";
+}
+
+///////////////////////////////////////////////////
 Package Package::loadFromJSON(std::string const& packageContent_)
 {
 	using json_vt = json::value_t;

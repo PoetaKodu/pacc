@@ -18,7 +18,7 @@ namespace actions
 
 /////////////////////
 // Helper functions:
-std::optional<int> 	runChildProcessSync(std::string const& command_, std::string cwd = "", int timeOutSecs = -1);
+std::optional<int> 	runChildProcessSync(std::string const& command_, std::string cwd = "", int timeOutSecs = -1, bool printOutput_ = false);
 
 // Used by build command:
 void 				generateProjectFiles();
@@ -126,6 +126,35 @@ void unlinkPackage(ProgramArgs const& args_)
 			).withHelp("If you want to link current package, use \"pacc link\" first.");
 	}	
 }
+
+///////////////////////////////////////////////////
+void runPackageStartupProject(ProgramArgs const& args_)
+{
+	Package pkg = Package::load();
+
+	if (pkg.projects.empty())
+		throw PaccException("Package \"{}\" does not contain any projects.", pkg.name);
+
+	auto const& project = pkg.projects[0];
+	fs::path outputFile = fsx::fwd(pkg.predictRealOutputFolder(project) / project.name);
+
+	#ifdef PACC_SYSTEM_WINDOWS
+	outputFile += ".exe";
+	#endif
+
+	if (!fs::exists(outputFile))
+		throw PaccException("Could not find startup project \"{}\" binary.", project.name)
+			.withHelp("Use \"pacc build\" command first and make sure it succeeded.");
+
+	auto before = ch::steady_clock::now();
+
+	auto exitStatus = runChildProcessSync(outputFile.string(), "", -1, true);
+
+	auto dur = ch::duration_cast< ch::duration<double> >(ch::steady_clock::now() - before);
+
+	fmt::print("\nProgram ended after {:.2f}s with {} exit status.", dur.count(), exitStatus.value_or(1));
+}
+
 
 ///////////////////////////////////////////////////
 void generatePremakeFiles(Package & pkg)
@@ -254,7 +283,7 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 
 
 ///////////////////////////////////////////////////
-std::optional<int> runChildProcessSync(std::string const& command_, std::string cwd, int timeOutSecs)
+std::optional<int> runChildProcessSync(std::string const& command_, std::string cwd, int timeOutSecs, bool printOutput_)
 {
 	auto prevCwd = fs::current_path();
 	if (cwd != "")
@@ -262,18 +291,24 @@ std::optional<int> runChildProcessSync(std::string const& command_, std::string 
 		
 	proc::Process proc(command_, "",
 		// Handle stdout:
-		[](const char *bytes, size_t n)
+		[printOutput_](const char *bytes, size_t n)
 		{
-			// std::cout << std::string(bytes, n);
-			// if(bytes[n - 1] != '\n')
-			// 	std::cout << std::endl;
+			if (printOutput_)
+			{
+				std::cout << std::string(bytes, n);
+				if(bytes[n - 1] != '\n')
+					std::cout << std::endl;
+			}
 		},
 		// Handle stderr:
-		[](const char *bytes, size_t n)
+		[printOutput_](const char *bytes, size_t n)
 		{
-			// std::cerr << std::string(bytes, n);
-			// if(bytes[n - 1] != '\n')
-			// 	std::cout << std::endl;
+			if (printOutput_)
+			{
+				std::cerr << std::string(bytes, n);
+				if(bytes[n - 1] != '\n')
+					std::cout << std::endl;
+			}
 		}
 	);
 

@@ -82,6 +82,10 @@ void handleArgs(ProgramArgs const& args_)
 		{
 			actions::unlinkPackage(args_);	
 		}
+		else if (action == "run")
+		{
+			actions::runPackageStartupProject(args_);
+		}
 		else
 		{
 			auto programName = fs::u8path(args_[0]).stem();

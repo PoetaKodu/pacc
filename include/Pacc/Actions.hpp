@@ -18,6 +18,8 @@ void 			unlinkPackage(ProgramArgs const& args_);
 Package 		generate(ProgramArgs const& args_);
 // build
 void 			buildPackage(ProgramArgs const& args_);
+// run
+void 			runPackageStartupProject(ProgramArgs const& args_);
 // init
 void 			initPackage();
 
