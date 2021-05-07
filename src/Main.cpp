@@ -82,6 +82,10 @@ void handleArgs(ProgramArgs const& args_)
 		{
 			actions::unlinkPackage(args_);	
 		}
+		else if (action == "toolchain" || action == "toolchain" || action == "tc")
+		{
+			actions::toolchains(args_);
+		}
 		else if (action == "run")
 		{
 			actions::runPackageStartupProject(args_);

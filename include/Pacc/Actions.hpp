@@ -16,6 +16,8 @@ void 			linkPackage(ProgramArgs const& args_);
 void 			unlinkPackage(ProgramArgs const& args_);
 // generate
 Package 		generate(ProgramArgs const& args_);
+// toolchains
+void 			toolchains(ProgramArgs const& args_);
 // build
 void 			buildPackage(ProgramArgs const& args_);
 // run

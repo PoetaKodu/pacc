@@ -13,6 +13,10 @@
 #include <Pacc/Helpers/Formatting.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 
+#include <Pacc/Toolchains/General.hpp>
+#include <Pacc/Toolchains/MSVC.hpp>
+#include <Pacc/Toolchains/GNUMake.hpp>
+
 namespace actions
 {
 
@@ -95,6 +99,42 @@ void linkPackage(ProgramArgs const& args_)
 	{
 		fs::create_directory_symlink(fs::current_path(), targetSymlink);
 		fmt::print("Package \"{}\" has been linked inside the user environment.", pkg.name);
+	}
+}
+
+///////////////////////////////////////////////////
+void toolchains(ProgramArgs const& args_)
+{
+	auto msvcTcs 		= MSVCToolchain::detect();
+	auto gnuMakeTcs 	= GNUMakeToolchain::detect();
+
+	std::vector<Toolchain const*> tcs;
+
+	auto appendToolchains = [](auto &to, auto const& from)
+		{
+			to.reserve(from.size());
+			for(auto const& tc : from)
+				to.push_back(&tc);
+		};
+
+	appendToolchains(tcs, msvcTcs);
+	appendToolchains(tcs, gnuMakeTcs);
+
+
+	// Display actions
+	std::cout << "TOOLCHAINS:\n";
+		
+	if (!tcs.empty())
+	{
+		for (auto& tc : tcs)
+		{
+			fmt::print("\tName: {:20} Version:{:10}\n", tc->prettyName, tc->version);
+		}
+		std::cout << std::endl;
+	}
+	else
+	{
+		fmt::print("\tNo toolchains detected :(\n");
 	}
 }
 
