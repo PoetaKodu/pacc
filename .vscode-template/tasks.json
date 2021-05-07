@@ -62,7 +62,7 @@
 
 			"label": "Build (VS2019)",
 			"type": "shell",
-			"command": "msbuild Blocc.sln",
+			"command": "msbuild Pacc.sln",
 			"args": [
 				"/m",
 				"/property:Configuration=${input:buildConfigVS2019}",
