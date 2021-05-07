@@ -360,8 +360,6 @@ void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn ma
 	
 	auto& target = targetByAccessType(into_.computed, method_); // by default
 
-	// Private is private
-	// Merge only interface and public:
 	auto forBoth =
 		[](auto & selfAndComputed, auto const& whatToDo)
 		{
@@ -369,6 +367,8 @@ void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn ma
 			whatToDo(selfAndComputed.self);
 		};
 
+	// Private is private
+	// Merge only interface and public:
 	auto mergeFieldsTarget =
 		[&](auto &selfOrComputed)
 		{
