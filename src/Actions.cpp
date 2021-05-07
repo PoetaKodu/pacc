@@ -43,7 +43,7 @@ void initPackage()
 	}
 
 	std::ofstream("cpackage.json") <<
-R"PKG({c
+R"PKG({
 	"name": "MyWorkspace",
 	"projects": [
 		{
