@@ -4,6 +4,7 @@
 #include <Pacc/Errors.hpp>
 #include <Pacc/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
+#include <Pacc/Filesystem.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
 
 
@@ -142,6 +143,13 @@ Project const* Package::findProject(std::string_view name_) const
 		return &(*it);
 
 	return nullptr;
+}
+
+///////////////////////////////////////////////////
+fs::path Package::predictOutputFolder(Project const& project_) const
+{
+	// TODO: make it configurable:
+	return this->root.parent_path() / "bin/%{cfg.platform}/%{cfg.buildcfg}";
 }
 
 ///////////////////////////////////////////////////

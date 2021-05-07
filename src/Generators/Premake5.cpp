@@ -157,7 +157,20 @@ void Premake5::generate(Package & pkg_)
 				mergeAccesses(dep.project->defines, 			remoteProj->defines, 			dep.dep->accessType);
 				mergeAccesses(dep.project->includeFolders, 		remoteProj->includeFolders, 	dep.dep->accessType, resolvePath);
 				mergeAccesses(dep.project->linkerFolders, 		remoteProj->linkerFolders, 		dep.dep->accessType, resolvePath);
+
+				// Add dependency output folder:
+				{
+					auto& target = targetByAccessType(dep.project->linkerFolders.computed, dep.dep->accessType);
+					target.push_back(fsx::fwd(pkgDep.package->predictOutputFolder(*remoteProj)).string());
+				}
+				
 				mergeAccesses(dep.project->linkedLibraries, 	remoteProj->linkedLibraries, 	dep.dep->accessType);
+
+				// Add dependency file to linker:
+				{
+					auto& target = targetByAccessType(dep.project->linkedLibraries.computed, dep.dep->accessType);
+					target.push_back(remoteProj->name);
+				}
 			}
 
 		}
