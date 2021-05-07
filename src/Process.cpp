@@ -2,32 +2,46 @@
 
 #include <Pacc/Process.hpp>
 
-///////////////////////////////////////////////////
-std::optional<int> runChildProcessSync(std::string const& command_, std::string cwd, int timeOutSecs, bool printOutput_)
+///////////////////////////////////////
+ChildProcess::ExitCode ChildProcess::runSync()
 {
-	auto prevCwd = fs::current_path();
-	if (cwd != "")
-		fs::current_path(cwd); 
+	auto prevWorkingDirectory = fs::current_path();
+	if (workingDirectory != "")
+		fs::current_path(workingDirectory); 
 		
-	proc::Process proc(command_, "",
+	proc::Process proc(command, "",
 		// Handle stdout:
-		[printOutput_](const char *bytes, size_t n)
+		[&](const char *bytes, size_t n)
 		{
-			if (printOutput_)
+			if (printRealTime || storeOutput)
 			{
-				std::cout << std::string(bytes, n);
-				if(bytes[n - 1] != '\n')
-					std::cout << std::endl;
+				std::string s(bytes, n);
+				if (printRealTime)
+				{
+					std::cout << s;
+					if(bytes[n - 1] != '\n')
+						std::cout << std::endl;
+				}
+				if (storeOutput)
+					out.stdOut += std::move(s);
 			}
 		},
 		// Handle stderr:
-		[printOutput_](const char *bytes, size_t n)
+		[&](const char *bytes, size_t n)
 		{
-			if (printOutput_)
+			if (printRealTime || storeOutput)
 			{
-				std::cerr << std::string(bytes, n);
-				if(bytes[n - 1] != '\n')
-					std::cout << std::endl;
+				std::string s(bytes, n);
+
+				if (printRealTime)
+				{
+					std::cerr << s;
+					if(bytes[n - 1] != '\n')
+						std::cerr << std::endl;
+				}
+
+				if (storeOutput)
+					out.stdErr += std::move(s);
 			}
 		}
 	);
@@ -37,9 +51,9 @@ std::optional<int> runChildProcessSync(std::string const& command_, std::string 
 	int runTime 	= 0;
 	while(!proc.try_get_exit_status(exitStatus))
 	{
-		if (timeOutSecs != -1)
+		if (timeout != -1)
 		{
-			if (runTime++ > timeOutSecs * 10)
+			if (runTime++ > timeout * 10)
 			{
 				proc.kill();
 				killed = true;
@@ -47,15 +61,14 @@ std::optional<int> runChildProcessSync(std::string const& command_, std::string 
 			}
 		}
 
-		tt::sleep_for(ch::milliseconds{100});
+		tt::sleep_for(passiveSleepStep);
 	}
 
-	if (cwd != "")
-		fs::current_path(prevCwd); 
+	if (workingDirectory != "")
+		fs::current_path(prevWorkingDirectory); 
 
 	if (killed)
 		return std::nullopt;
 
 	return exitStatus;
 }
-

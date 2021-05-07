@@ -186,7 +186,7 @@ void runPackageStartupProject(ProgramArgs const& args_)
 
 	auto before = ch::steady_clock::now();
 
-	auto exitStatus = runChildProcessSync(outputFile.string(), "", -1, true);
+	auto exitStatus = ChildProcess{outputFile.string(), "", -1, true}.runSync();
 
 	auto dur = ch::duration_cast< ch::duration<double> >(ch::steady_clock::now() - before);
 
@@ -230,7 +230,7 @@ void generateProjectFiles()
 
 	fmt::print(fg(color::gray), "Running Premake5... ");
 
-	auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
+	auto exitStatus = ChildProcess{"premake5 vs2019", "", 10}.runSync();
 
 	if (exitStatus.has_value())
 	{
@@ -268,7 +268,7 @@ void buildProjects(Package const& pkg_)
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	auto exitStatus = runChildProcessSync(buildCommand, "build", 30);
+	auto exitStatus = ChildProcess{buildCommand, "build", 30}.runSync();
 
 	if (exitStatus.has_value())
 	{
