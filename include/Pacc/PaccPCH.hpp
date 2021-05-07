@@ -21,6 +21,8 @@
 
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
+#include <fmt/color.h>
+#include <fmt/compile.h>
 
 #undef UNICODE
 #include <tiny-process-lib/process.hpp>

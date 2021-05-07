@@ -129,17 +129,17 @@ void Premake5::generate(Package & pkg_)
 
 	auto const& q = cfgQueue.setup();
 
-	fmt::print("Configuration steps: {}\n", q.size());
-	size_t stepCounter = 0;
+	// fmt::print("Configuration steps: {}\n", q.size());
+	// size_t stepCounter = 0;
 	for(auto & step : q)
 	{
-		fmt::print("Step {}: [ ", stepCounter++);
-		size_t depCounter = 0;
+		// fmt::print("Step {}: [ ", stepCounter++);
+		// size_t depCounter = 0;
 		for(auto & dep : step)
 		{
-			if (depCounter++ != 0)
-				fmt::print(", ");
-			fmt::print("\"{}\"", dep.project->name);
+			// if (depCounter++ != 0)
+			// 	fmt::print(", ");
+			// fmt::print("\"{}\"", dep.project->name);
 
 			auto& pkgDep = dep.dep->package();
 
@@ -161,7 +161,7 @@ void Premake5::generate(Package & pkg_)
 			}
 
 		}
-		fmt::print(" ]\n", stepCounter++);
+		// fmt::print(" ]\n", stepCounter++);
 	}
 
 

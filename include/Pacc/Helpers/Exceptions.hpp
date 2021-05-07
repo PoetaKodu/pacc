@@ -2,6 +2,8 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/Formatting.hpp>
+
 struct PaccException
 	: std::exception
 {
@@ -39,3 +41,11 @@ public:
 
 	std::string const& help() const { return helpMessage; }
 };
+
+
+
+//////////////////////////////////////////////////
+void dumpException(std::exception const& exc_);
+
+//////////////////////////////////////////////////
+void dumpException(PaccException const& exc_);

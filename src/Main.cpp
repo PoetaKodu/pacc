@@ -4,6 +4,8 @@
 
 #include <Pacc/Help.hpp>
 #include <Pacc/Actions.hpp>
+#include <Pacc/Helpers/Exceptions.hpp>
+#include <Pacc/Helpers/Formatting.hpp>
 
 ////////////////////////////////////
 // Forward declarations
@@ -14,22 +16,32 @@ void handleArgs(ProgramArgs const & args_);
 ///////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
+	using namespace fmt::literals;
+
 	ProgramArgs args{ argv, argv + argc };
+
 
 	try {
 		handleArgs(args);
 	}
+	catch(PaccException & exc)
+	{
+		dumpException(exc);
+		
+	}
 	catch(std::exception & exc)
 	{
-		std::cerr 	<< "An error occurred. Details:\n" << exc.what();
-
+		dumpException(exc);
 		return 1;
 	}
 	catch(...)
 	{
-		std::cerr 	<< "An error occurred. No details available."
-					<< "\nPlease refer to https://github.com/PoetaKodu/pacc/issues"
-					<< std::endl;
+		fmt::printErr(	"{Error}\n"
+						"    An unknown error occurred.\n"
+						"    No details available\n"
+						"    Please refer to https://github.com/PoetaKodu/pacc/issues\n",
+
+						fmt_args::error());
 
 		return 1;
 	}
@@ -74,9 +86,8 @@ void handleArgs(ProgramArgs const& args_)
 		{
 			auto programName = fs::u8path(args_[0]).stem();
 
-			std::cerr 	<< "Error:\tunsupported action \"" << action
-						<< "\".\n\tUse \"" << programName << " help\" to list available actions."
-						<< std::endl;
+			throw PaccException("unsupported action \"{}\"", action)
+					.withHelp("Use \"{} help\" to list available actions.", programName.string());
 		}
 	}
 }

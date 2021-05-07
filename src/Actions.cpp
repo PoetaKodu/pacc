@@ -159,17 +159,19 @@ void buildPackage(ProgramArgs const& args_)
 ///////////////////////////////////////////////////
 void generateProjectFiles()
 {
-	std::cout << "Running Premake5 build (VS2019) config" << std::endl;
+	using fmt::fg, fmt::color;
+
+	fmt::print(fg(color::gray), "Running Premake5... ");
 
 	auto exitStatus = runChildProcessSync("premake5 vs2019", "", 10);
 
 	if (exitStatus.has_value())
 	{
 		if (exitStatus.value() == 0)
-			std::cout << "Premake5 finished (success) " << std::endl;
+			fmt::print(fg(color::green), "success\n");
 	}
 	else
-		fmt::printErr("Premake5 generation was aborted (reason: timeout)\n");
+		fmt::printErr(fg(color::red), "timeout\n");
 
 	if (int es = exitStatus.value_or(1))
 	{
@@ -180,10 +182,11 @@ void generateProjectFiles()
 ///////////////////////////////////////////////////
 void buildProjects(Package const& pkg_)
 {
+	using fmt::fg, fmt::color;
 	// TODO: add ability to run other build systems.
 	// TODO: right now MSBuild has to be in PATH variable. Add ability to find msbuild.
 
-	std::cout << "Running MSBuild" << std::endl;
+	fmt::print(fg(color::gray), "Running MSBuild... ");
 
 	std::string_view params[] = {
 		"/m",
@@ -203,13 +206,16 @@ void buildProjects(Package const& pkg_)
 	if (exitStatus.has_value())
 	{
 		if (exitStatus.value() == 0)
-			std::cout << "MSBuild finished building projects (success)" << std::endl;
+		{
+			fmt::print(fg(color::green), "success\n");
+			fmt::print(fmt::fg(fmt::color::lime_green), "Build succeeded.\n");
+		}
 	}
 	else
-		std::cerr << "MSBuild build was aborted (reason: timeout)" << std::endl;
+		fmt::printErr(fg(color::red), "timeout\n");
 
 	if (exitStatus.value_or(1) != 0)
-		throw std::runtime_error("Failed to build package projects");
+		throw std::runtime_error("Build failed.");
 }
 
 ///////////////////////////////////////////////////
@@ -217,10 +223,14 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 {
 	auto programName = fs::u8path(args_[0]).stem();
 
+	auto const& style = fmt_args::s();
+
 	// Introduction:
 	fmt::print( "A C++ package manager.\n\n"
-				"USAGE: {} [action] <params>\n\n",
-				programName.string()
+				"{USAGE}: {} [action] <params>\n\n",
+				programName.string(),
+
+				FMT_INLINE_ARG("USAGE", style.Yellow, "USAGE")
 			);
 
 	// 
@@ -235,7 +245,7 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 					
 		for (auto action : help::actions)
 		{
-			fmt::print("\t{}\t\t{}\n", action.first, action.second);
+			fmt::print("\t{:12}{}\n", action.first, action.second);
 		}
 		std::cout << std::endl;
 	}

@@ -77,10 +77,10 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 						if (this->isPackageLoaded(pkg.root))
 							continue; // ignore package, was loaded yet
 
-						if (pkgDep.version.empty())
-							fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
-						else
-							fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+						// if (pkgDep.version.empty())
+						// 	fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
+						// else
+						// 	fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
 				
 						pkgPtr = std::make_shared<Package>(std::move(pkg));
 					}
