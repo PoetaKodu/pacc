@@ -2,10 +2,8 @@
 
 #include PACC_PCH
 
-struct Toolchain
-{
-	std::string 	prettyName;
-	std::string 	version;
-	
-	fs::path 		mainPath;
-};
+#include <Pacc/Toolchains/Toolchain.hpp>
+
+#include <Pacc/Helpers/HelperTypes.hpp>
+
+Vec<UPtr<Toolchain>> detectAllToolchains();

@@ -2,9 +2,22 @@
 
 #include <Pacc/Helpers/Json.hpp>
 
+//////////////////////////////////////////////////
+std::string JsonView::stringFieldOr(std::string_view subfieldName_, std::string_view alt_) const
+{
+	auto it = root.find(subfieldName_);
+	if (it != root.end())
+	{
+		if (it->type() == json::value_t::string)
+			return it->get<std::string>();
+	}
+
+	return std::string(alt_);
+}
+
 
 //////////////////////////////////////////////////
-void JsonView::expect(std::string_view name, json::value_t type)
+void JsonView::expect(std::string_view name, json::value_t type) const
 {
 	using namespace fmt;
 
@@ -25,7 +38,7 @@ void JsonView::expect(std::string_view name, json::value_t type)
 }
 
 //////////////////////////////////////////////////
-void JsonView::requireType(std::string_view name, json::value_t type)
+void JsonView::requireType(std::string_view name, json::value_t type) const
 {
 	using namespace fmt;
 

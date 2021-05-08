@@ -30,7 +30,7 @@ void PackageJsonReader::makeConformant()
 				throw std::runtime_error(fmt::format("empty workspace not allowed"));
 			
 			// Validate projects: each of them has to be an object
-			for(auto & projIt : it->items())
+			for(auto projIt : it->items())
 			{
 				json &proj = projIt.value();
 				if (proj.type() != jtype::object)

@@ -6,6 +6,9 @@
 #include <Pacc/Actions/Actions.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
+#include <Pacc/Actions/PaccConfig.hpp>
+#include <Pacc/System/Environment.hpp>
+#include <Pacc/Toolchains/General.hpp>
 
 ////////////////////////////////////
 // Forward declarations
@@ -52,12 +55,27 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////
 void handleArgs(ProgramArgs const& args_)
 {
+	using fmt::color, fmt::fg;
+
 	if (args_.size() < 2)
 	{
 		actions::displayHelp(args_, true);
 	}
 	else
 	{
+		fs::path cfgPath = env::getPaccDataStorageFolder() / "settings.json";
+
+		PaccConfig cfg = PaccConfig::loadOrCreate(cfgPath);
+
+		auto tcs = detectAllToolchains();
+
+		if (cfg.ensureValidToolchains(tcs))
+		{
+			fmt::print(fg(color::yellow) | fmt::emphasis::bold,
+					"Warning: detected new toolchains, resetting the default one\n"
+				);
+		}
+
 		auto action = args_[1];
 
 		if (action == "help")

@@ -16,8 +16,6 @@
 
 
 #include <Pacc/Toolchains/General.hpp>
-#include <Pacc/Toolchains/MSVC.hpp>
-#include <Pacc/Toolchains/GNUMake.hpp>
 
 namespace actions
 {
@@ -104,26 +102,7 @@ void linkPackage(ProgramArgs const& args_)
 void toolchains(ProgramArgs const& args_)
 {
 	
-	std::vector<Toolchain const*> tcs;
-
-	auto appendToolchains = [](auto &to, auto const& from)
-		{
-			to.reserve(from.size());
-			for(auto const& tc : from)
-				to.push_back(&tc);
-		};
-
-	// Detect toolchains:
-
-	// MSVC:
-	#ifdef PACC_SYSTEM_WINDOWS
-		auto msvcTcs 		= MSVCToolchain::detect();
-		appendToolchains(tcs, msvcTcs);
-	#endif
-
-	// GNU Make:
-	auto gnuMakeTcs 	= GNUMakeToolchain::detect();
-	appendToolchains(tcs, gnuMakeTcs);
+	auto tcs = detectAllToolchains();
 
 
 	// Display actions

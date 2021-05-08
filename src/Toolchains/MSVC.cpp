@@ -23,7 +23,7 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 
 		if (j.type() == jt::array)
 		{
-			for(auto const& tcDescIt : j.items())
+			for(auto tcDescIt : j.items())
 			{
 				auto const& tcDesc = tcDescIt.value();
 

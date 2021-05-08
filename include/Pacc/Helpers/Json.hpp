@@ -19,8 +19,9 @@ struct JsonView
 {
 	using BasicJsonView::BasicJsonView;
 
-	void expect(std::string_view name, json::value_t type);
-	void requireType(std::string_view name, json::value_t type);
+	std::string stringFieldOr(std::string_view subfieldName_, std::string_view alt_) const;
+	void expect(std::string_view name, json::value_t type) const;
+	void requireType(std::string_view name, json::value_t type) const;
 };
 
 constexpr std::string_view jsonTypeName(json::value_t type);

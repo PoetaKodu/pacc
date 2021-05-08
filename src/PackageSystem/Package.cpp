@@ -255,7 +255,7 @@ void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
 
 	target_.reserve(deps_.size());
 
-	for(auto &item : deps_.items())
+	for(auto item : deps_.items())
 	{
 		if (json* rawDep = expect<json_vt::string>(item.value()))
 		{
@@ -278,7 +278,7 @@ void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
 			pd.packageName = name;
 			
 			pd.projects.reserve(projects.size());
-			for(auto & proj : projects.items())
+			for(auto proj : projects.items())
 			{
 				json& projName = require<json_vt::string>(proj.value());
 
