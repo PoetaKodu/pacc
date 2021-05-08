@@ -57,7 +57,7 @@ pacc tc
 ```
 
 <p align="center">
-	<img src="res/img/toolchains.png" alt="Support"/>
+	<img src="res/img/toolchains.gif" alt="Toolchains"/>
 </p>
 
 ## 1. Quick Start
