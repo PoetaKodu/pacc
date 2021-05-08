@@ -103,9 +103,7 @@ void linkPackage(ProgramArgs const& args_)
 ///////////////////////////////////////////////////
 void toolchains(ProgramArgs const& args_)
 {
-	auto msvcTcs 		= MSVCToolchain::detect();
-	auto gnuMakeTcs 	= GNUMakeToolchain::detect();
-
+	
 	std::vector<Toolchain const*> tcs;
 
 	auto appendToolchains = [](auto &to, auto const& from)
@@ -115,7 +113,16 @@ void toolchains(ProgramArgs const& args_)
 				to.push_back(&tc);
 		};
 
-	appendToolchains(tcs, msvcTcs);
+	// Detect toolchains:
+
+	// MSVC:
+	#ifdef PACC_SYSTEM_WINDOWS
+		auto msvcTcs 		= MSVCToolchain::detect();
+		appendToolchains(tcs, msvcTcs);
+	#endif
+
+	// GNU Make:
+	auto gnuMakeTcs 	= GNUMakeToolchain::detect();
 	appendToolchains(tcs, gnuMakeTcs);
 
 
