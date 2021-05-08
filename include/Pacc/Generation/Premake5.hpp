@@ -13,5 +13,7 @@ public:
 	void generate(Package & package_);
 };
 
+void runPremakeGeneration(std::string_view toolchainName_);
+
 }
 

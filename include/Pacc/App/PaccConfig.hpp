@@ -13,6 +13,14 @@ struct PaccConfig
 	size_t 		selectedToolchain;
 	fs::path 	path;
 
+	Toolchain* currentToolchain() const
+	{
+		if (selectedToolchain < detectedToolchains.size())
+			return detectedToolchains[selectedToolchain].get();
+		
+		return nullptr;
+	}
+
 	bool ensureValidToolchains(VecOfTc & current_);
 
 	void updateToolchains(VecOfTc current_);

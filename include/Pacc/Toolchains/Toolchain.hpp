@@ -4,6 +4,7 @@
 
 #include <Pacc/Helpers/Json.hpp>
 
+#include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 
 struct Toolchain
@@ -30,7 +31,27 @@ struct Toolchain
 		}
 	}
 
+	virtual std::optional<int> run(struct Package const & pkg_)
+	{
+		return 1;
+	}
+
+	virtual std::string premakeToolchainType() const
+	{
+		return "";
+	}
+
 	virtual Type type() const { return Unknown; }
+
+	virtual bool generateProjectFiles() {
+		fmt::printErr("Not implemented.");
+		return false;
+	}
+
+	virtual bool build() {
+		fmt::printErr("Not implemented.");
+		return false;
+	}
 
 	virtual bool isEqual(Toolchain const& other_) const
 	{

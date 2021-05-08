@@ -18,10 +18,6 @@
 #include <Pacc/Toolchains/General.hpp>
 
 
-// Used by build command:
-void 				generateProjectFiles();
-void 				buildProjects(Package const &pkg_);
-
 ///////////////////////////////////////////////////
 void PaccApp::initPackage()
 {
@@ -247,77 +243,45 @@ Package PaccApp::generate()
 }
 
 ///////////////////////////////////////////////////
+void handleBuildResult(ChildProcess::ExitCode exitStatus_)
+{
+	using fmt::fg, fmt::color;
+	if (exitStatus_.has_value())
+	{
+		if (exitStatus_.value() == 0)
+		{
+			fmt::print(fg(color::green), "success\n");
+			fmt::print(fmt::fg(fmt::color::lime_green), "Build succeeded.\n");
+			return;
+		}
+		else
+			fmt::print(fg(color::dark_red), "failure\n");
+	}
+	else
+		fmt::printErr(fg(color::red), "timeout\n");
+	
+
+	fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Build failed.\n");
+}
+
+///////////////////////////////////////////////////
 void PaccApp::buildPackage()
 {
 	Package pkg = generate();
 
-	// Run premake:
-	generateProjectFiles();
-
-	// Run msbuild
-	buildProjects(pkg);
-}
-
-///////////////////////////////////////////////////
-void generateProjectFiles()
-{
-	using fmt::fg, fmt::color;
-
-	fmt::print(fg(color::gray), "Running Premake5... ");
-
-	auto exitStatus = ChildProcess{"premake5 vs2019", "", 10}.runSync();
-
-	if (exitStatus.has_value())
+	if (auto tc = cfg.currentToolchain())
 	{
-		if (exitStatus.value() == 0)
-			fmt::print(fg(color::green), "success\n");
+		// Run premake:
+		gen::runPremakeGeneration(tc->premakeToolchainType());
+
+		// Run build toolchain
+		handleBuildResult( tc->run(pkg) );
 	}
 	else
-		fmt::printErr(fg(color::red), "timeout\n");
-
-	if (int es = exitStatus.value_or(1))
 	{
-		throw PaccException("Failed to generate project files (Premake5 exit code: {})", es);
+		throw PaccException("No toolchain selected.")
+			.withHelp("Use \"pacc tc <toolchain id>\" to select toolchain.");
 	}
-}
-
-///////////////////////////////////////////////////
-void buildProjects(Package const & pkg_)
-{
-	using fmt::fg, fmt::color;
-	// TODO: add ability to run other build systems.
-	// TODO: right now MSBuild has to be in PATH variable. Add ability to find msbuild.
-
-	fmt::print(fg(color::gray), "Running MSBuild... ");
-
-	std::string_view params[] = {
-		"/m",
-		"/property:Configuration=Debug",
-		"/property:Platform=x64",
-		// Ask msbuild to generate full paths for file names.
-		"/property:GenerateFullPaths=true",
-		"/t:build"
-	};
-
-	std::string buildCommand = fmt::format("msbuild {0}.sln", pkg_.name);
-	for(auto p : params)
-		buildCommand += fmt::format(" \"{}\"", p);
-
-	auto exitStatus = ChildProcess{buildCommand, "build", 30}.runSync();
-
-	if (exitStatus.has_value())
-	{
-		if (exitStatus.value() == 0)
-		{
-			fmt::print(fg(color::green), "success\n");
-			fmt::print(fmt::fg(fmt::color::lime_green), "Build succeeded.\n");
-		}
-	}
-	else
-		fmt::printErr(fg(color::red), "timeout\n");
-
-	if (exitStatus.value_or(1) != 0)
-		throw std::runtime_error("Build failed.");
 }
 
 ///////////////////////////////////////////////////

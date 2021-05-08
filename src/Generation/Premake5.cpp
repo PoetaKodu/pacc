@@ -5,6 +5,8 @@
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
+#include <Pacc/System/Process.hpp>
+#include <Pacc/Helpers/Exceptions.hpp>
 
 using namespace fmt;
 
@@ -113,6 +115,32 @@ typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_vie
 
 /////////////////////////////////////////////////
 bool compareIgnoreCase(std::string_view l, std::string_view r);
+
+/////////////////////////////////////////////////
+void runPremakeGeneration(std::string_view toolchainName_)
+{
+	using fmt::fg, fmt::color;
+
+	fmt::print(fg(color::gray), "Running Premake5... ");
+
+	std::string command = "premake5 ";
+	command += toolchainName_;
+	
+	auto exitStatus = ChildProcess{command, "", 10}.runSync();
+
+	if (exitStatus.has_value())
+	{
+		if (exitStatus.value() == 0)
+			fmt::print(fg(color::green), "success\n");
+	}
+	else
+		fmt::printErr(fg(color::red), "timeout\n");
+
+	if (int es = exitStatus.value_or(1))
+	{
+		throw PaccException("Failed to generate project files (Premake5 exit code: {})", es);
+	}
+}
 
 /////////////////////////////////////////////////
 void Premake5::generate(Package & pkg_)
