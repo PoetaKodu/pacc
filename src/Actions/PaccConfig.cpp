@@ -32,8 +32,31 @@ PaccConfig PaccConfig::load(fs::path const& jsonPath_)
 	json j = json::parse(readFileContents(jsonPath_));
 
 	result.readDetectedToolchains(j);
+	result.readSelectedToolchain(j);
 	
 	return result;
+}
+
+/////////////////////////////////////////////////
+void PaccConfig::readSelectedToolchain(json const& input_)
+{
+	bool invalid = true;
+	auto it = input_.find("selectedToolchain");
+
+	if (it != input_.end() && it->type() == json::value_t::number_unsigned)
+	{
+		int idx = it->get<int>();
+		if (idx >= 0 && idx < detectedToolchains.size())
+		{
+			this->selectedToolchain = idx;
+			invalid = false;
+		}
+	}
+
+	if (invalid)
+	{
+		this->updateSelectedToolchain(0);
+	}
 }
 
 /////////////////////////////////////////////////
@@ -97,6 +120,20 @@ void PaccConfig::updateToolchains(Vec< UPtr<Toolchain> > current_)
 	j["detectedToolchains"] = serializeToolchains(detectedToolchains);
 	
 
+	std::ofstream(path) << j.dump(1, '\t');
+}
+
+/////////////////////////////////////////////////
+void PaccConfig::updateSelectedToolchain(int index_)
+{
+	// Unchecked!
+
+	selectedToolchain = index_;
+
+	json j = json::parse(readFileContents(path));
+
+	j["selectedToolchain"] = int(selectedToolchain);
+	
 	std::ofstream(path) << j.dump(1, '\t');
 }
 

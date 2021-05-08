@@ -17,6 +17,9 @@ struct PaccConfig
 
 	void updateToolchains(VecOfTc current_);
 
+	// Unchecked!
+	void updateSelectedToolchain(int index_);
+
 	bool validateDetectedToolchains(VecOfTc const& current_) const;
 
 	static json serializeToolchains(VecOfTc const& tcs_);
@@ -25,5 +28,7 @@ struct PaccConfig
 	static PaccConfig load(fs::path const& jsonPath_);
 
 private:
+
 	void readDetectedToolchains(json const& input_);
+	void readSelectedToolchain(json const& input_);
 };
