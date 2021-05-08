@@ -127,16 +127,21 @@ void toolchains(ProgramArgs const& args_)
 		using fmt::fg, fmt::color;
 		auto const& style = fmt_args::s();
 
+		int idx = 0;
+		fmt::print("    ID{0:4}{Name}{0:17}{Version}\n{0:-^40}\n",
+				"",
+				FMT_INLINE_ARG("Name", 		fg(color::lime_green), "Name"),
+				FMT_INLINE_ARG("Version", 	fg(color::green), "Version")
+			);
 		for (auto& tc : tcs)
 		{
-			fmt::print("\t{Name}: {:20} {Version}: {:10}\n",
+			fmt::print("{:>6}    {:20} {:10}\n",
+					fmt::format("#{}", idx),
 					tc->prettyName,
-					tc->version,
-					FMT_INLINE_ARG("Name", 		fg(color::lime_green), "Name"),
-					FMT_INLINE_ARG("Version", 	fg(color::green), "Version")
+					tc->version
 				);
+			idx++;
 		}
-		std::cout << std::endl;
 	}
 	else
 	{
