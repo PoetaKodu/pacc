@@ -1,10 +1,10 @@
 #include PACC_PCH
 
-#include <Pacc/Package.hpp>
-#include <Pacc/Errors.hpp>
-#include <Pacc/Environment.hpp>
+#include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/Actions/Errors.hpp>
+#include <Pacc/System/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
-#include <Pacc/Filesystem.hpp>
+#include <Pacc/System/Filesystem.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
 
 

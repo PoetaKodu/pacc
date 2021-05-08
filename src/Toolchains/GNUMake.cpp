@@ -2,7 +2,7 @@
 
 #include <Pacc/Toolchains/GNUMake.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
-#include <Pacc/Process.hpp>
+#include <Pacc/System/Process.hpp>
 
 ///////////////////////////////////////////////
 fs::path GNUMakeToolchain::findMake()

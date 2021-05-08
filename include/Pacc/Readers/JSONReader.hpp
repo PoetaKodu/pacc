@@ -2,7 +2,7 @@
 
 #include PACC_PCH
 
-#include <Pacc/Package.hpp>
+#include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/Helpers/Json.hpp>
 
 class PackageJsonReader

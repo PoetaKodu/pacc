@@ -1,6 +1,6 @@
 #include PACC_PCH
 
-#include <Pacc/Process.hpp>
+#include <Pacc/System/Process.hpp>
 
 ///////////////////////////////////////
 ChildProcess::ExitCode ChildProcess::runSync()

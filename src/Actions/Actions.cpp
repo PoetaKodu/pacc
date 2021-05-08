@@ -1,14 +1,14 @@
 #include PACC_PCH
 
-#include <Pacc/Actions.hpp>
+#include <Pacc/Actions/Actions.hpp>
 
-#include <Pacc/Help.hpp>
-#include <Pacc/Environment.hpp>
-#include <Pacc/Errors.hpp>
-#include <Pacc/Package.hpp>
-#include <Pacc/Filesystem.hpp>
-#include <Pacc/Process.hpp>
-#include <Pacc/Generators/Premake5.hpp>
+#include <Pacc/Actions/Help.hpp>
+#include <Pacc/System/Environment.hpp>
+#include <Pacc/Actions/Errors.hpp>
+#include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/System/Filesystem.hpp>
+#include <Pacc/System/Process.hpp>
+#include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
 #include <Pacc/Helpers/Formatting.hpp>

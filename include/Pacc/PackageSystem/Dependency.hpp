@@ -2,7 +2,7 @@
 
 #include PACC_PCH
 
-#include <Pacc/HelperTypes.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 
 using RawDependency 	= std::string;
 using PackagePtr 		= std::shared_ptr<struct Package>;

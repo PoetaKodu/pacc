@@ -2,8 +2,8 @@
 
 #include <Pacc/Main.hpp>
 
-#include <Pacc/Help.hpp>
-#include <Pacc/Actions.hpp>
+#include <Pacc/Actions/Help.hpp>
+#include <Pacc/Actions/Actions.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
 

@@ -1,9 +1,9 @@
 #include PACC_PCH
 
-#include <Pacc/BuildQueueBuilder.hpp>
-#include <Pacc/OutputFormatter.hpp>
-#include <Pacc/Filesystem.hpp>
-#include <Pacc/Environment.hpp>
+#include <Pacc/Generation/BuildQueueBuilder.hpp>
+#include <Pacc/Generation/OutputFormatter.hpp>
+#include <Pacc/System/Filesystem.hpp>
+#include <Pacc/System/Environment.hpp>
 
 
 ///////////////////////////////////////////////////////////////

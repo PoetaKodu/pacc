@@ -3,7 +3,7 @@
 #include PACC_PCH
 
 #include <Pacc/Main.hpp>
-#include <Pacc/Package.hpp>
+#include <Pacc/PackageSystem/Package.hpp>
 
 namespace actions
 {

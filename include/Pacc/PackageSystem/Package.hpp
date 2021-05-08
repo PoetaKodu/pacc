@@ -2,8 +2,8 @@
 
 #include PACC_PCH
 
-#include <PACC/HelperTypes.hpp>
-#include <Pacc/Dependency.hpp>
+#include <PACC/Helpers/HelperTypes.hpp>
+#include <Pacc/PackageSystem/Dependency.hpp>
 
 constexpr std::string_view PackageJSON 	= "cpackage.json";
 constexpr std::string_view PackageLUA 	= "cpackage.lua";

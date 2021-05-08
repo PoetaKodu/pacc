@@ -1,10 +1,10 @@
 #include PACC_PCH
 
-#include <Pacc/Generators/Premake5.hpp>
-#include <Pacc/OutputFormatter.hpp>
-#include <Pacc/Filesystem.hpp>
-#include <Pacc/Environment.hpp>
-#include <Pacc/BuildQueueBuilder.hpp>
+#include <Pacc/Generation/Premake5.hpp>
+#include <Pacc/Generation/OutputFormatter.hpp>
+#include <Pacc/System/Filesystem.hpp>
+#include <Pacc/System/Environment.hpp>
+#include <Pacc/Generation/BuildQueueBuilder.hpp>
 
 using namespace fmt;
 
