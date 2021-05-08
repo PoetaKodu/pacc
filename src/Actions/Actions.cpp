@@ -1,10 +1,10 @@
 #include PACC_PCH
 
-#include <Pacc/Actions/Actions.hpp>
+#include <Pacc/App/Actions.hpp>
 
-#include <Pacc/Actions/Help.hpp>
+#include <Pacc/App/Help.hpp>
 #include <Pacc/System/Environment.hpp>
-#include <Pacc/Actions/Errors.hpp>
+#include <Pacc/App/Errors.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>

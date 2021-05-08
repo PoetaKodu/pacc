@@ -1,6 +1,6 @@
 #include PACC_PCH
 
-#include <Pacc/Actions/PaccConfig.hpp>
+#include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Helpers/Json.hpp>
 

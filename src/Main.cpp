@@ -2,11 +2,11 @@
 
 #include <Pacc/Main.hpp>
 
-#include <Pacc/Actions/Help.hpp>
-#include <Pacc/Actions/Actions.hpp>
+#include <Pacc/App/Help.hpp>
+#include <Pacc/App/Actions.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
-#include <Pacc/Actions/PaccConfig.hpp>
+#include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/Toolchains/General.hpp>
 

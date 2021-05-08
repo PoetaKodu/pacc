@@ -1,7 +1,7 @@
 #include PACC_PCH
 
 #include <Pacc/PackageSystem/Package.hpp>
-#include <Pacc/Actions/Errors.hpp>
+#include <Pacc/App/Errors.hpp>
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/System/Filesystem.hpp>
