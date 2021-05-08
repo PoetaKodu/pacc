@@ -151,7 +151,9 @@ void toolchains(ProgramArgs const& args_)
 		int idx = 0;
 		for (auto& tc : tcs)
 		{
-			fmt::print("{:>6}    {:{NameLen}}    {:10}\n",
+			// TODO: add user configuration with specified default toolchain.
+			auto style = idx == 0 ? fmt::emphasis::bold : fmt::text_style{};
+			fmt::print(style, "{:>6}    {:{NameLen}}    {:10}\n",
 					fmt::format("#{}", idx),
 					tc->prettyName,
 					tc->version,
