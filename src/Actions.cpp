@@ -132,20 +132,31 @@ void toolchains(ProgramArgs const& args_)
 	if (!tcs.empty())
 	{
 		using fmt::fg, fmt::color;
+		using namespace fmt::literals;
+
 		auto const& style = fmt_args::s();
 
-		int idx = 0;
-		fmt::print("    ID{0:4}{Name}{0:17}{Version}\n{0:-^40}\n",
+		size_t maxNameLen = 20;
+		for(auto& tc : tcs)
+			maxNameLen = std::max(maxNameLen, tc->prettyName.length());
+		fmt::print("    ID{0:4}{Name}{0:{NameLen}}{Version}\n{0:-^{NumDashes}}\n",
 				"",
 				FMT_INLINE_ARG("Name", 		fg(color::lime_green), "Name"),
-				FMT_INLINE_ARG("Version", 	fg(color::green), "Version")
+				FMT_INLINE_ARG("Version", 	fg(color::aqua), "Version"),
+
+				"NameLen"_a 	= maxNameLen,
+				"NumDashes"_a 	= maxNameLen + 20 + 4
 			);
+
+		int idx = 0;
 		for (auto& tc : tcs)
 		{
-			fmt::print("{:>6}    {:20} {:10}\n",
+			fmt::print("{:>6}    {:{NameLen}}    {:10}\n",
 					fmt::format("#{}", idx),
 					tc->prettyName,
-					tc->version
+					tc->version,
+
+					"NameLen"_a = maxNameLen
 				);
 			idx++;
 		}
