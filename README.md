@@ -48,6 +48,18 @@ pacc build
 	<img src="res/img/build.gif" alt="Build"/>
 </p>
 
+### Automatic toolchain detection
+
+Installed toolchains are detected automatically (but [manual setup](res/docs/ManualToolchainSetup.md) is also supported):
+
+```
+pacc tc
+```
+
+<p align="center">
+	<img src="res/img/toolchains.png" alt="Support"/>
+</p>
+
 ## 1. Quick Start
 
 Download the package manager and then do the following:
