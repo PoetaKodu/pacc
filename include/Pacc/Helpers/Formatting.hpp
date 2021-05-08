@@ -5,6 +5,8 @@
 namespace fmt
 {
 
+void enableColors();
+
 template <typename TFormat, typename... TArgs>
 void printToStream(std::ostream& stream_, TFormat && fmt_, TArgs &&... args)
 {

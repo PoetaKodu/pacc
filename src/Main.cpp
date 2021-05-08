@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 {
 	using namespace fmt::literals;
 
+	fmt::enableColors();
+
 	ProgramArgs args{ argv, argv + argc };
 
 
