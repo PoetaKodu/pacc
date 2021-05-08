@@ -148,13 +148,15 @@ void toolchains(ProgramArgs const& args_)
 				"NumDashes"_a 	= maxNameLen + 20 + 4
 			);
 
+		// TODO: add user configuration with specified default toolchain.
+		constexpr int selectedIdx = 0;
 		int idx = 0;
 		for (auto& tc : tcs)
 		{
-			// TODO: add user configuration with specified default toolchain.
-			auto style = idx == 0 ? fmt::emphasis::bold : fmt::text_style{};
+			bool selected = (idx == selectedIdx);
+			auto style = selected ? fmt::emphasis::bold : fmt::text_style{};
 			fmt::print(style, "{:>6}    {:{NameLen}}    {:10}\n",
-					fmt::format("#{}", idx),
+					fmt::format("{} #{}", selected ? '>' : ' ', idx),
 					tc->prettyName,
 					tc->version,
 
