@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
 	catch(PaccException & exc)
 	{
 		dumpException(exc);
-		
 	}
 	catch(std::exception & exc)
 	{

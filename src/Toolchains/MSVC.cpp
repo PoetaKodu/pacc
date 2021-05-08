@@ -31,6 +31,7 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 				MSVCToolchain tc;
 				tc.prettyName 	= tcDesc["displayName"].get<std::string>();
 				tc.version 		= tcDesc["catalog"]["productDisplayVersion"].get<std::string>();
+				tc.lineVersion 	= parseLineVersion(tcDesc["catalog"]["productLineVersion"].get<std::string>());
 				tc.mainPath 	= tcDesc["installationPath"].get<std::string>();
 				tcs.push_back(std::move(tc));
 			}
@@ -38,6 +39,17 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 	}
 
 	return tcs;
+}
+
+///////////////////////////////
+MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lvStr_)
+{
+	LineVersion lv;
+	try {
+		lv = static_cast<LineVersion>(std::stoi(lvStr_));
+	} catch(...) {}
+
+	return lv;
 }
 
 ///////////////////////////////
@@ -65,4 +77,40 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_)
 		buildCommand += fmt::format(" \"{}\"", p);
 
 	return ChildProcess{buildCommand, "build", 30}.runSync();
+}
+
+///////////////////////////////
+void MSVCToolchain::serialize(json& out_) const
+{
+	Toolchain::serialize(out_);
+
+	out_["lineVersion"] = static_cast<uint32_t>(lineVersion);
+}
+
+///////////////////////////////
+bool MSVCToolchain::deserialize(json const& in_)
+{
+	if(!Toolchain::deserialize(in_))
+		return false;
+
+	auto it = in_.find("lineVersion");
+	if (it == in_.end() || it->type() != json::value_t::number_unsigned)
+		return false;
+
+	lineVersion = static_cast<LineVersion>(it->get<int>());
+
+	return true;
+}
+
+///////////////////////////////
+std::string MSVCToolchain::premakeToolchainType() const
+{
+	switch(lineVersion)
+	{
+	case LineVersion::VS2019: return "vs2019";
+	case LineVersion::VS2017: return "vs2017";
+	case LineVersion::VS2015: return "vs2015";
+	case LineVersion::VS2013: return "vs2013";
+	default: return "vs2019"; // not found
+	}
 }
