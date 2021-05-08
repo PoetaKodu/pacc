@@ -1,6 +1,6 @@
 #include PACC_PCH
 
-#include <Pacc/App/Actions.hpp>
+#include <Pacc/App/App.hpp>
 
 #include <Pacc/App/Help.hpp>
 #include <Pacc/System/Environment.hpp>
@@ -17,15 +17,13 @@
 
 #include <Pacc/Toolchains/General.hpp>
 
-namespace actions
-{
 
 // Used by build command:
 void 				generateProjectFiles();
 void 				buildProjects(Package const &pkg_);
 
 ///////////////////////////////////////////////////
-void initPackage()
+void PaccApp::initPackage()
 {
 	auto cwd = fs::current_path();
 
@@ -60,7 +58,7 @@ R"PKG({
 }
 
 ///////////////////////////////////////////////////
-void linkPackage(ProgramArgs const& args_)
+void PaccApp::linkPackage()
 {
 	Package pkg = Package::load();
 
@@ -99,12 +97,10 @@ void linkPackage(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
-void toolchains(ProgramArgs const& args_)
+void PaccApp::toolchains()
 {
+	auto const &tcs = cfg.detectedToolchains;
 	
-	auto tcs = detectAllToolchains();
-
-
 	// Display actions
 	std::cout << "TOOLCHAINS:\n";
 		
@@ -151,11 +147,11 @@ void toolchains(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
-void unlinkPackage(ProgramArgs const& args_)
+void PaccApp::unlinkPackage()
 {
 	std::string pkgName;
-	if (args_.size() > 2)
-		pkgName = args_[2];
+	if (args.size() > 2)
+		pkgName = args[2];
 
 	if (pkgName.empty())
 	{
@@ -180,7 +176,7 @@ void unlinkPackage(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
-void runPackageStartupProject(ProgramArgs const& args_)
+void PaccApp::runPackageStartupProject()
 {
 	Package pkg = Package::load();
 
@@ -216,7 +212,7 @@ void generatePremakeFiles(Package & pkg)
 }
 
 ///////////////////////////////////////////////////
-Package generate(ProgramArgs const& args_)
+Package PaccApp::generate()
 {
 	Package pkg = Package::load();
 
@@ -226,9 +222,9 @@ Package generate(ProgramArgs const& args_)
 }
 
 ///////////////////////////////////////////////////
-void buildPackage(ProgramArgs const& args_)
+void PaccApp::buildPackage()
 {
-	Package pkg = generate(args_);
+	Package pkg = generate();
 
 	// Run premake:
 	generateProjectFiles();
@@ -261,7 +257,7 @@ void generateProjectFiles()
 }
 
 ///////////////////////////////////////////////////
-void buildProjects(Package const& pkg_)
+void buildProjects(Package const & pkg_)
 {
 	using fmt::fg, fmt::color;
 	// TODO: add ability to run other build systems.
@@ -300,9 +296,9 @@ void buildProjects(Package const& pkg_)
 }
 
 ///////////////////////////////////////////////////
-void displayHelp(ProgramArgs const& args_, bool abbrev_)
+void PaccApp::displayHelp(bool abbrev_)
 {
-	auto programName = fs::u8path(args_[0]).stem();
+	auto programName = fs::u8path(args[0]).stem();
 
 	auto const& style = fmt_args::s();
 
@@ -332,8 +328,3 @@ void displayHelp(ProgramArgs const& args_, bool abbrev_)
 	}
 }
 
-
-
-
-
-}

@@ -3,7 +3,7 @@
 #include <Pacc/Main.hpp>
 
 #include <Pacc/App/Help.hpp>
-#include <Pacc/App/Actions.hpp>
+#include <Pacc/App/App.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
 #include <Pacc/App/PaccConfig.hpp>
@@ -13,7 +13,7 @@
 ////////////////////////////////////
 // Forward declarations
 ////////////////////////////////////
-void handleArgs(ProgramArgs const & args_);
+void handleArgs(ProgramArgs args_);
 
 
 ///////////////////////////////////////////////////
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
 
 	try {
-		handleArgs(args);
+		handleArgs(std::move(args));
 	}
 	catch(PaccException & exc)
 	{
@@ -53,66 +53,69 @@ int main(int argc, char *argv[])
 }
 
 ///////////////////////////////////////////////////
-void handleArgs(ProgramArgs const& args_)
+void handleArgs(ProgramArgs args_)
 {
 	using fmt::color, fmt::fg;
 
-	if (args_.size() < 2)
+	PaccApp app;
+	app.args = std::move(args_);
+
+	if (app.args.size() < 2)
 	{
-		actions::displayHelp(args_, true);
+		app.displayHelp(true);
 	}
 	else
 	{
-		fs::path cfgPath = env::getPaccDataStorageFolder() / "settings.json";
+		fs::path const cfgPath = env::getPaccDataStorageFolder() / "settings.json";
 
-		PaccConfig cfg = PaccConfig::loadOrCreate(cfgPath);
+		app.cfg = PaccConfig::loadOrCreate(cfgPath);
 
 		auto tcs = detectAllToolchains();
 
-		if (cfg.ensureValidToolchains(tcs))
+		if (app.cfg.ensureValidToolchains(tcs))
 		{
 			fmt::print(fg(color::yellow) | fmt::emphasis::bold,
 					"Warning: detected new toolchains, resetting the default one\n"
 				);
 		}
 
-		auto action = args_[1];
+		auto action = app.args[1];
 
 		if (action == "help")
 		{
-			actions::displayHelp(args_, false);
+			app.displayHelp(false);
 		}
 		else if (action == "init")
 		{
-			actions::initPackage();
+			app.initPackage();
 		}
 		else if (action == "generate")
 		{
-			actions::generate(args_);
+			app.generate();
 		}
 		else if (action == "build")
 		{
-			actions::buildPackage(args_);
+			app.buildPackage();
 		}
 		else if (action == "link")
 		{
-			actions::linkPackage(args_);
+			app.linkPackage();
 		}
 		else if (action == "unlink")
 		{
-			actions::unlinkPackage(args_);	
+			app.unlinkPackage();	
 		}
 		else if (action == "toolchain" || action == "toolchain" || action == "tc")
 		{
-			actions::toolchains(args_);
+			app.toolchains();
 		}
 		else if (action == "run")
 		{
-			actions::runPackageStartupProject(args_);
+			app.runPackageStartupProject();
 		}
 		else
 		{
-			auto programName = fs::u8path(args_[0]).stem();
+			auto programName = fs::u8path(app.args[0]).stem();
 
 			throw PaccException("unsupported action \"{}\"", action)
 					.withHelp("Use \"{} help\" to list available actions.", programName.string());
