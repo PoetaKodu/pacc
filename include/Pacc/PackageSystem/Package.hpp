@@ -38,10 +38,18 @@ struct TargetBase
 	SaC<VecOfStrAcc>			 	linkedLibraries;
 };
 
+struct PrecompiledHeader
+{
+	std::string 		header;
+	std::string 		source;
+	std::string 		definition;
+};
+
 struct Project : TargetBase
 {
-	std::string		type;
-	std::string		language;
+	std::string type;
+	std::string language;
+	std::optional<PrecompiledHeader> pch;	
 };
 
 struct Package : TargetBase

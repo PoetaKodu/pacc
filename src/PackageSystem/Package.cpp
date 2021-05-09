@@ -199,6 +199,16 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		project.name 					= jsonProject["name"].get<std::string>();
 		project.type 					= jsonProject["type"].get<std::string>();
 
+		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
+		{
+			PrecompiledHeader pch;
+			// TODO: add validation
+			pch.header		= jsonProject["pch"]["header"];
+			pch.source		= jsonProject["pch"]["source"];
+			pch.definition 	= jsonProject["pch"]["definition"];
+			project.pch = std::move(pch);
+		}
+
 		// TODO: type and value validation
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();

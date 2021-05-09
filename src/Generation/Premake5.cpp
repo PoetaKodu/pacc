@@ -287,6 +287,17 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			fmt_.write("cppdialect(\"C++17\")\n");
 		}
 
+		if (project_.pch.has_value())
+		{
+			PrecompiledHeader const& pch = project_.pch.value();
+			fmt_.write("-- Precompiled header:\n");
+
+			fmt_.write("pchheader(\"{}\")\n", pch.header);
+			fmt_.write("pchsource(\"{}\")\n", pch.source);
+			fmt_.write("defines ( {{ \"{}=\\\"{}\\\"\" }} )\n", pch.definition, pch.header);
+			fmt_.write("includedirs( {{ \".\" }} )\n\n");
+		}
+
 		// TODO: Refactor this code
 
 		// Computed:
