@@ -40,7 +40,10 @@
 				"includeFolders": {
 					"public": "include"
 				},
-				"files": "${2:src/Main.cpp}",
+				"files": [
+					"include/${1}/**.hpp",
+					"${2:src/Main.cpp}"
+				],
 				"description": "A static library project. Hover mouse over a `type` field to see available fields."
 			}
 		},
@@ -49,11 +52,14 @@
 			"description": "Creates a single project workspace (shared library)",
 			"body": {
 				"name": "${1:LibraryName}",
-				"type": "static lib",
+				"type": "shared lib",
 				"includeFolders": {
 					"public": "include"
 				},
-				"files": "${2:src/Main.cpp}",
+				"files": [
+					"include/${1}/**.hpp",
+					"${2:src/Main.cpp}"
+				],
 				"description": "A shared library project. Hover mouse over a `type` field to see available fields."
 			}
 		},
@@ -261,11 +267,14 @@
 						"description": "Adds a shared library project to the workspace",
 						"body": {
 							"name": "${1:LibraryName}",
-							"type": "static lib",
+							"type": "shared lib",
 							"includeFolders": {
 								"public": "include"
 							},
-							"files": "${2:src/Main.cpp}",
+							"files": [
+								"include/${1}/**.hpp",
+								"${2:src/Main.cpp}"
+							],
 							"description": "A shared library project. Hover mouse over a `type` field to see available fields."
 						}
 					},
