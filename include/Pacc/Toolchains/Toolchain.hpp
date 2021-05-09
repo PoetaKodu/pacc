@@ -37,7 +37,7 @@ struct Toolchain
 		}
 	}
 
-	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {})
+	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0)
 	{
 		return 1;
 	}

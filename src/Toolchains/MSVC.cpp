@@ -62,11 +62,13 @@ MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lv
 }
 
 ///////////////////////////////
-std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_)
+std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_, int verbosityLevel_)
 {
 	using fmt::fg, fmt::color;
 
-	fmt::print(fg(color::gray), "Running MSBuild... ");
+	bool verbose = (verbosityLevel_ > 0);
+
+	fmt::print(fg(color::gray), "Running MSBuild... {}", verbose ? "\n" : "");
 
 
 	// TODO: make configurable
@@ -86,7 +88,7 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	return ChildProcess{buildCommand, "build", 30, true}.runSync();
+	return ChildProcess{buildCommand, "build", 30, verbose}.runSync();
 }
 
 ///////////////////////////////

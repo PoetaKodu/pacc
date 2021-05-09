@@ -278,8 +278,8 @@ void PaccApp::buildPackage()
 
 		// Run build toolchain
 		auto settings = this->determineBuildSettingsFromArgs();
-
-		handleBuildResult( tc->run(pkg, settings) );
+		int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
+		handleBuildResult( tc->run(pkg, settings, verbosityLevel) );
 	}
 	else
 	{
@@ -357,4 +357,19 @@ BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 	}
 
 	return result;
+}
+
+///////////////////////////////////////////////////
+bool PaccApp::containsSwitch(std::string_view switch_) const
+{
+	// Arg 0 -> program name with path
+	// Arg 1 -> action name
+	// Start at 2
+	for(size_t i = 2; i < args.size(); ++i)
+	{
+		if (startsWith(args[i], switch_))
+			return true;
+	}
+
+	return false;
 }

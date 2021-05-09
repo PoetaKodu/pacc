@@ -33,4 +33,5 @@ public:
 
 private:
 	BuildSettings 	determineBuildSettingsFromArgs() const;
+	bool 			containsSwitch(std::string_view switch_) const;
 };

@@ -98,11 +98,13 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 
 
 ///////////////////////////////
-std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings settings_)
+std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings settings_, int verbosityLevel_)
 {
 	using fmt::fg, fmt::color;
 
-	fmt::print(fg(color::gray), "Running GNU Make... ");
+	bool verbose = (verbosityLevel_ > 0);
+
+	fmt::print(fg(color::gray), "Running GNU Make... {}", verbose ? "\n" : "");
 
 	std::string params[] =
 		{
@@ -117,5 +119,5 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	return ChildProcess{buildCommand, "build", 30}.runSync();
+	return ChildProcess{buildCommand, "build", 30, verbose}.runSync();
 }

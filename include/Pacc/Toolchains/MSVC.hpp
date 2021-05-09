@@ -20,7 +20,7 @@ struct MSVCToolchain : Toolchain
 	LineVersion lineVersion;
 
 
-	virtual std::optional<int> run(struct Package const& pkg_, BuildSettings settings_ = {}) override;
+	virtual std::optional<int> run(struct Package const& pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
 
 	virtual void serialize(json& out_) const override;
 
