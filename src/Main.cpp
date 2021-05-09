@@ -61,25 +61,15 @@ void handleArgs(ProgramArgs args_)
 	PaccApp app;
 	app.args = std::move(args_);
 
+	// TODO: make configurable
+	app.cleanupLogs(200);
+
 	if (app.args.size() < 2)
 	{
 		app.displayHelp(true);
 	}
 	else
 	{
-		fs::path const cfgPath = env::getPaccDataStorageFolder() / "settings.json";
-
-		app.cfg = PaccConfig::loadOrCreate(cfgPath);
-
-		auto tcs = detectAllToolchains();
-
-		if (app.cfg.ensureValidToolchains(tcs))
-		{
-			fmt::print(fg(color::yellow) | fmt::emphasis::bold,
-					"Warning: detected new toolchains, resetting the default one\n"
-				);
-		}
-
 		auto action = to_lower(app.args[1]);
 
 		if (action == "help")
@@ -88,14 +78,20 @@ void handleArgs(ProgramArgs args_)
 		}
 		else if (action == "init")
 		{
+			app.loadPaccConfig();
+
 			app.initPackage();
 		}
 		else if (action == "generate")
 		{
+			app.loadPaccConfig();
+
 			app.generate();
 		}
 		else if (action == "build")
 		{
+			app.loadPaccConfig();
+
 			app.buildPackage();
 		}
 		else if (action == "link")
@@ -106,12 +102,20 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.unlinkPackage();	
 		}
+		else if (action == "logs" || action == "log")
+		{
+			app.logs();	
+		}
 		else if (action == "toolchain" || action == "toolchain" || action == "tc")
 		{
+			app.loadPaccConfig();
+
 			app.toolchains();
 		}
 		else if (action == "run")
 		{
+			app.loadPaccConfig();
+
 			app.runPackageStartupProject();
 		}
 		else

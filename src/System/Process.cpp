@@ -68,7 +68,10 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		fs::current_path(prevWorkingDirectory); 
 
 	if (killed)
+	{
 		return std::nullopt;
+	}
 
+	exitCode = exitStatus;
 	return exitStatus;
 }

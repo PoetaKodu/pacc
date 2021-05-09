@@ -2,6 +2,7 @@
 
 #include <Pacc/Toolchains/MSVC.hpp>
 #include <Pacc/System/Process.hpp>
+#include <Pacc/Generation/Logs.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 
 ///////////////////////////////////////////////
@@ -88,7 +89,18 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	return ChildProcess{buildCommand, "build", 30, verbose}.runSync();
+	ChildProcess proc{buildCommand, "build", -1, verbose};
+	proc.runSync();
+
+	std::string outputLog = fmt::format(
+			FMT_COMPILE("STDOUT:\n\n{}\n\nSTDERR:\n\n{}"),
+			proc.out.stdOut,
+			proc.out.stdErr
+		);
+		
+	saveBuildOutputLog(pkg_.name, outputLog);
+
+	return proc.exitCode;
 }
 
 ///////////////////////////////

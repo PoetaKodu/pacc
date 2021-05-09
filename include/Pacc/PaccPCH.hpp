@@ -24,6 +24,7 @@
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
+#include <fmt/chrono.h>
 #include <fmt/compile.h>
 
 #undef UNICODE

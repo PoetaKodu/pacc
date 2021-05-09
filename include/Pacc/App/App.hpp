@@ -27,9 +27,20 @@ public:
 	void 			runPackageStartupProject();
 	// init
 	void 			initPackage();
+	// logs
+	void 			logs();
+
+	///////////////////////
+	// Other functions:
+	///////////////////////
+
+	void 			loadPaccConfig();
 
 	ProgramArgs		args;
 	PaccConfig 		cfg;
+
+	// TODO: use date instead of amount
+	void 			cleanupLogs(size_t maxLogs_) const;
 
 private:
 	BuildSettings 	determineBuildSettingsFromArgs() const;

@@ -9,6 +9,7 @@
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Generation/Premake5.hpp>
+#include <Pacc/Generation/Logs.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
@@ -250,12 +251,18 @@ Package PaccApp::generate()
 void handleBuildResult(ChildProcess::ExitCode exitStatus_)
 {
 	using fmt::fg, fmt::color;
+
+	auto lastLogNotice = []{
+		fmt::print(fg(color::light_sky_blue) | fmt::emphasis::bold, "\nNote: you can print last log using \"pacc log --last\".\n");
+	};
+
 	if (exitStatus_.has_value())
 	{
 		if (exitStatus_.value() == 0)
 		{
 			fmt::print(fg(color::green), "success\n");
 			fmt::print(fmt::fg(fmt::color::lime_green), "Build succeeded.\n");
+			lastLogNotice();
 			return;
 		}
 		else
@@ -263,9 +270,9 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_)
 	}
 	else
 		fmt::printErr(fg(color::red), "timeout\n");
-	
 
 	fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Build failed.\n");
+	lastLogNotice();
 }
 
 ///////////////////////////////////////////////////
@@ -287,6 +294,94 @@ void PaccApp::buildPackage()
 	{
 		throw PaccException("No toolchain selected.")
 			.withHelp("Use \"pacc tc <toolchain id>\" to select toolchain.");
+	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::logs()
+{
+	// Print latest
+	if (containsSwitch("--last"))
+	{
+		auto logs = getSortedBuildLogs(1);
+		if (logs.empty())
+		{
+			fmt::print("No build logs found.\n");
+		}
+		else
+		{
+			std::string content = readFileContents(logs[0]);
+			fmt::print("{}\n", content);
+		}
+	}
+	else
+	{
+		size_t amount = 10;
+
+		if (args.size() >= 3)
+		{
+			try {
+				amount = std::stol( std::string(args[2]) );
+			}
+			catch(...) {}
+		}
+		else
+		{
+			using fmt::fg, fmt::color;
+			fmt::print(
+					fg(color::light_sky_blue) | fmt::emphasis::bold,
+					"Note: you can set viewed log limit, f.e.: \"pacc log 3\" (default: 10)\n"
+				);
+		}
+
+		fmt::print("LATEST BUILD LOGS:\n");
+
+		auto logs = getSortedBuildLogs(amount);
+		if (logs.empty())
+		{
+			fmt::print("    No build logs found.\n");
+		}
+		else
+		{
+			for(int i = 0; i < logs.size(); ++i)
+			{
+				fmt::print("{:>4}: {}\n", fmt::format("#{}", i), logs[i].filename().string());
+			}
+		}
+	}
+
+}
+
+///////////////////////////////////////////////////
+void PaccApp::cleanupLogs(size_t maxLogs_) const
+{
+	auto logs = getSortedBuildLogs();
+
+	if (logs.size() > maxLogs_)
+	{
+		for(size_t i = maxLogs_; i < logs.size(); ++i)
+		{
+			fs::remove(logs[i]);
+		}
+	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::loadPaccConfig()
+{
+	using fmt::fg, fmt::color;
+
+	fs::path const cfgPath = env::getPaccDataStorageFolder() / "settings.json";
+
+	cfg = PaccConfig::loadOrCreate(cfgPath);
+
+	auto tcs = detectAllToolchains();
+
+	if (cfg.ensureValidToolchains(tcs))
+	{
+		fmt::print(fg(color::yellow) | fmt::emphasis::bold,
+				"Warning: detected new toolchains, resetting the default one\n"
+			);
 	}
 }
 
