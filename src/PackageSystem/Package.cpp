@@ -77,7 +77,8 @@ Package Package::load(fs::path dir_)
 		pkgSrcFile = PackageFileSource::JSON;
 	}
 	else
-		throw std::exception(errors::NoPackageSourceFile.data());
+		throw PaccException(errors::NoPackageSourceFile[0])
+			.withHelp(errors::NoPackageSourceFile[1]);
 	
 
 	// Decide what to do:

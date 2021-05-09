@@ -39,6 +39,8 @@ void PaccApp::initPackage()
 
 	std::ofstream("cpackage.json") <<
 R"PKG({
+	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
+	
 	"name": "MyWorkspace",
 	"projects": [
 		{
