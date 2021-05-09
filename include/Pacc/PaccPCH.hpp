@@ -19,6 +19,7 @@
 #include <chrono>
 #include <memory>
 #include <filesystem>
+#include <cctype>
 
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>

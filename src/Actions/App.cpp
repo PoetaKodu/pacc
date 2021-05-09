@@ -13,6 +13,7 @@
 #include <Pacc/Readers/JsonReader.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
+#include <Pacc/Helpers/String.hpp>
 
 
 #include <Pacc/Toolchains/General.hpp>
@@ -204,8 +205,9 @@ void PaccApp::runPackageStartupProject()
 	if (pkg.projects.empty())
 		throw PaccException("Package \"{}\" does not contain any projects.", pkg.name);
 
+	auto settings = this->determineBuildSettingsFromArgs();
 	auto const& project = pkg.projects[0];
-	fs::path outputFile = fsx::fwd(pkg.predictRealOutputFolder(project) / project.name);
+	fs::path outputFile = fsx::fwd(pkg.predictRealOutputFolder(project, settings) / project.name);
 
 	#ifdef PACC_SYSTEM_WINDOWS
 	outputFile += ".exe";
@@ -275,7 +277,9 @@ void PaccApp::buildPackage()
 		gen::runPremakeGeneration(tc->premakeToolchainType());
 
 		// Run build toolchain
-		handleBuildResult( tc->run(pkg) );
+		auto settings = this->determineBuildSettingsFromArgs();
+
+		handleBuildResult( tc->run(pkg, settings) );
 	}
 	else
 	{
@@ -317,3 +321,40 @@ void PaccApp::displayHelp(bool abbrev_)
 	}
 }
 
+///////////////////////////////////////////////////
+BuildSettings PaccApp::determineBuildSettingsFromArgs() const
+{
+	using SwitchNames = std::vector<std::string>;
+	static const SwitchNames platforms 		= { "--platform", "--plat", "-p" };
+	static const SwitchNames configurations = { "--configuration", "--config", "--cfg", "-c" };
+	
+	auto parseSwitch = [](std::string_view arg, SwitchNames const& switches, std::string& val)
+		{
+			for(auto sw : switches)
+			{
+				if (parseArgSwitch(arg, sw, val))
+					return true;
+			}
+			return false;
+		};
+
+	BuildSettings result;
+
+	// Arg 0 -> program name with path
+	// Arg 1 -> action name
+	// Start at 2
+	for(size_t i = 2; i < args.size(); ++i)
+	{
+		std::string switchVal;
+		if (parseSwitch(args[i], platforms, switchVal))
+		{
+			result.platformName = std::move(switchVal);
+		}
+		else if (parseSwitch(args[i], configurations, switchVal))
+		{
+			result.configName = std::move(switchVal);
+		}
+	}
+
+	return result;
+}

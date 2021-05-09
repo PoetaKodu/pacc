@@ -9,7 +9,7 @@ struct GNUMakeToolchain : Toolchain
 	// TODO: Choose between "gmake" and "gmake2"
 	virtual std::string premakeToolchainType() const { return "gmake2"; }
 
-	virtual std::optional<int> run(Package const & pkg_) override;
+	virtual std::optional<int> run(Package const & pkg_, BuildSettings settings_ = {}) override;
 
 	static std::vector<GNUMakeToolchain> detect();
 

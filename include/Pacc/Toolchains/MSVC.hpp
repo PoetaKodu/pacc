@@ -20,7 +20,7 @@ struct MSVCToolchain : Toolchain
 	LineVersion lineVersion;
 
 
-	virtual std::optional<int> run(struct Package const& pkg_) override;
+	virtual std::optional<int> run(struct Package const& pkg_, BuildSettings settings_ = {}) override;
 
 	virtual void serialize(json& out_) const override;
 
@@ -31,5 +31,6 @@ struct MSVCToolchain : Toolchain
 	static std::vector<MSVCToolchain> detect();
 
 private:
+	static std::string handleWin32SpecialCase(std::string const& platformName_);
 	static LineVersion parseLineVersion(std::string const& lvStr_);
 };

@@ -4,8 +4,14 @@
 
 #include <Pacc/Helpers/Json.hpp>
 
-#include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
+
+// TODO: move this to other file to avoid circular include
+struct BuildSettings
+{
+	std::string configName 		= "Debug";
+	std::string platformName 	= "x64";
+};
 
 struct Toolchain
 {
@@ -31,7 +37,7 @@ struct Toolchain
 		}
 	}
 
-	virtual std::optional<int> run(struct Package const & pkg_)
+	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {})
 	{
 		return 1;
 	}

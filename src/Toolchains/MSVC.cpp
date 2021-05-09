@@ -42,6 +42,15 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 }
 
 ///////////////////////////////
+std::string MSVCToolchain::handleWin32SpecialCase(std::string const& platformName_)
+{
+	if (platformName_ == "x86")
+		return "Win32";
+
+	return platformName_;
+}
+
+///////////////////////////////
 MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lvStr_)
 {
 	LineVersion lv;
@@ -53,17 +62,18 @@ MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lv
 }
 
 ///////////////////////////////
-std::optional<int> MSVCToolchain::run(Package const& pkg_)
+std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_)
 {
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Running MSBuild... ");
 
+
 	// TODO: make configurable
-	std::string_view params[] = {
+	std::string params[] = {
 		"/m",
-		"/property:Configuration=Debug",
-		"/property:Platform=x64",
+		"/property:Configuration=" + settings_.configName,
+		"/property:Platform=" + handleWin32SpecialCase(settings_.platformName),
 		// Ask msbuild to generate full paths for file names.
 		"/property:GenerateFullPaths=true",
 		"/t:build"
@@ -76,7 +86,7 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_)
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	return ChildProcess{buildCommand, "build", 30}.runSync();
+	return ChildProcess{buildCommand, "build", 30, true}.runSync();
 }
 
 ///////////////////////////////

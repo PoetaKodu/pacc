@@ -2,6 +2,7 @@
 
 #include <Pacc/Toolchains/GNUMake.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
+#include <Pacc/Helpers/String.hpp>
 #include <Pacc/System/Process.hpp>
 
 ///////////////////////////////////////////////
@@ -97,16 +98,20 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 
 
 ///////////////////////////////
-std::optional<int> GNUMakeToolchain::run(Package const & pkg_)
+std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings settings_)
 {
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Running GNU Make... ");
 
-	// TODO: add ability to configure this
-	std::string_view params[] = {
-		"config=debug_x64"
-	};
+	std::string params[] =
+		{
+			// Note: this probably won't work on configurations with spaces in names
+			fmt::format("config={}_{}",
+					to_lower(settings_.configName),
+					to_lower(settings_.platformName)
+				)
+		};
 
 	std::string buildCommand = (mainPath / "make").string();
 	for(auto p : params)

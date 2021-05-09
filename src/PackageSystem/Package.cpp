@@ -153,10 +153,14 @@ fs::path Package::predictOutputFolder(Project const& project_) const
 }
 
 ///////////////////////////////////////////////////
-fs::path Package::predictRealOutputFolder(Project const& project_) const
+fs::path Package::predictRealOutputFolder(Project const& project_, BuildSettings settings_) const
 {
-	// TODO: make it configurable:
-	return this->root.parent_path() / "bin/x64/Debug";
+	std::string folder =  fmt::format("bin/{}/{}",
+			settings_.platformName,
+			settings_.configName
+		);
+
+	return this->root.parent_path() / folder;
 }
 
 ///////////////////////////////////////////////////

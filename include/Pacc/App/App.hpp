@@ -5,6 +5,7 @@
 #include <Pacc/Main.hpp>
 #include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/Toolchains/Toolchain.hpp>
 
 class PaccApp
 {
@@ -29,4 +30,7 @@ public:
 
 	ProgramArgs		args;
 	PaccConfig 		cfg;
+
+private:
+	BuildSettings 	determineBuildSettingsFromArgs() const;
 };
