@@ -60,6 +60,15 @@ pacc tc
 	<img src="res/img/toolchains.gif" alt="Toolchains"/>
 </p>
 
+
+### Insanely fast precompiled header setup
+
+Use `"pch"` field inside `cpackage.json` to set up Precompiled Headers easily:
+
+<p align="center">
+	<img src="res/img/pch.gif" alt="Precompiled Headers"/>
+</p>
+
 ## 1. Quick Start
 
 Download the package manager and then do the following:
