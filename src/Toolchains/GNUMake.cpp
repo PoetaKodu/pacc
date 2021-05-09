@@ -72,7 +72,7 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 			}
 
 			GNUMakeToolchain tc;
-			tc.mainPath = makePath;
+			tc.mainPath = makePath.parent_path();
 
 			// Parse version:
 			{
@@ -100,8 +100,6 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 std::optional<int> GNUMakeToolchain::run(Package const & pkg_)
 {
 	using fmt::fg, fmt::color;
-	// TODO: add ability to run other build systems.
-	// TODO: right now MSBuild has to be in PATH variable. Add ability to find msbuild.
 
 	fmt::print(fg(color::gray), "Running GNU Make... ");
 
@@ -110,7 +108,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_)
 		"config=debug_x64"
 	};
 
-	std::string buildCommand = fmt::format("make", pkg_.name);
+	std::string buildCommand = (mainPath / "make").string();
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
