@@ -23,6 +23,8 @@
 ///////////////////////////////////////////////////
 void PaccApp::initPackage()
 {
+	using fmt::fg, fmt::color;
+
 	auto cwd = fs::current_path();
 
 	fs::path target 		= cwd;
@@ -43,7 +45,7 @@ void PaccApp::initPackage()
 		}
 	}
 
-	std::cout << "Initializing package \"" << targetName << "\"" << std::endl;
+	std::cout << "Initializing package \"" << target.stem().string() << "\"" << std::endl;
 	std::cout << "Do you want to create \"cpackage.json\" file (Y/N): ";
 
 	std::string response;
@@ -70,10 +72,12 @@ R"PKG({{
 			"files": "src/*.cpp"
 		}}
 	]
-}})PKG", cwd.stem().u8string());
+}})PKG", target.stem().u8string());
 
-	std::cout 	<< "\"cpackage.json\" has been created.\n"
-				<< "Happy development!" << std::endl;
+	fmt::print(fg(color::lime_green),
+			"\"cpackage.json\" has been created.\n"
+			"Happy development!"
+		);
 }
 
 ///////////////////////////////////////////////////
