@@ -6,6 +6,7 @@
 #include <Pacc/App/App.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/Formatting.hpp>
+#include <Pacc/Helpers/String.hpp>
 #include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/Toolchains/General.hpp>
@@ -79,7 +80,7 @@ void handleArgs(ProgramArgs args_)
 				);
 		}
 
-		auto action = app.args[1];
+		auto action = to_lower(app.args[1]);
 
 		if (action == "help")
 		{

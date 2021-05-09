@@ -53,7 +53,26 @@ void PackageJsonReader::makeConformant()
 
 			// TODO: make each project conformant
 		}
+		else if (auto it = root.find("type");
+			it != root.end())
+		{
+			if (!root.contains("name") || root["name"].type() != json::value_t::string)
+				throw PaccException("Project doesn't contain string field \"name\".");
+
+			json singleProject = std::move(root);
+
+			root = json::object();
+			root["name"] 		= singleProject["name"];
+			root["projects"] 	= json::array();
+			root["projects"].push_back(std::move(singleProject));
+
+			// It is in workspace format now, process it again.
+			this->makeConformant();
+		}
+		else
+			throw PaccException("Invalid cpackage.json format.")
+				.withHelp("Insert either \"projects\" (workspace) or \"type\" (single project) field.");
 	}
 	else 
-		throw std::runtime_error(fmt::format("empty workspace not allowed"));			
+		throw PaccException("Empty workspace not allowed, your cpackage.json is invalid.");		
 }
