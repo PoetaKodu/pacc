@@ -25,8 +25,25 @@ void PaccApp::initPackage()
 {
 	auto cwd = fs::current_path();
 
+	fs::path target 		= cwd;
+	std::string targetName 	= cwd.stem().string();
 
-	std::cout << "Initializing package \"" << cwd.stem().string() << "\"" << std::endl;
+	if (args.size() > 2 && args[2] != ".")
+	{
+		targetName = args[2];
+
+		if (fs::path(targetName).is_relative())
+			target /= targetName;
+		else
+			target = targetName;
+
+		if (fs::exists(target / "cpackage.json"))
+		{
+			throw PaccException("Folder \"{}\" already contains cpackage.json!", targetName);
+		}
+	}
+
+	std::cout << "Initializing package \"" << targetName << "\"" << std::endl;
 	std::cout << "Do you want to create \"cpackage.json\" file (Y/N): ";
 
 	std::string response;
@@ -38,20 +55,22 @@ void PaccApp::initPackage()
 		return;
 	}
 
-	std::ofstream("cpackage.json") <<
-R"PKG({
+	fs::create_directories(target);
+
+	std::ofstream(target / "cpackage.json") << fmt::format(
+R"PKG({{
 	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
 	
-	"name": "MyWorkspace",
+	"name": "{}",
 	"projects": [
-		{
+		{{
 			"name": "MyProject",
 			"type": "app",
 			"language": "C++17",
 			"files": "src/*.cpp"
-		}
+		}}
 	]
-})PKG";
+}})PKG", cwd.stem().u8string());
 
 	std::cout 	<< "\"cpackage.json\" has been created.\n"
 				<< "Happy development!" << std::endl;
