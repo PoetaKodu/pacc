@@ -186,7 +186,7 @@
 							"body": {
 								"header": "include/${1:ProjectName}/${1}PCH.hpp",
 								"source": "src/${1}PCH.cpp",
-								"definition": "${2/(.*)/${1:/upcase}/}_PCH"
+								"definition": "${1/(.*)/${1:/upcase}/}_PCH"
 							}
 						}
 					]
