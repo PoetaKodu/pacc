@@ -27,72 +27,24 @@ struct Toolchain
 		Unknown
 	};
 
-	static std::string_view typeName(Type type_)
-	{
-		switch(type_)
-		{
-			case MSVC: 		return "msvc";
-			case GNUMake: 	return "gnumake";
-			default: 		return "unknown";
-		}
-	}
-
-	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0)
-	{
-		return 1;
-	}
-
-	virtual std::string premakeToolchainType() const
-	{
-		return "";
-	}
-
-	virtual Type type() const { return Unknown; }
-
-	virtual bool generateProjectFiles() {
-		fmt::printErr("Not implemented.");
-		return false;
-	}
-
-	virtual bool build() {
-		fmt::printErr("Not implemented.");
-		return false;
-	}
-
-	virtual bool isEqual(Toolchain const& other_) const
-	{
-		if (other_.type() != this->type())
-			return false;
-
-		return (
-				prettyName 	== other_.prettyName &&
-				version 	== other_.version &&
-				mainPath 	== other_.mainPath
-			);
-	}
-
-	virtual void serialize(json& out_) const
-	{
-		out_["prettyName"] 	= prettyName;
-		out_["version"] 	= version;
-		out_["mainPath"] 	= mainPath.u8string();
-		out_["type"] 		= typeName(this->type());
-	}
-
-	virtual bool deserialize(json const& in_)
-	{
-		using JV = JsonView;
-		JsonView view{in_};
-
-		prettyName 	= view.stringFieldOr("prettyName", 	"Unknown");
-		version 	= view.stringFieldOr("version", 	"?.?.?");
-		mainPath 	= view.stringFieldOr("mainPath", 	"");
-
-		if (mainPath == "")
-			return false;
-
-		return true;
-	}
-
 	virtual ~Toolchain() = default;
+
+	virtual Type type() const;
+
+	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0);
+
+	static std::string_view typeName(Type type_);
+
+	virtual std::string premakeToolchainType() const;
+
+
+	virtual bool generateProjectFiles();
+
+
+	virtual bool isEqual(Toolchain const& other_) const;
+
+	virtual void serialize(json& out_) const;
+
+	virtual bool deserialize(json const& in_);
+
 };
