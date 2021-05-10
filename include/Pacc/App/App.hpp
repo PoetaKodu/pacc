@@ -44,5 +44,11 @@ public:
 
 private:
 	BuildSettings 	determineBuildSettingsFromArgs() const;
-	bool 			containsSwitch(std::string_view switch_) const;
+
+	/// <summary>
+	/// 	Determines whether program arguments contain
+	/// 	specified <paramref name="switch_"/>
+	/// </summary>
+	/// <returns><c>true</c> if found otherwise <c>false</c></returns>
+	bool containsSwitch(std::string_view switch_) const;
 };
