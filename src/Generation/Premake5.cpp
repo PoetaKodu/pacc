@@ -226,7 +226,8 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 		
 		for(auto const& project : pkg_.projects)
 		{
-			appendProject(fmt_, project);
+			if (project.type != "interface")
+				appendProject(fmt_, project);
 		}
 	}
 }
