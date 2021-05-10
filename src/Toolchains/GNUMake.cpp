@@ -18,7 +18,7 @@ fs::path GNUMakeToolchain::findMake()
 	#endif
 
 	// TODO:
-	ChildProcess make{command};
+	ChildProcess make{command, "", ch::milliseconds{500}};
 	auto exitStatus = make.runSync();
 
 	if (exitStatus.value_or(1) == 0)
@@ -45,13 +45,13 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 
 	std::vector<GNUMakeToolchain> tcs;
 
-	if (!makePath.empty())
+	if (!makePath.empty() && fs::exists(makePath))
 	{
 		// Make show version command:
 		// make -v 
 		std::string command = makePath.string() + " -v";
 
-		ChildProcess makeVer{command};
+		ChildProcess makeVer{command, "", ch::milliseconds{500}};
 
 		auto exitStatus = makeVer.runSync();
 		if (exitStatus.value_or(1) == 0)
@@ -121,7 +121,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	ChildProcess proc{buildCommand, "build", -1, verbose};
+	ChildProcess proc{buildCommand, "build", std::nullopt, verbose};
 
 	proc.runSync();
 

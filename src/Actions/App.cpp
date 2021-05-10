@@ -245,7 +245,7 @@ void PaccApp::runPackageStartupProject()
 
 	auto before = ch::steady_clock::now();
 
-	auto exitStatus = ChildProcess{outputFile.string(), "", -1, true}.runSync();
+	auto exitStatus = ChildProcess{outputFile.string(), "", std::nullopt, true}.runSync();
 
 	auto dur = ch::duration_cast< ch::duration<double> >(ch::steady_clock::now() - before);
 

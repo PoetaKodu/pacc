@@ -15,7 +15,7 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 
 	std::vector<MSVCToolchain> tcs;
 
-	ChildProcess vswhere{vswherePath + params};
+	ChildProcess vswhere{vswherePath + params, "", ch::milliseconds{500}};
 	auto exitCode = vswhere.runSync();
 
 	if (exitCode.value_or(1) == 0)
@@ -89,7 +89,7 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	ChildProcess proc{buildCommand, "build", -1, verbose};
+	ChildProcess proc{buildCommand, "build", std::nullopt, verbose};
 	proc.runSync();
 
 	std::string outputLog = fmt::format(

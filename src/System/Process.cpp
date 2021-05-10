@@ -48,12 +48,13 @@ ChildProcess::ExitCode ChildProcess::runSync()
 
 	bool killed 	= false;
 	int exitStatus 	= 1;
-	int runTime 	= 0;
+	auto startTime = ch::steady_clock::now();
+
 	while(!proc.try_get_exit_status(exitStatus))
 	{
-		if (timeout != -1)
+		if (timeout.has_value())
 		{
-			if (runTime++ > timeout * 10)
+			if (ch::steady_clock::now() > startTime + timeout.value())
 			{
 				proc.kill();
 				killed = true;

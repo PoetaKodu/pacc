@@ -126,7 +126,7 @@ void runPremakeGeneration(std::string_view toolchainName_)
 	std::string command = "premake5 ";
 	command += toolchainName_;
 	
-	auto exitStatus = ChildProcess{command, "", 10}.runSync();
+	auto exitStatus = ChildProcess{command, "", ch::seconds{10}}.runSync();
 
 	if (exitStatus.has_value())
 	{

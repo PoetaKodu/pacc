@@ -4,15 +4,16 @@
 
 struct ChildProcess
 {
-	using ExitCode = std::optional<int>;
+	using ExitCode 	= std::optional<int>;
+	using Timeout 	= std::optional<ch::milliseconds>;
 
 	std::string 		command;
 
 	fs::path 			workingDirectory 	= ""; // "" => current working dir
-	int 				timeout 			= -1; // -1 => no timeout
+	Timeout				timeout 			= std::nullopt;
 	bool				printRealTime 		= false;
 	bool 				storeOutput 		= true;
-	ch::milliseconds 	passiveSleepStep 	= ch::milliseconds{100};
+	ch::milliseconds 	passiveSleepStep 	= ch::milliseconds{10};
 
 	struct {
 		std::string stdOut;
