@@ -114,9 +114,6 @@ template <typename T>
 typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v);
 
 /////////////////////////////////////////////////
-bool compareIgnoreCase(std::string_view l, std::string_view r);
-
-/////////////////////////////////////////////////
 void runPremakeGeneration(std::string_view toolchainName_)
 {
 	using fmt::fg, fmt::color;
