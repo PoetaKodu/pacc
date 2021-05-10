@@ -31,6 +31,12 @@ struct MSVCToolchain : Toolchain
 	static std::vector<MSVCToolchain> detect();
 
 private:
+
+	/// <summary>
+	/// 	Visual Studio (and Premake5) has a special case, where
+	/// 	x86 platform for native C++ projects has to be named "Win32", instead of x86.
+	/// 	Link: https://github.com/premake/premake-core/blob/65deb619f8d5579487def157d7c369e5c6d18864/modules/vstudio/vstudio.lua#L274
+	/// </summary>
 	static std::string handleWin32SpecialCase(std::string const& platformName_);
 	static LineVersion parseLineVersion(std::string const& lvStr_);
 };
