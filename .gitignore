@@ -3,6 +3,7 @@ build/
 bin/
 .xmake/
 .vscode/
+res/installer
 testbed/
 deps/*
 !deps/README.md
