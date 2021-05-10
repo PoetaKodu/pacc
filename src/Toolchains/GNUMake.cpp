@@ -112,8 +112,8 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 		{
 			// Note: this probably won't work on configurations with spaces in names
 			fmt::format("config={}_{}",
-					to_lower(settings_.configName),
-					to_lower(settings_.platformName)
+					toLower(settings_.configName),
+					toLower(settings_.platformName)
 				)
 		};
 

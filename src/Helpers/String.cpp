@@ -3,7 +3,7 @@
 #include <Pacc/Helpers/String.hpp>
 
 /////////////////////////////////////////
-std::string to_lower(std::string_view str_)
+std::string toLower(std::string_view str_)
 {
 	std::string lower(str_);
 	// TODO: this won't work on unicode characters.

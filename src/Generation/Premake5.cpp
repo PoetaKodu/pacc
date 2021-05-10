@@ -7,6 +7,7 @@
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
+#include <Pacc/Helpers/String.hpp>
 
 using namespace fmt;
 

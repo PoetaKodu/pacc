@@ -70,7 +70,7 @@ void handleArgs(ProgramArgs args_)
 	}
 	else
 	{
-		auto action = to_lower(app.args[1]);
+		auto action = toLower(app.args[1]);
 
 		if (action == "help")
 		{

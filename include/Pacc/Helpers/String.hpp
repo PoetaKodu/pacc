@@ -4,7 +4,7 @@
 
 
 /////////////////////////////////////////
-std::string to_lower(std::string_view str_);
+std::string toLower(std::string_view str_);
 
 /////////////////////////////////////////////
 bool startsWith(std::string_view str_, std::string_view prefixTest_);
