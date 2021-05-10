@@ -419,19 +419,7 @@ void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn ma
 	forBoth(from_, mergeFieldsTarget);
 }
 
-/////////////////////////////////////////////////
-bool compareIgnoreCase(std::string_view l, std::string_view r)
-{
-	if (l.length() != r.length()) return false;
 
-	for(std::size_t i = 0; i < l.size(); i++)
-	{
-		if ( std::tolower(int(l[i])) != std::tolower(int(r[i])) )
-			return false;
-	}
-
-	return true;
-}
 
 
 }
