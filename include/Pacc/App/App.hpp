@@ -49,6 +49,7 @@ private:
 	/// 	Determines whether program arguments contain
 	/// 	specified <paramref name="switch_"/>
 	/// </summary>
+	/// <param name="switch_">Tested switch, for example "--test"</param>
 	/// <returns><c>true</c> if found otherwise <c>false</c></returns>
 	bool containsSwitch(std::string_view switch_) const;
 };
