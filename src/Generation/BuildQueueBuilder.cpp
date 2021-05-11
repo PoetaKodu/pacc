@@ -45,7 +45,7 @@ void BuildQueueBuilder::performConfigurationMerging()
 			{
 				Project const& depProj = depReferencedPkg.requireProject(depProjName);
 
-				computeConfiguration( mergeTarget, depReferencedPkg, depProj, mergeMode );
+				mergeTarget.inheritConfigurationFrom(depReferencedPkg, depProj, mergeMode );
 			}
 
 		}

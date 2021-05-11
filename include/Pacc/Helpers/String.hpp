@@ -6,6 +6,12 @@
 /////////////////////////////////////////
 std::string toLower(std::string_view str_);
 
+
+using StringPair = std::pair<std::string, std::string>;
+
+///////////////////////////////////////////////////
+StringPair splitBy(std::string_view s, char c);
+
 /////////////////////////////////////////////
 bool startsWith(std::string_view str_, std::string_view prefixTest_);
 

@@ -6,10 +6,13 @@
 #include <Pacc/PackageSystem/Dependency.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
 
+struct Package;
+struct Project;
+
 constexpr std::string_view PackageJSON 	= "cpackage.json";
 constexpr std::string_view PackageLUA 	= "cpackage.lua";
 
-using PackagePtr 	= std::shared_ptr<struct Package>;
+using PackagePtr 	= std::shared_ptr<Package>;
 
 /////////////////////////////////////////////////
 std::size_t getNumElements(VecOfStr const& v);
@@ -39,6 +42,8 @@ struct TargetBase : Configuration
 	std::string 	name;
 
 	Map<std::string, Configuration> premakeFilters;
+
+	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
 };
 
 struct PrecompiledHeader
@@ -52,7 +57,7 @@ struct Project : TargetBase
 {
 	std::string type;
 	std::string language;
-	std::optional<PrecompiledHeader> pch;	
+	std::optional<PrecompiledHeader> pch;
 };
 
 struct Package : TargetBase

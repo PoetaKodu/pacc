@@ -38,16 +38,22 @@ VecOfStrAcc 	loadVecOfStrAccField(json const &j, std::string_view fieldName);
 // Public functions
 ///////////////////////////////////////////////////
 
-using StringPair = std::pair<std::string, std::string>;
 
 ///////////////////////////////////////////////////
-StringPair splitBy(std::string_view s, char c)
+void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_)
 {
-	auto pos = s.find(c);
-	if (pos != std::string_view::npos)
-		return StringPair{ s.substr(0, pos), s.substr(pos + 1) };
-	else
-		return StringPair{ s, std::string{} };
+	computeConfiguration( *this, fromPkg_, fromProject_, mode_ );
+
+	// Inherit all premake filters:
+	for(auto it : fromProject_.premakeFilters)
+	{	
+		// Ensure configuration exists:
+		if (premakeFilters.find(it.first) == premakeFilters.end())
+			premakeFilters[it.first] = {};
+
+		// Merge configuration:
+		computeConfiguration( premakeFilters[it.first], fromPkg_, fromProject_, it.second, mode_ );
+	}
 }
 
 ///////////////////////////////////////////////////

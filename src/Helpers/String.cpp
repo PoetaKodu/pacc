@@ -17,6 +17,17 @@ std::string toLower(std::string_view str_)
 	return lower;
 }
 
+
+///////////////////////////////////////////////////
+StringPair splitBy(std::string_view s, char c)
+{
+	auto pos = s.find(c);
+	if (pos != std::string_view::npos)
+		return StringPair{ s.substr(0, pos), s.substr(pos + 1) };
+	else
+		return StringPair{ s, std::string{} };
+}
+
 /////////////////////////////////////////////
 bool startsWith(std::string_view str_, std::string_view prefixTest_)
 {
