@@ -52,7 +52,7 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 			premakeFilters[it.first] = {};
 
 		// Merge configuration:
-		computeConfiguration( premakeFilters[it.first], fromPkg_, fromProject_, it.second, mode_ );
+		computeConfiguration( premakeFilters.at(it.first), fromPkg_, fromProject_, it.second, mode_ );
 	}
 }
 
@@ -280,9 +280,8 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 				auto const& val = filterIt.value();
 				if (val.type() == json_vt::object)
 				{
+					// Create and reference the configuration:
 					Configuration& cfg = project.premakeFilters[filterIt.key()];
-
-					fmt::print("-- Loading filter: {}\n", filterIt.key());
 					loadConfigurationFromJSON(cfg, val);
 				}
 			}

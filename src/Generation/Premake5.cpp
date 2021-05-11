@@ -99,6 +99,7 @@ namespace gen
 
 void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
 void appendProject			(OutputFormatter &fmt_, Project const& project_);
+void appendConfiguration	(OutputFormatter &fmt_, Configuration const& config_);
 template <typename T>
 void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
 template <typename T>
@@ -207,8 +208,6 @@ void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 	}
 }
 
-
-
 /////////////////////////////////////////////////
 void appendProject(OutputFormatter &fmt_, Project const& project_)
 {
@@ -243,25 +242,39 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			fmt_.write("includedirs( {{ \".\" }} )\n\n");
 		}
 
-		// TODO: Refactor this code
+		appendConfiguration(fmt_, project_);
 
-		// Computed:
-		appendPropWithAccess(fmt_, "defines", 		project_.defines.computed);
-		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries.computed);
-		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders.computed);
-		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders.computed);
-
-		
-		appendPropWithAccess(fmt_, "files", 		project_.files);
-		appendPropWithAccess(fmt_, "defines", 		project_.defines.self);
-		appendPropWithAccess(fmt_, "links", 		project_.linkedLibraries.self);
-		appendPropWithAccess(fmt_, "includedirs", 	project_.includeFolders.self);
-		appendPropWithAccess(fmt_, "libdirs", 		project_.linkerFolders.self);
-
+		// TODO: keep insertion order
+		for (auto filterIt : project_.premakeFilters)
+		{
+			fmt_.write("\n");
+			fmt_.write("filter(\"{}\")\n", filterIt.first);
+			{
+				IndentScope indent{fmt_};
+				appendConfiguration(fmt_, filterIt.second);
+				fmt_.write("filter(\"\")\n");
+			}
+		}
 	}
 }
 
 
+/////////////////////////////////////////////////
+void appendConfiguration(OutputFormatter &fmt_, Configuration const& config_)
+{
+	// TODO: Refactor this code
+	// Computed first:
+	appendPropWithAccess(fmt_, "defines", 		config_.defines.computed);
+	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed);
+	appendPropWithAccess(fmt_, "includedirs", 	config_.includeFolders.computed);
+	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.computed);
+	
+	appendPropWithAccess(fmt_, "files", 		config_.files);
+	appendPropWithAccess(fmt_, "defines", 		config_.defines.self);
+	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.self);
+	appendPropWithAccess(fmt_, "includedirs", 	config_.includeFolders.self);
+	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.self);
+}
 
 /////////////////////////////////////////////////
 template <typename T>
