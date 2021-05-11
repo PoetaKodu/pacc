@@ -21,7 +21,7 @@
 			"description": "JSON lib interface project"
 		},
 		{
-			"name": "tiny_process_lib",
+			"name": "tiny-process-lib",
 			"type": "interface",
 			"includeFolders": {
 				"interface": "tiny-process-lib/include"
