@@ -25,6 +25,10 @@ template <typename T>
 using AccessSplitVec 	= AccessSplit<std::vector<T>>;
 using VecOfStrAcc 		= AccessSplitVec<std::string>;
 
+template <typename T>
+T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
+
+
 struct PackageDependency
 {
 	VecOfStr 	projects;
@@ -121,3 +125,17 @@ auto getAccesses(AccessSplitVec<T> const & v)
 }
 
 
+/////////////////////////////////////////////////
+template <typename T>
+T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
+{
+	switch(type_)
+	{
+	case AccessType::Private: 		return accessSplit_.private_;
+	case AccessType::Public: 		return accessSplit_.public_;
+	case AccessType::Interface: 	return accessSplit_.interface_;
+	}
+
+	assert(false); // Should never happen.
+	return accessSplit_.private_;
+}

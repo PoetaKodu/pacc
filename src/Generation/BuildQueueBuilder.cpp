@@ -18,20 +18,41 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 // Public functions:
 ///////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////
-template <typename T>
-T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_)
+void BuildQueueBuilder::performConfigurationMerging()
 {
-	switch(type_)
-	{
-	case AccessType::Private: 		return accessSplit_.private_;
-	case AccessType::Public: 		return accessSplit_.public_;
-	case AccessType::Interface: 	return accessSplit_.interface_;
-	}
+	auto const& q = this->setup();
 
-	assert(false); // Should never happen.
-	return accessSplit_.private_;
+	// fmt::print("Configuration steps: {}\n", q.size());
+	// size_t stepCounter = 0;
+	for(auto & step : q)
+	{
+		// fmt::print("Step {}: [ ", stepCounter++);
+		// size_t depCounter = 0;
+		for(auto & depInfo : step)
+		{
+			// if (depCounter++ != 0)
+			// 	fmt::print(", ");
+			// fmt::print("\"{}\"", dep.project->name);
+
+			Project& mergeTarget = *(depInfo.project);
+			AccessType mergeMode = depInfo.dep->accessType;
+			
+			auto& packageDependency = depInfo.dep->package();
+			// Should be loaded by now
+			auto& depReferencedPkg = *packageDependency.package;
+
+			for (auto const & depProjName : packageDependency.projects)
+			{
+				Project const& depProj = depReferencedPkg.requireProject(depProjName);
+
+				computeConfiguration( mergeTarget, depReferencedPkg, depProj, mergeMode );
+			}
+
+		}
+		// fmt::print(" ]\n", stepCounter++);
+	}
 }
+
 
 /////////////////////////////////////////////////
 void BuildQueueBuilder::recursiveLoad(Package & pkg_)

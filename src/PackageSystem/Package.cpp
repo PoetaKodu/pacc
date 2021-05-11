@@ -6,6 +6,7 @@
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
+#include <Pacc/Generation/BuildQueueBuilder.hpp>
 
 
 ///////////////////////////////////////////////////
@@ -147,6 +148,17 @@ Project const* Package::findProject(std::string_view name_) const
 }
 
 ///////////////////////////////////////////////////
+Project const& Package::requireProject(std::string_view name_) const
+{
+	Project const *proj = this->findProject(name_);
+	if (!proj)
+		throw PaccException("Project \"{}\" does not exist in package \"{}\"", name_, name);
+
+	return *proj;
+}
+
+
+///////////////////////////////////////////////////
 fs::path Package::predictOutputFolder(Project const& project_) const
 {
 	// TODO: make it configurable:
@@ -162,6 +174,15 @@ fs::path Package::predictRealOutputFolder(Project const& project_, BuildSettings
 		);
 
 	return this->root.parent_path() / folder;
+}
+
+///////////////////////////////////////////////////
+fs::path Package::resolvePath( fs::path const& path_) const
+{
+	if (path_.is_relative())
+		return fsx::fwd(root.parent_path() / path_).string();
+	else 
+		return path_;
 }
 
 ///////////////////////////////////////////////////
@@ -254,6 +275,33 @@ std::size_t getNumElements(VecOfStr const& v)
 std::size_t getNumElements(VecOfStrAcc const& v)
 {
 	return v.public_.size() + v.private_.size() + v.interface_.size();
+}
+
+
+/////////////////////////////////////////////////
+void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project const& fromProject_, Configuration const& from_, AccessType mode_)
+{
+	auto resolvePath = [&](auto const& pathLikeElem)
+		{
+			return fromPkg_.resolvePath(fs::u8path(pathLikeElem)).string();
+		};
+
+	mergeAccesses(into_.defines, 			from_.defines, 		 		mode_);
+	mergeAccesses(into_.includeFolders, 	from_.includeFolders,  		mode_, resolvePath);
+	mergeAccesses(into_.linkerFolders, 		from_.linkerFolders,  		mode_, resolvePath);
+	mergeAccesses(into_.linkedLibraries, 	from_.linkedLibraries, 		mode_);
+
+	// Add dependency output folder:
+	{
+		auto& target = targetByAccessType(into_.linkerFolders.computed, mode_);
+		target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
+	}
+	
+	// Add dependency file to linker:
+	{
+		auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
+		target.push_back(fromProject_.name);
+	}
 }
 
 ///////////////////////////////////////////////////

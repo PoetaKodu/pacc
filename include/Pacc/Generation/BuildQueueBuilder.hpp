@@ -39,6 +39,9 @@ public:
 	/// <param name="pkg_">The package to get dependencies from.</param>
 	void recursiveLoad(Package &pkg_);
 
+	/// <summary></summary>
+	void performConfigurationMerging();
+
 private:
 
 	DepQueueStep 			collectReadyDependencies(DepQueue const& ready_, PendingDeps & pending_);
@@ -51,5 +54,4 @@ private:
 	DepQueue 				queue; // prepared queue
 };
 
-template <typename T>
-T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
+

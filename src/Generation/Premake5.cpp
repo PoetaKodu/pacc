@@ -104,12 +104,6 @@ void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T c
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
 
-template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_ = nullptr);
-
-template <typename T, typename TMapValueFn = std::nullptr_t>
-void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_ = nullptr);
-
 /////////////////////////////////////////////////
 template <typename T>
 typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v);
@@ -140,6 +134,7 @@ void runPremakeGeneration(std::string_view toolchainName_)
 	}
 }
 
+
 /////////////////////////////////////////////////
 void Premake5::generate(Package & pkg_)
 {
@@ -149,59 +144,10 @@ void Premake5::generate(Package & pkg_)
 
 	OutputFormatter fmt{out};
 
+	// TODO: make it a single-step setup:
 	BuildQueueBuilder cfgQueue;
-
 	cfgQueue.recursiveLoad(pkg_);
-
-	auto const& q = cfgQueue.setup();
-
-	// fmt::print("Configuration steps: {}\n", q.size());
-	// size_t stepCounter = 0;
-	for(auto & step : q)
-	{
-		// fmt::print("Step {}: [ ", stepCounter++);
-		// size_t depCounter = 0;
-		for(auto & dep : step)
-		{
-			// if (depCounter++ != 0)
-			// 	fmt::print(", ");
-			// fmt::print("\"{}\"", dep.project->name);
-
-			auto& pkgDep = dep.dep->package();
-
-			auto resolvePath = [&](auto const& pathElem) {
-					fs::path path = fs::u8path(pathElem);
-					if (path.is_relative())
-						return fsx::fwd(pkgDep.package->root.parent_path() / path).string();
-					else 
-						return pathElem;
-				};
-			for (auto const & depProjName : pkgDep.projects)
-			{
-				Project const* remoteProj = pkgDep.package->findProject(depProjName);
-
-				mergeAccesses(dep.project->defines, 			remoteProj->defines, 			dep.dep->accessType);
-				mergeAccesses(dep.project->includeFolders, 		remoteProj->includeFolders, 	dep.dep->accessType, resolvePath);
-				mergeAccesses(dep.project->linkerFolders, 		remoteProj->linkerFolders, 		dep.dep->accessType, resolvePath);
-
-				// Add dependency output folder:
-				{
-					auto& target = targetByAccessType(dep.project->linkerFolders.computed, dep.dep->accessType);
-					target.push_back(fsx::fwd(pkgDep.package->predictOutputFolder(*remoteProj)).string());
-				}
-				
-				mergeAccesses(dep.project->linkedLibraries, 	remoteProj->linkedLibraries, 	dep.dep->accessType);
-
-				// Add dependency file to linker:
-				{
-					auto& target = targetByAccessType(dep.project->linkedLibraries.computed, dep.dep->accessType);
-					target.push_back(remoteProj->name);
-				}
-			}
-
-		}
-		// fmt::print(" ]\n", stepCounter++);
-	}
+	cfgQueue.performConfigurationMerging();
 
 
 	appendWorkspace(fmt, pkg_);
@@ -366,57 +312,6 @@ typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_vie
 	}
 	return dict_.end();
 }
-
-
-/////////////////////////////////////////////////
-template <typename T, typename TMapValueFn>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn mapValueFn_)
-{
-	// Do not map values
-	if constexpr (std::is_same_v<TMapValueFn, std::nullptr_t>)
-	{
-		into_.insert(
-				into_.end(),
-				from_.begin(),
-				from_.end()
-			);
-	}
-	else
-	{
-		into_.reserve(from_.size());
-		for(auto const & elem : from_)
-		{
-			into_.push_back( mapValueFn_(elem));
-		}
-	}
-}
-
-/////////////////////////////////////////////////
-template <typename T, typename TMapValueFn>
-void mergeAccesses(T &into_, T const & from_, AccessType method_, TMapValueFn mapValueFn_)
-{
-	
-	auto& target = targetByAccessType(into_.computed, method_); // by default
-
-	auto forBoth =
-		[](auto & selfAndComputed, auto const& whatToDo)
-		{
-			whatToDo(selfAndComputed.computed);
-			whatToDo(selfAndComputed.self);
-		};
-
-	// Private is private
-	// Merge only interface and public:
-	auto mergeFieldsTarget =
-		[&](auto &selfOrComputed)
-		{
-			mergeFields(target, selfOrComputed.interface_, mapValueFn_);
-			mergeFields(target, selfOrComputed.public_, mapValueFn_);
-		};
-
-	forBoth(from_, mergeFieldsTarget);
-}
-
 
 
 

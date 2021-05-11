@@ -22,3 +22,12 @@ using SPtr = std::shared_ptr<T>;
 
 template <typename T>
 using WPtr = std::weak_ptr<T>;
+
+struct ReturnIdentity {
+    template<typename U>
+    constexpr auto operator()(U&& v) const noexcept
+        -> decltype(std::forward<U>(v))
+    {
+        return std::forward<U>(v);
+    }
+};
