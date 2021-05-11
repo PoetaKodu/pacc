@@ -14,24 +14,24 @@
 ///////////////////////////////////////////////////
 
 template <json::value_t type>
-json* expect(json &j);
+json const* expect(json const& j);
 
 template <json::value_t type>
-json* expectSub(json &j, std::string_view subfieldName);
+json const* expectSub(json const& j, std::string_view subfieldName);
 
 template <json::value_t type>
-json& require(json &j);
+json const& require(json const& j);
 
 template <json::value_t type>
-json& requireSub(json &j, std::string_view subfieldName);
+json const& requireSub(json const& j, std::string_view subfieldName);
 
-json const* 	selfOrSubfieldOpt(json const &self, std::string_view fieldName = "");
-json const& 	selfOrSubfieldReq(json const &self, std::string_view fieldName = "");
-json const* 	selfOrSubfield(json const &self, std::string_view fieldName, bool required = false);
+json const* 	selfOrSubfieldOpt(json const& self, std::string_view fieldName = "");
+json const& 	selfOrSubfieldReq(json const& self, std::string_view fieldName = "");
+json const* 	selfOrSubfield(json const& self, std::string_view fieldName, bool required = false);
 
-void 			readDependencyAccess(json &deps_, std::vector<Dependency> &target_);
-VecOfStr 		loadVecOfStrField(json const &j, std::string_view fieldName, bool direct = false, bool required = false);
-VecOfStrAcc 	loadVecOfStrAccField(json const &j, std::string_view fieldName);
+void 			readDependencyAccess(json const& deps_, std::vector<Dependency> &target_);
+VecOfStr 		loadVecOfStrField(json const& j, std::string_view fieldName, bool direct = false, bool required = false);
+VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName);
 
 
 ///////////////////////////////////////////////////
@@ -192,6 +192,37 @@ fs::path Package::resolvePath( fs::path const& path_) const
 }
 
 ///////////////////////////////////////////////////
+void loadConfigurationFromJSON(Configuration& conf_, json const& root_)
+{
+	using json_vt = json::value_t;
+	
+	conf_.files		 			= loadVecOfStrField(root_, "files");
+	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines");
+	conf_.includeFolders.self	= loadVecOfStrAccField(root_, "includeFolders");
+	conf_.linkerFolders.self	= loadVecOfStrAccField(root_, "linkerFolders");
+
+	// Load dependencies:		
+	auto depsIt = root_.find("dependencies");
+	if (depsIt != root_.end())
+	{
+		auto& deps = depsIt.value();
+		auto& projSelfDeps = conf_.dependencies.self;
+		if (deps.type() == json_vt::array)
+		{
+			readDependencyAccess(*depsIt, projSelfDeps.private_);
+		}
+		else if (deps.type() == json_vt::object)
+		{
+			if (deps.contains("public")) 		readDependencyAccess(deps["public"], projSelfDeps.public_);
+			if (deps.contains("private")) 		readDependencyAccess(deps["private"], projSelfDeps.private_);
+			if (deps.contains("interface")) 	readDependencyAccess(deps["interface"], projSelfDeps.interface_);
+		}
+		else
+			throw std::runtime_error("Invalid type of \"dependencies\" field (must be an array or an object)");
+	}
+}
+
+///////////////////////////////////////////////////
 Package Package::loadFromJSON(std::string const& packageContent_)
 {
 	using json_vt = json::value_t;
@@ -215,7 +246,6 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 	result.projects.reserve(projects->size());
 
 	
-
 	// Read projects:
 	for(auto it : projects->items())
 	{
@@ -240,29 +270,22 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();
 
-		project.files		 			= loadVecOfStrField(jsonProject, "files");
-		project.defines.self	 		= loadVecOfStrAccField(jsonProject, "defines");
-		project.includeFolders.self	 	= loadVecOfStrAccField(jsonProject, "includeFolders");
-		project.linkerFolders.self	 	= loadVecOfStrAccField(jsonProject, "linkerFolders");
+		loadConfigurationFromJSON(project, jsonProject);
 
-		// Load dependencies:		
-		auto depsIt = jsonProject.find("dependencies");
-		if (depsIt != jsonProject.end())
+		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
+		if (filters)
 		{
-			auto& deps = depsIt.value();
-			auto& projSelfDeps = project.dependencies.self;
-			if (deps.type() == json_vt::array)
+			for(auto filterIt : filters->items())
 			{
-				readDependencyAccess(*depsIt, projSelfDeps.private_);
+				auto const& val = filterIt.value();
+				if (val.type() == json_vt::object)
+				{
+					Configuration& cfg = project.premakeFilters[filterIt.key()];
+
+					fmt::print("-- Loading filter: {}\n", filterIt.key());
+					loadConfigurationFromJSON(cfg, val);
+				}
 			}
-			else if (deps.type() == json_vt::object)
-			{
-				if (deps.contains("public")) 		readDependencyAccess(deps["public"], projSelfDeps.public_);
-				if (deps.contains("private")) 		readDependencyAccess(deps["private"], projSelfDeps.private_);
-				if (deps.contains("interface")) 	readDependencyAccess(deps["interface"], projSelfDeps.interface_);
-			}
-			else
-				throw std::runtime_error("Invalid type of \"dependencies\" field (must be an array or an object)");
 		}
 		
 		result.projects.push_back(std::move(project));
@@ -315,7 +338,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
-void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
+void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 {
 	using json_vt = json::value_t;
 
@@ -326,19 +349,19 @@ void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
 
 	for(auto item : deps_.items())
 	{
-		if (json* rawDep = expect<json_vt::string>(item.value()))
+		if (json const* rawDep = expect<json_vt::string>(item.value()))
 		{
 			target_.push_back(
 					Dependency::raw( std::move( rawDep->get<std::string>() ) )
 				);
 		}
-		else if (json* pkgDep = expect<json_vt::object>(item.value()))
+		else if (json const* pkgDep = expect<json_vt::object>(item.value()))
 		{
 			// Required fields:
-			json& name 		= requireSub<json_vt::string>(*pkgDep, "name");
-			json& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
+			json const& name 		= requireSub<json_vt::string>(*pkgDep, "name");
+			json const& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
 			// Optional fields:
-			json* version 	= expectSub<json_vt::string>(*pkgDep, "version");
+			json const* version 	= expectSub<json_vt::string>(*pkgDep, "version");
 
 			// Configure dependency:
 			PackageDependency pd;
@@ -349,7 +372,7 @@ void readDependencyAccess(json &deps_, std::vector<Dependency> &target_)
 			pd.projects.reserve(projects.size());
 			for(auto proj : projects.items())
 			{
-				json& projName = require<json_vt::string>(proj.value());
+				json const& projName = require<json_vt::string>(proj.value());
 
 				pd.projects.push_back(projName.get<std::string>());
 			}
@@ -459,7 +482,7 @@ VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json* expect(json &j)
+json const* expect(json const &j)
 {
 	if (j.type() == type)
 		return &j;
@@ -469,7 +492,7 @@ json* expect(json &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json* expectSub(json &j, std::string_view subfieldName)
+json const* expectSub(json const &j, std::string_view subfieldName)
 {
 	auto it = j.find(subfieldName);
 	if (it != j.end() && it->type() == type)
@@ -482,7 +505,7 @@ json* expectSub(json &j, std::string_view subfieldName)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json& require(json &j)
+json const& require(json const &j)
 {
 	if (j.type() == type)
 		return j;
@@ -492,7 +515,7 @@ json& require(json &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json& requireSub(json &j, std::string_view subfieldName)
+json const& requireSub(json const &j, std::string_view subfieldName)
 {
 	auto it = j.find(subfieldName);
 	if (it != j.end() && it->type() == type)
