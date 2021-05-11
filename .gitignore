@@ -6,8 +6,10 @@ bin/
 res/installer
 testbed/
 deps/*
+!deps/cpackage.json
 !deps/README.md
 *.user.*
+premake5.lua
 
 # Prerequisites
 *.d

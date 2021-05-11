@@ -1,0 +1,27 @@
+{
+	"name": "pacc",
+	"type": "app",
+	"files": [
+		"include/Pacc/**.hpp",
+		"src/**.cpp"
+	],
+	"includeFolders": [ "include" ],
+	"pch": {
+		"header": "include/Pacc/PaccPCH.hpp",
+		"source": "src/PaccPCH.cpp",
+		"definition": "PACC_PCH"
+	},
+	"dependencies": [
+		{
+			"name": "PaccAppDependencies",
+			"projects": [ "fmtlib", "nlohmann_json", "tiny_process_lib" ],
+			"version": "^1.0.0"
+		}
+	],
+	"filters": {
+		"system:windows": 	{ "defines": [ "PACC_SYSTEM_WINDOWS" ] },
+		"system:linux": 	{ "defines": [ "PACC_SYSTEM_LINUX" ] },
+		"system:macosx": 	{ "defines": [ "PACC_SYSTEM_MACOSX" ] }
+	},
+	"description": "Main pacc app project"
+}
