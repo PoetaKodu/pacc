@@ -10,6 +10,9 @@ using VecOfStrPtr 	= std::vector< std::string* >;
 template <typename T>
 using Vec = std::vector<T>;
 
+template <typename Key, typename Value>
+using Map = std::map<Key, Value>;
+
 // Memory:
 template <typename T>
 using UPtr = std::unique_ptr<T>;

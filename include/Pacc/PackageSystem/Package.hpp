@@ -17,11 +17,8 @@ std::size_t getNumElements(VecOfStr const& v);
 /////////////////////////////////////////////////
 std::size_t getNumElements(VecOfStrAcc const& v);
 
-
-struct TargetBase
+struct Configuration
 {
-	std::string 	name;
-
 	template <typename T>
 	struct SelfAndComputed {
 		T self;
@@ -36,6 +33,13 @@ struct TargetBase
 	SaC<VecOfStrAcc>			 	includeFolders;
 	SaC<VecOfStrAcc>			 	linkerFolders;
 	SaC<VecOfStrAcc>			 	linkedLibraries;
+};
+
+struct TargetBase : Configuration
+{
+	std::string 	name;
+
+	
 };
 
 struct PrecompiledHeader
