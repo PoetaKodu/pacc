@@ -319,16 +319,20 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 	mergeAccesses(into_.linkerFolders, 		from_.linkerFolders,  		mode_, resolvePath);
 	mergeAccesses(into_.linkedLibraries, 	from_.linkedLibraries, 		mode_);
 
-	// Add dependency output folder:
+	// TODO: case, enums
+	if (fromProject_.type == "static lib" || fromProject_.type == "shared lib")
 	{
-		auto& target = targetByAccessType(into_.linkerFolders.computed, mode_);
-		target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
-	}
-	
-	// Add dependency file to linker:
-	{
-		auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
-		target.push_back(fromProject_.name);
+		// Add dependency output folder:
+		{
+			auto& target = targetByAccessType(into_.linkerFolders.computed, mode_);
+			target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
+		}
+		
+		// Add dependency file to linker:
+		{
+			auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
+			target.push_back(fromProject_.name);
+		}
 	}
 }
 
