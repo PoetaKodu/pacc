@@ -87,8 +87,9 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 				}
 				case Dependency::Package:
 				{
-					auto& pkgDep = dep.package();
+					pendingDeps.push_back( { &p, &dep } );
 
+					auto& pkgDep = dep.package();
 					PackagePtr pkgPtr;
 
 					// TODO: load dependency (and bind it to shared pointer)
@@ -119,8 +120,6 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 						loadedPackages.insert(it, pkgPtr);
 					}
-
-					pendingDeps.push_back( { &p, &dep } );
 					this->recursiveLoad(*pkgPtr);
 					
 					break;
