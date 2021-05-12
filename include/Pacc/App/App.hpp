@@ -10,6 +10,8 @@
 class PaccApp
 {
 public:
+	constexpr static std::string_view Version = "0.2-prealpha";
+
 	// Actions:
 	// help
 	void 			displayHelp(bool full_);

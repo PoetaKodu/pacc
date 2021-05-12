@@ -15,7 +15,9 @@ constexpr ActionInfo actions[] = {
 	{ "unlink", 	"unlinks specified package from user's environment" },
 	{ "toolchains", "manages used toolchains (list, detect, configure, etc.)" },
 	{ "run", 		"runs packages's startup project" },
-	{ "log", 		"list latest build logs or print last log's content (--last)" }
+	{ "log", 		"list latest build logs or print last log's content (--last)" },
+	{ "version", 	"displays pacc version" },
+	{ "help", 		"displays this help message" }
 	// { "install",	"installs package artifacts" } // TODO: support installation
 };
 

@@ -416,8 +416,9 @@ void PaccApp::displayHelp(bool abbrev_)
 	auto const& style = fmt_args::s();
 
 	// Introduction:
-	fmt::print( "A C++ package manager.\n\n"
+	fmt::print( "pacc v{} - a C++ package manager.\n\n"
 				"{USAGE}: {} [action] <params>\n\n",
+				PaccApp::Version,
 				programName.string(),
 
 				FMT_INLINE_ARG("USAGE", style.Yellow, "USAGE")

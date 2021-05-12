@@ -72,7 +72,11 @@ void handleArgs(ProgramArgs args_)
 	{
 		auto action = toLower(app.args[1]);
 
-		if (action == "help")
+		if (action == "version")
+		{
+			fmt::print("pacc v{}\n", PaccApp::Version);
+		}
+		else if (action == "help")
 		{
 			app.displayHelp(false);
 		}
