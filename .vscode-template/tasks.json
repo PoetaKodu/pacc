@@ -8,76 +8,34 @@
 		// # Project files generation
 		/////////////////////////////////////////////
 
-		// ## GCC
+		// ## Pacc g enerate
 		{
-			"label": "Generate build files (GCC)",
+			"label": "Generate build files",
 			"group": "none",
 			"type": "shell",
-			"command": "premake5 --file=Premake5Build.lua gmake"
-		},
-		// ## VS2019
-		{
-			"label": "Generate build files (VS2019)",
-			"group": "none",
-			"type": "shell",
-			"command": "premake5 --file=Premake5Build.lua vs2019"
+			"command": "pacc generate"
 		},
 
 		/////////////////////////////////////////////
 		// # Project building: 
 		/////////////////////////////////////////////
 
-		// ## GCC
+		// ## Pacc build
 		{
-			// Generate build files first:
-			"dependsOn": [
-				"Generate build files (GCC)"
-			],
-
-			
-			"label": "Build (GCC)",
+			"label": "Build",
 			"type": "shell",
-			"group": "build",
-			"command": "mingw32-make",
+			"command": "pacc build",
 			"args": [
-				"-j16",
-				"config=${input:buildConfigGMake}"
+				"-c=${input:buildConfig}",
+				"-p=${input:buildPlatform}",
+				"--verbose"
 			],
 			"options": {
-				"cwd": "${workspaceFolder}/build"
-			},
-			"problemMatcher": [
-				{
-					"base": "$gcc",
-					"fileLocation": ["relative", "${workspaceRoot}/build/whatever"]
-				}
-			]
-		},
-		// ## VS2019
-		{
-			// Generate build files first:
-			"dependsOn": [
-				"Generate build files (VS2019)"
-			],
-
-			"label": "Build (VS2019)",
-			"type": "shell",
-			"command": "msbuild Pacc.sln",
-			"args": [
-				"/m",
-				"/property:Configuration=${input:buildConfigVS2019}",
-				"/property:Platform=${input:buildPlatformVS2019}",
-				// Ask msbuild to generate full paths for file names.
-				"/property:GenerateFullPaths=true",
-				"/t:build"
-			],
-			"options": {
-				"cwd": "${workspaceFolder}/build"
+				"cwd": "${workspaceFolder}"
 			},
 			"group": "build",
 			"presentation": {
-				// Reveal the output only if unrecognized errors occur.
-				"reveal": "silent"
+				"reveal": "always"
 			},
 			// Use the standard MS compiler pattern to detect errors, warnings and infos
 			"problemMatcher": "$msCompile"
@@ -111,52 +69,32 @@
 		},
 
 		// # Rebuild:
-		
-		// ## Rebuild (GCC)
+
 		{
 			"dependsOn": [
 				"Clean BUILD folder",
-				"Build (GCC)"
+				"Build"
 			],
 
-			"label": "Rebuild (GCC)",
-			"group": "build",
-			"problemMatcher": "$gcc"
-		},
-
-		// ## Rebuild (VS2019)
-		{
-			"dependsOn": [
-				"Clean BUILD folder",
-				"Build (VS2019)"
-			],
-
-			"label": "Rebuild (VS2019)",
+			"label": "Rebuild",
 			"group": "build",
 			"problemMatcher": "$msCompile"
 		}
 	],
 	"inputs": [
         {
-            "id": "buildConfigGMake",
-            "description": "Select build config for GCC:",
-            "default": "debug_x86",
-            "type": "pickString",
-            "options": ["debug_x86", "debug_x64", "release_x86", "release_x64"]
-        },
-        {
-            "id": "buildConfigVS2019",
-            "description": "Select build config for VS2019:",
+            "id": "buildConfig",
+            "description": "Select build config:",
             "default": "Debug",
             "type": "pickString",
             "options": ["Debug", "Release"]
 		},
 		{
-            "id": "buildPlatformVS2019",
-            "description": "Select build platform for VS2019:",
+            "id": "buildPlatform",
+            "description": "Select build platform:",
             "default": "x64",
             "type": "pickString",
-            "options": ["Win32", "x64"]
+            "options": ["x86", "x64"]
         }
     ]
 }
