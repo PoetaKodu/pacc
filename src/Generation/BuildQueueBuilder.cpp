@@ -227,8 +227,8 @@ bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue cons
 	for (auto const& step : readyQueue_)
 	{
 		// TODO: Can be done better (binary search on sorted range)
-		auto it = std::find_if(step.begin(), step.cend(), compareQueuedDep);
-
+		auto it = std::find_if(step.cbegin(), step.cend(), compareQueuedDep);
+		
 		if (it != step.end())
 		{
 			return true;
