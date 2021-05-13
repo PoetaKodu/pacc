@@ -20,3 +20,30 @@ bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string
 
 /////////////////////////////////////////////////
 bool compareIgnoreCase(std::string_view l, std::string_view r);
+
+/////////////////////////////////////////////////
+template <typename T>
+std::optional<T> convertTo(std::string const& str_) = delete;
+
+/////////////////////////////////////////////////
+template <typename T>
+T convertToOr(std::string const& str_, T val={})
+{
+	return convertTo<T>(str_).value_or();
+}
+
+
+/////////////////////////////////////////////////
+// Specialization:
+/////////////////////////////////////////////////
+
+/////////////////////////////////////////////////
+template <>
+inline std::optional<int> convertTo(std::string const& str_)
+{
+	try 		{ return std::stoi(str_); }
+	catch(...) 	{ return std::nullopt; }
+}
+
+
+
