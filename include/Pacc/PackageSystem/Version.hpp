@@ -33,7 +33,8 @@ struct VersionRequirement
 	{
 		Exact,		/// Major, Minor and Patch must be exactly the same
 		SameMinor,	/// Major and Minor must be exactly the same
-		SameMajor	/// Major must be exactly the same
+		SameMajor,	/// Major must be exactly the same
+		Any			/// Can be any version
 	} type = Exact;
 
 	VersionRequirement() = default;

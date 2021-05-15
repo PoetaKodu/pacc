@@ -54,6 +54,11 @@ VersionRequirement VersionRequirement::fromString(std::string const& str_)
 		result.type = SameMinor;
 	else if (str_[0] == '^')
 		result.type = SameMajor;
+	else if (str_[0] == '*')
+	{
+		result.type = Any;
+		return result;
+	}
 
 	result.version = Version::fromString(result.type == Exact ? str_ : str_.substr(1));
 

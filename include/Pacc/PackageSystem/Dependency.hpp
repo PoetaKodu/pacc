@@ -3,6 +3,7 @@
 #include PACC_PCH
 
 #include <Pacc/Helpers/HelperTypes.hpp>
+#include <Pacc/PackageSystem/Version.hpp>
 
 using RawDependency 	= std::string;
 using PackagePtr 		= std::shared_ptr<struct Package>;
@@ -31,9 +32,9 @@ T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
 
 struct PackageDependency
 {
-	VecOfStr 	projects;
-	std::string packageName;
-	std::string version{};
+	VecOfStr 			projects;
+	std::string 		packageName;
+	VersionRequirement 	version{};
 
 	// Resolved (or not) package pointer.
 	PackagePtr 	package{};

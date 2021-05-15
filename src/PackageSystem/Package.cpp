@@ -381,8 +381,14 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 			}
 
 			// Optional
-			if (version) {
-				pd.version = version->get<std::string>();
+			if (version)
+			{
+				try {
+					pd.version = VersionRequirement::fromString(version->get<std::string>());
+				}
+				catch (...) {
+					pd.version.type = VersionRequirement::Any;
+				}
 			}
 
 			target_.push_back(
