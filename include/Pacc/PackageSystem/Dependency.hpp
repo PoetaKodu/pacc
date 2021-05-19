@@ -32,12 +32,12 @@ T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
 
 struct PackageDependency
 {
-	VecOfStr 			projects;
-	std::string 		packageName;
-	VersionRequirement 	version{};
+	VecOfStr 		projects;
+	std::string 	packageName;
+	VersionReq 		version{};
 
 	// Resolved (or not) package pointer.
-	PackagePtr 	package{};
+	PackagePtr 		package{};
 
 	// TODO: add config support
 

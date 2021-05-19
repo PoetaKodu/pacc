@@ -30,6 +30,7 @@ struct Configuration
 	template <typename T>
 	using SaC = SelfAndComputed<T>;
 
+	std::string 					moduleDefinitionFile;
 	VecOfStr					 	files;
 	SaC<AccessSplitVec<Dependency>> dependencies;
 	SaC<VecOfStrAcc>			 	defines;
@@ -64,9 +65,10 @@ struct Package : TargetBase
 {
 	fs::path 				root;
 	std::vector<Project> 	projects;
+	Version					version;
 
 	static Package load(fs::path dir_ = "");
-	static Package loadByName(std::string_view name_);
+	static Package loadByName(std::string_view name_, VersionRequirement verReq_ = {});
 
 	Project const* findProject(std::string_view name_) const;
 

@@ -4,6 +4,14 @@
 #include <Pacc/PackageSystem/Version.hpp>
 
 ////////////////////////////////////////
+bool Version::operator==(Version const& rhs_) const
+{
+	return (major == rhs_.major &&
+			minor == rhs_.minor &&
+			patch == rhs_.patch);
+}
+
+////////////////////////////////////////
 Version Version::fromString(std::string const& str_)
 {
 	if (str_.empty())
@@ -43,6 +51,19 @@ std::string Version::toString() const
 }
 
 ////////////////////////////////////////
+bool VersionRequirement::test(Version const& version_) const
+{
+	switch(type)
+	{
+	case Exact: 	return (version == version_);
+	case SameMinor: return (version.major == version_.major && version.minor == version_.minor);
+	case SameMajor: return (version.major == version_.major);
+	case Any: 		return true;
+	default: 		return false;
+	}
+}
+
+////////////////////////////////////////
 VersionRequirement VersionRequirement::fromString(std::string const& str_)
 {	
 	if (str_.empty())
@@ -59,6 +80,8 @@ VersionRequirement VersionRequirement::fromString(std::string const& str_)
 		result.type = Any;
 		return result;
 	}
+	else
+		result.type = Exact;
 
 	result.version = Version::fromString(result.type == Exact ? str_ : str_.substr(1));
 

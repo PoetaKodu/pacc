@@ -98,8 +98,8 @@ namespace gen
 
 
 void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
-void appendProject			(OutputFormatter &fmt_, Project const& project_);
-void appendConfiguration	(OutputFormatter &fmt_, Configuration const& config_);
+void appendProject			(OutputFormatter &fmt_, Package const& pkg_, Project const& project_);
+void appendConfiguration	(OutputFormatter &fmt_, Package const& pkg_, Project const& project_, Configuration const& config_);
 template <typename T>
 void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
 template <typename T>
@@ -172,7 +172,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 		for(auto const& project : pkg_.projects)
 		{
 			if (project.type != "interface")
-				appendProject(fmt_, project);
+				appendProject(fmt_, pkg_, project);
 		}
 	}
 }
@@ -209,7 +209,7 @@ void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 }
 
 /////////////////////////////////////////////////
-void appendProject(OutputFormatter &fmt_, Project const& project_)
+void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& project_)
 {
 	fmt_.write("\n");
 	fmt_.write("project(\"{}\")\n", project_.name);
@@ -242,7 +242,7 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			fmt_.write("includedirs( {{ \".\" }} )\n\n");
 		}
 
-		appendConfiguration(fmt_, project_);
+		appendConfiguration(fmt_, pkg_, project_, project_);
 
 		// TODO: keep insertion order
 		for (auto filterIt : project_.premakeFilters)
@@ -251,7 +251,7 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 			fmt_.write("filter(\"{}\")\n", filterIt.first);
 			{
 				IndentScope indent{fmt_};
-				appendConfiguration(fmt_, filterIt.second);
+				appendConfiguration(fmt_, pkg_, project_, filterIt.second);
 				fmt_.write("filter(\"\")\n");
 			}
 		}
@@ -260,9 +260,21 @@ void appendProject(OutputFormatter &fmt_, Project const& project_)
 
 
 /////////////////////////////////////////////////
-void appendConfiguration(OutputFormatter &fmt_, Configuration const& config_)
+void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project const& project_, Configuration const& config_)
 {
 	// TODO: Refactor this code
+
+	if (!config_.moduleDefinitionFile.empty())
+	{
+		fmt_.write("-- Use .def file with Visual Studio compiler.\n");
+		fmt_.write("if string.match(_ACTION, \"vs%d%d%d%d\") ~= nil then\n");
+		{
+			IndentScope indent{fmt_};
+			fmt_.write("linkoptions ({{ \"/DEF:\\\"{}\\\"\" }})\n", fsx::fwd(pkg_.root.parent_path() / config_.moduleDefinitionFile).string());
+		}
+		fmt_.write("end\n");
+	}
+
 	// Computed first:
 	appendPropWithAccess(fmt_, "defines", 		config_.defines.computed);
 	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed);

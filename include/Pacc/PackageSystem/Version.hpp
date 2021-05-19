@@ -19,6 +19,10 @@ struct Version
 
 	std::string toString() const;
 
+	/// <summary>Determines whether two Version objects are exactly the same</summary>
+	/// <param name="rhs_">The other Version object.</param>
+	bool operator==(Version const& rhs_) const;
+
 	static Version fromString(std::string const& str_);
 };
 
@@ -35,11 +39,11 @@ struct VersionRequirement
 		SameMinor,	/// Major and Minor must be exactly the same
 		SameMajor,	/// Major must be exactly the same
 		Any			/// Can be any version
-	} type = Exact;
+	} type = Any;
 
 	VersionRequirement() = default;
-	
-	VersionRequirement(int major_, int minor_, int patch_, Type type_ = Exact)
+
+	VersionRequirement(Type type_, int major_, int minor_, int patch_)
 		:
 		version{ major_, minor_, patch_ },
 		type(type_)
@@ -47,7 +51,16 @@ struct VersionRequirement
 
 	}
 
+	VersionRequirement(std::string const str_)
+	{
+		*this = fromString(str_);
+	}
+
 	std::string toString() const;
+
+	bool test(Version const& version_) const;
 
 	static VersionRequirement fromString(std::string const& str_);
 };
+// A shorthand for VersionRequirement
+using VersionReq = VersionRequirement;

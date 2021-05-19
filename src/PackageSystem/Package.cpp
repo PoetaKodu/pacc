@@ -114,7 +114,7 @@ Package Package::load(fs::path dir_)
 }
 
 /////////////////////////////////////////////////
-Package Package::loadByName(std::string_view name_)
+Package Package::loadByName(std::string_view name_, VersionRequirement verReq_)
 {
 	const std::vector<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
@@ -125,17 +125,22 @@ Package Package::loadByName(std::string_view name_)
 	for(auto const& c : candidates)
 	{
 		auto pkgFolder = c / name_;
+		Package pkg;
 		try {
-			return Package::load(pkgFolder);
+			pkg = Package::load(pkgFolder);
 		}
-		catch(...)
-		{
+		catch(...) {
 			// Could not load, ignore
+			continue;
 		}
+
+		if (verReq_.test(pkg.version))
+			return pkg;
 	}
 
+	// (TODO: help here)
 	// Found none.
-	throw std::runtime_error(fmt::format("Could not find package \"{}\" (TODO: help here).", name_));
+	throw PaccException("Could not find package \"{}\".", name_);
 }
 
 
@@ -195,6 +200,8 @@ fs::path Package::resolvePath( fs::path const& path_) const
 void loadConfigurationFromJSON(Configuration& conf_, json const& root_)
 {
 	using json_vt = json::value_t;
+
+	conf_.moduleDefinitionFile 	= JsonView{root_}.stringFieldOr("moduleDefinitionFile", "");
 	
 	conf_.files		 			= loadVecOfStrField(root_, "files");
 	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines");
@@ -384,10 +391,10 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 			if (version)
 			{
 				try {
-					pd.version = VersionRequirement::fromString(version->get<std::string>());
+					pd.version = VersionReq::fromString(version->get<std::string>());
 				}
 				catch (...) {
-					pd.version.type = VersionRequirement::Any;
+					pd.version.type = VersionReq::Any;
 				}
 			}
 
