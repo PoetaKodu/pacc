@@ -321,6 +321,68 @@ void PaccApp::buildPackage()
 }
 
 ///////////////////////////////////////////////////
+void PaccApp::install()
+{
+	using fmt::fg, fmt::color;
+
+	bool global = false;
+	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
+		global = true;
+
+	fs::path targetPath;
+	if (global)
+		targetPath = env::requirePaccDataStorageFolder() / "packages";
+	else
+		targetPath = "pacc_packages";
+
+	 // TODO: improve this
+	if (args.size() >= (global ? 4 : 3))
+	{
+		std::string packageTemplate(args[2]);
+
+		if (!startsWith(packageTemplate, "github:"))
+		{
+			throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", packageTemplate)
+				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
+		}
+
+		std::string rest = packageTemplate.substr(7);
+
+		std::size_t slashPos = rest.find('/');
+		if (slashPos == std::string::npos)
+		{
+			throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", packageTemplate)
+				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
+		}
+
+		std::string packageName = rest.substr(slashPos + 1);
+		std::string userName 	= rest.substr(0, slashPos);
+
+		if (fs::is_directory(targetPath / packageName))
+		{
+			throw PaccException("Package \"{0}\" is already installed{1}.", packageName, global ? " globally" : "")
+				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", packageName, global ? " --global" : "");
+		}
+
+		this->downloadPackage(targetPath / packageName, userName, packageName);
+
+		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", packageName);
+	}
+	else
+	{
+		Package pkg = Package::load();
+
+		auto deps = this->collectMissingDependencies(pkg);
+
+		for (auto const& dep : deps)
+		{
+			this->downloadPackage(targetPath / dep.packageName, dep.downloadLocation, dep.packageName);
+		}
+	}
+	
+}
+
+///////////////////////////////////////////////////
 void PaccApp::logs()
 {
 	// Print latest
@@ -373,6 +435,76 @@ void PaccApp::logs()
 		}
 	}
 
+}
+
+///////////////////////////////////////////////////
+std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const & pkg_)
+{
+	std::vector<PackageDependency> result;
+
+	for (auto const& proj : pkg_.projects)
+	{
+		for (auto* acc : getAccesses(proj.dependencies.self))
+		{
+			for (auto const& dep : *acc)
+			{
+				if (dep.isPackage())
+				{
+					auto pkgDep = dep.package();
+
+					try {
+						Package::loadByName(pkgDep.packageName); // just try to load
+					}
+					catch (...) {
+						result.push_back(std::move(pkgDep));
+					}
+					// Ignore.
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+///////////////////////////////////////////////////
+void PaccApp::downloadPackage(fs::path const &target_, std::string const& user_, std::string const& packageName_)
+{
+	constexpr int GitListInvalidUrl = 128;
+
+	if (user_.empty() || packageName_.empty())
+		throw PaccException("Could not load package \"{0}\"", packageName_);
+
+	std::string githubLink = fmt::format("https://github.com/{}/{}", user_, packageName_);
+
+	auto listCommand = fmt::format("git ls-remote \"{0}\"", githubLink);
+	auto listExitStatus = ChildProcess{ listCommand, "", ch::seconds{2}}.runSync();
+	
+	if (listExitStatus.value_or(GitListInvalidUrl) != 0)
+		throw PaccException("Could not find remote repository \"{}\"", githubLink);
+
+	fs::path cwd = fs::current_path();
+
+	auto cloneCommand = fmt::format("git clone --depth=1 \"{0}\" \"{1}\"", githubLink, fsx::fwd(target_).string());
+	auto cloneExitStatus = ChildProcess{ cloneCommand, "", ch::seconds{60} }.runSync();
+
+	if (cloneExitStatus.value_or(1) != 0)
+		throw PaccException("Could not clone remote repository \"{0}\", error code: {1}", githubLink, cloneExitStatus.value_or(-1));
+
+	fs::path gitFolderPath = target_ / ".git";
+	if (fs::is_directory(gitFolderPath))
+	{
+		// Make writable
+		for(auto entry : fs::recursive_directory_iterator(gitFolderPath))
+		{
+			fs::permissions(entry.path(),
+					fs::perms::owner_write | fs::perms::group_write,
+					fs::perm_options::add
+				);
+		}
+
+		fs::remove_all(target_ / ".git");
+	}
 }
 
 ///////////////////////////////////////////////////

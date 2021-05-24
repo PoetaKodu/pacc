@@ -110,6 +110,10 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.logs();	
 		}
+		else if (action == "i" || action == "install")
+		{
+			app.install();	
+		}
 		else if (action == "toolchain" || action == "toolchain" || action == "tc")
 		{
 			app.loadPaccConfig();

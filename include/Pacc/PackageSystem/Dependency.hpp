@@ -34,6 +34,7 @@ struct PackageDependency
 {
 	VecOfStr 		projects;
 	std::string 	packageName;
+	std::string 	downloadLocation;
 	VersionReq 		version{};
 
 	// Resolved (or not) package pointer.
