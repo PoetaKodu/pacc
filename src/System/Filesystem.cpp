@@ -19,4 +19,29 @@ fs::path fwd(fs::path p_)
 	return p_;
 }
 
+//////////////////////////////////////
+void makeWritableAll(fs::path const& path_)
+{
+	if (!fs::exists(path_))
+		return;
+
+	if (fs::is_directory(path_))
+	{
+		for(auto entry : fs::recursive_directory_iterator(path_))
+		{
+			fs::permissions(entry.path(),
+					fs::perms::owner_write | fs::perms::group_write,
+					fs::perm_options::add
+				);
+		}
+	}
+	else
+	{
+		fs::permissions(path_,
+				fs::perms::owner_write | fs::perms::group_write,
+				fs::perm_options::add
+			);
+	}
+}
+
 }

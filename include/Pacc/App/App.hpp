@@ -33,6 +33,8 @@ public:
 	void 			logs();
 	// install
 	void 			install();
+	// uninstall
+	void 			uninstall();
 
 	///////////////////////
 	// Other functions:

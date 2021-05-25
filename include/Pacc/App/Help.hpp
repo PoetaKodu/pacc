@@ -17,8 +17,9 @@ constexpr ActionInfo actions[] = {
 	{ "run", 		"runs packages's startup project" },
 	{ "log", 		"list latest build logs or print last log's content (--last)" },
 	{ "version", 	"displays pacc version" },
-	{ "help", 		"displays this help message" }
-	// { "install",	"installs package artifacts" } // TODO: support installation
+	{ "help", 		"displays this help message" },
+	{ "install",	"installs package artifacts" },
+	{ "uninstall",	"uninstalls package artifacts" }
 };
 
 }

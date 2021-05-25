@@ -383,6 +383,58 @@ void PaccApp::install()
 }
 
 ///////////////////////////////////////////////////
+void PaccApp::uninstall()
+{
+	using fmt::fg, fmt::color;
+
+	bool global = false;
+	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
+		global = true;
+
+	fs::path targetPath;
+	if (global)
+		targetPath = env::requirePaccDataStorageFolder() / "packages";
+	else
+		targetPath = "pacc_packages";
+
+	 // TODO: improve this
+	if (args.size() >= (global ? 4 : 3))
+	{
+		std::string packageName(args[2]);
+
+		fs::path packagePath = targetPath / packageName;
+
+		if (fs::is_symlink(packagePath) && global)
+		{
+			fsx::makeWritableAll(packagePath);
+			fs::remove(packagePath);
+			fmt::print("Package \"{}\" has been unlinked from the user environment.", packageName);
+		}
+		else if (fs::is_directory(packagePath))
+		{
+			fsx::makeWritableAll(packagePath);
+			fs::remove_all(packagePath);
+			fmt::print(fg(color::lime_green), "Uninstalled package \"{}\".\n", packageName);
+		}
+		else
+		{
+			if (fs::exists(packagePath))
+			{
+				throw PaccException("Invalid type of package \"{}\".", packageName)
+					.withHelp("Directory or symlink required\n");
+			}
+			else
+			{
+				throw PaccException("Package \"{0}\" is not installed{1}.", packageName, global ? " globally" : "");
+			}
+		}
+	}
+	else
+		throw PaccException("Missing argument: package name")
+			.withHelp("Use \"pacc uninstall [package_name]\"");
+}
+
+///////////////////////////////////////////////////
 void PaccApp::logs()
 {
 	// Print latest
@@ -494,16 +546,9 @@ void PaccApp::downloadPackage(fs::path const &target_, std::string const& user_,
 	fs::path gitFolderPath = target_ / ".git";
 	if (fs::is_directory(gitFolderPath))
 	{
-		// Make writable
-		for(auto entry : fs::recursive_directory_iterator(gitFolderPath))
-		{
-			fs::permissions(entry.path(),
-					fs::perms::owner_write | fs::perms::group_write,
-					fs::perm_options::add
-				);
-		}
+		fsx::makeWritableAll(gitFolderPath);
 
-		fs::remove_all(target_ / ".git");
+		fs::remove_all(gitFolderPath);
 	}
 }
 

@@ -114,6 +114,10 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.install();	
 		}
+		else if (action == "uninstall")
+		{
+			app.uninstall();	
+		}
 		else if (action == "toolchain" || action == "toolchain" || action == "tc")
 		{
 			app.loadPaccConfig();
