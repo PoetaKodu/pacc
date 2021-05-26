@@ -447,8 +447,7 @@
 						"body": {
 							"name": "${1:PackageName}",
 							"projects": [ "${2:ProjectName}" ],
-							"version": "${3:^1.0.0}",
-							"path": "${4:/path/to/folder/with/cpackage.json_or_lua}"
+							"version": "${3:^1.0.0}"
 						}
 					}
 				]
