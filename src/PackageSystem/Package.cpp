@@ -516,7 +516,8 @@ VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName, Acce
 	VecOfStrAcc result;
 	if (auto it = j.find(fieldName); it != j.end())
 	{
-		if (it.value().type() == json::value_t::array)
+		json::value_t type = it.value().type();
+		if (type == json::value_t::array || type == json::value_t::string)
 			targetByAccessType(result, defaultAccess_) = loadVecOfStrField(*it, fieldName, true);
 		else
 		{

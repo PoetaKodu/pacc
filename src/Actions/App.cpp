@@ -342,21 +342,22 @@ void PaccApp::install()
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
-		if (loc.platform != DownloadLocation::GitHub)
+		if (loc.platform != DownloadLocation::GitHub && loc.platform != DownloadLocation::GitLab)
 		{
-			throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", packageTemplate)
+			throw PaccException("Invalid package \"{}\", only GitHub and GitLab packages are allowed (for now).", packageTemplate)
 				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
 		}
 
 		std::string rest = packageTemplate.substr(7);
 
-		if (fs::is_directory(targetPath / loc.repository))
+		fs::path targetPackagePath = targetPath / loc.repository;
+		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
 		{
 			throw PaccException("Package \"{0}\" is already installed{1}.", loc.repository, global ? " globally" : "")
 				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", loc.repository, global ? " --global" : "");
 		}
 
-		this->downloadPackage(targetPath / loc.repository, loc.userName, loc.repository);
+		this->downloadPackage(targetPackagePath, loc.userName, loc.repository);
 
 		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", loc.repository);
 	}
@@ -369,6 +370,12 @@ void PaccApp::install()
 		Package pkg = Package::load();
 
 		auto deps = this->collectMissingDependencies(pkg);
+
+		if (deps.empty())
+		{
+			fmt::print("No packages to install.\n");
+			return;
+		}
 
 		size_t numInstalled = 0;
 
@@ -383,13 +390,20 @@ void PaccApp::install()
 				}
 
 				// TODO: remove this when other platforms get support.
-				if (loc.platform != DownloadLocation::GitHub)
+				if (loc.platform != DownloadLocation::GitHub && loc.platform != DownloadLocation::GitLab)
 				{
-					throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", dep.downloadLocation)
+					throw PaccException("Invalid package \"{}\", only GitHub and GitLab packages are allowed (for now).", dep.downloadLocation)
 						.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
 				}
 
-				this->downloadPackage(targetPath / dep.packageName, loc.userName, loc.repository);
+				fs::path targetPackagePath = targetPath / dep.packageName;
+				if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
+				{
+					throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
+						.withHelp("Remove the folder.\n");
+				}
+
+				this->downloadPackage(targetPackagePath, loc.userName, loc.repository);
 
 				// TODO: download package dependencies
 
