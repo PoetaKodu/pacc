@@ -132,11 +132,6 @@
 				"description": "Files that this project uses.\nEither a single file, a file pattern or array of files/file patterns.\nA file pattern uses asterisk as a wildcard, f.e.: \"src/*.cpp\".\nA double wildcard will search subfolders too: \"src/**.cpp\".\nMore examples:\n\"files\": [ \"src/Hello.hpp\", \"src/Hello.cpp\", \"src/Main.cpp\" ]\n\"files\": [ \"src1/*.cpp\", \"src2/*.cpp\" ]",
 				"markdownDescription": "# Project files\n\nFiles used to build a project. Should contain both header and source files.\n\nEither a single file, a file pattern or an array of files/file patterns. A file pattern uses asterisk as a wildcard.\n\n## Examples\n\nEvery `.cpp` file directly inside `src/` folder:\n```json\n\"files\": \"src/*.cpp\"\n```\n\nA double wildcard will search subfolders too:\n```json\n\"files\": \"src/**.cpp\"\n```\n\nSpecifying multiple files/patterns:\n```json\n\"files\": [\n    \"src/Hello.hpp\",\n    \"src/Hello.cpp\",\n    \"src/Main.cpp\"\n]\n```\nEvery `.cpp` file inside `src1/` and `src2/`:\n\n```json\n\"files\": [\n    \"src1/*.cpp\",\n    \"src2/*.cpp\"\n]\n```"
 			},
-			"linkedLibraries": {
-				"$ref": "#/definitions/stringOrVecAcc",
-				"description": "Linked libraries\nThis field can be specified in several ways (see Examples)\nIt consists of three subfields:\n\n- private - values will be used only by the project itself\n- public - values will be used by the project and propagated to projects that use this one as a dependency\n- interface - values used only by projects that use this one as a dependency\nExamples\nLinking specific file within private section (.a, .lib, etc.):\n\"linkedLibraries\": \"myLibrary\"\nLinking library LibName from package PackageName within private section (package must be set inside dependencies field):\n\"linkedLibraries\": \"PackageName:LibName\"\nMultiple private linkings:\n\"linkedLibraries\": [\n\"opengl32\",\n\"fmtlib:fmt\"\n\"mylib\"\n]\n\nExplicitly defined public, private and interface fields:\n\"linkedLibraries\": {\n\"public\": [ \"glu32\", \"openal32\", \"opengl32\" ],\n\"private\": \"my_private_lib\",\n\"interface\": \"sfml-graphics\"\n}\n",
-				"markdownDescription": "# Linked libraries\n\nThis field can be specified in several ways (see Examples)\n\nIt consists of three subfields:\n\n- `private` - values will be used only by the project itself\n- `public` - values will be used by the project and propagated to projects that use this one as a dependency\n- `interface` - values used only by projects that use this one as a dependency\n\n## Examples\n\nLinking specific file within `private` section (`.a`, `.lib`, etc.):\n\n```json\n\"linkedLibraries\": \"myLibrary\"\n```\n\nLinking library `LibName` from package `PackageName` within `private` section (package must be set inside `dependencies` field):\n\n```json\n\"linkedLibraries\": \"PackageName:LibName\"\n```\n\nMultiple `private` linkings:\n```json\n\"linkedLibraries\": [\n    \"opengl32\",\n    \"fmtlib:fmt\"\n    \"mylib\"\n]\n```\n\nExplicitly defined `public`, `private` and `interface` fields:\n```json\n\"linkedLibraries\": {\n    \"public\": [ \"glu32\", \"openal32\", \"opengl32\" ],\n    \"private\": \"my_private_lib\",\n    \"interface\": \"sfml-graphics\"\n}\n```"
-			},
 			"defines": {
 				"$ref": "#/definitions/stringOrVecAcc",
 				"description": "Preprocessor definitions\nThis field can be specified in several ways (see Examples)\nIt consists of three subfields:\n- private - values will be used only by the project itself\n- public - values will be used by the project and propagated to projects that use this one as a dependency\n- interface - values used only by projects that use this one as a dependency\nExamples:\nYou don't have to specify each subfield.\nSingle definition without a value (goes to private section):\n\"defines\": \"SOME_DEFINITION\"\nSingle definition with a value (goes to private section):\n\"defines\": \"SOME_DEFINITION=123\"\n\nMultiple private definitions:\n\"defines\": [\n\"FOO\",\n\"ABCDEF=123\"\n\"BAR=999\"\n]\n\nExplicitly defined public, private and interface fields:\n\"defines\": {\n\"public\": [ \"FOO_STATIC_LIBS\", \"NOMINMAX\" ],\n\"private\": \"ABC=123\",\n\"interface\": \"USES_FOO_LIBRARY\"\n}",
@@ -404,8 +399,8 @@
 				"properties": {
 					"name": {
 						"type": "string",
-						"description": "File or package name",
-						"markdownDescription": "File or package name"
+						"description": "File or package name\nNote: if field \"projects\" is not specified, project with the same name as the package will be automatically linked.",
+						"markdownDescription": "File or package name\n\n**Note:** if field `projects` is not specified, project with the same name as the package will be automatically linked."
 					},
 					"projects": {
 						"$ref": "#/definitions/stringOrVec"
@@ -413,11 +408,12 @@
 					"version": {
 						"type": "string"
 					},
-					"path": {
-						"type": "string"
+					"from": {
+						"type": "string",
+						"markdownDescription": "# Dependency source\n\nAn information about where the package should be downloaded from.\n\nPackages can be downloaded from:\n- official repository: `PackageName` - references a package with name `PackageName` from **official PACC repository**\n- [GitHub](https://github.com) repository: `github:UserName/RepoName`\n- [GitLab](https://gitlab.com): `gitlab:UserName/RepoName`\n\nUse following command to fetch each dependency\n```\npacc install\n```"
 					}
 				},
-				"required": [ "name", "projects" ],
+				"required": [ "name" ],
 				"defaultSnippets": [
 					{
 						"label": "Pacc dependency",

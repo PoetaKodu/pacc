@@ -31,7 +31,7 @@ json const* 	selfOrSubfield(json const& self, std::string_view fieldName, bool r
 
 void 			readDependencyAccess(json const& deps_, std::vector<Dependency> &target_);
 VecOfStr 		loadVecOfStrField(json const& j, std::string_view fieldName, bool direct = false, bool required = false);
-VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName);
+VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName, AccessType defaultAccess_ = AccessType::Private);
 
 
 ///////////////////////////////////////////////////
@@ -197,16 +197,21 @@ fs::path Package::resolvePath( fs::path const& path_) const
 }
 
 ///////////////////////////////////////////////////
-void loadConfigurationFromJSON(Configuration& conf_, json const& root_)
+void loadConfigurationFromJSON(Project & project_, Configuration& conf_, json const& root_)
 {
+	using fmt::fg, fmt::color;
 	using json_vt = json::value_t;
 
 	conf_.moduleDefinitionFile 	= JsonView{root_}.stringFieldOr("moduleDefinitionFile", "");
 	
+	bool isInterface = (project_.type == "interface");
+
+	AccessType defaultAccess = isInterface ? AccessType::Interface : AccessType::Private;
+
 	conf_.files		 			= loadVecOfStrField(root_, "files");
-	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines");
-	conf_.includeFolders.self	= loadVecOfStrAccField(root_, "includeFolders");
-	conf_.linkerFolders.self	= loadVecOfStrAccField(root_, "linkerFolders");
+	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines", 		defaultAccess);
+	conf_.includeFolders.self	= loadVecOfStrAccField(root_, "includeFolders",	defaultAccess);
+	conf_.linkerFolders.self	= loadVecOfStrAccField(root_, "linkerFolders", 	defaultAccess);
 
 	// Load dependencies:		
 	auto depsIt = root_.find("dependencies");
@@ -216,16 +221,25 @@ void loadConfigurationFromJSON(Configuration& conf_, json const& root_)
 		auto& projSelfDeps = conf_.dependencies.self;
 		if (deps.type() == json_vt::array)
 		{
-			readDependencyAccess(*depsIt, projSelfDeps.private_);
+			readDependencyAccess(*depsIt, targetByAccessType(projSelfDeps, defaultAccess));
 		}
 		else if (deps.type() == json_vt::object)
 		{
-			if (deps.contains("public")) 		readDependencyAccess(deps["public"], projSelfDeps.public_);
-			if (deps.contains("private")) 		readDependencyAccess(deps["private"], projSelfDeps.private_);
-			if (deps.contains("interface")) 	readDependencyAccess(deps["interface"], projSelfDeps.interface_);
+			if (isInterface)
+			{
+				if (deps.contains("public") || deps.contains("private"))
+					fmt::print(fg(color::yellow), "Interface project \"{}\" cannot include public or private dependencies (ignored).", project_.name);
+			}
+			else
+			{
+				if (deps.contains("public")) readDependencyAccess(deps["public"], projSelfDeps.public_);
+				if (deps.contains("private")) readDependencyAccess(deps["private"], projSelfDeps.private_);
+			}
+
+			if (deps.contains("interface")) readDependencyAccess(deps["interface"], projSelfDeps.interface_);
 		}
 		else
-			throw std::runtime_error("Invalid type of \"dependencies\" field (must be an array or an object)");
+			throw PaccException("Invalid type of \"dependencies\" field (must be an array or an object)");
 	}
 }
 
@@ -277,7 +291,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();
 
-		loadConfigurationFromJSON(project, jsonProject);
+		loadConfigurationFromJSON(project, project, jsonProject);
 
 		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
 		if (filters)
@@ -289,7 +303,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 				{
 					// Create and reference the configuration:
 					Configuration& cfg = project.premakeFilters[filterIt.key()];
-					loadConfigurationFromJSON(cfg, val);
+					loadConfigurationFromJSON(project, cfg, val);
 				}
 			}
 		}
@@ -369,7 +383,7 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 		{
 			// Required fields:
 			json const& name 		= requireSub<json_vt::string>(*pkgDep, "name");
-			json const& projects 	= requireSub<json_vt::array>(*pkgDep, "projects");
+			json const* projects 	= expectSub<json_vt::array>(*pkgDep, "projects");
 			// Optional fields:
 			json const* version 	= expectSub<json_vt::string>(*pkgDep, "version");
 
@@ -378,13 +392,31 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 
 			// Required:
 			pd.packageName = name;
-			
-			pd.projects.reserve(projects.size());
-			for(auto proj : projects.items())
-			{
-				json const& projName = require<json_vt::string>(proj.value());
 
-				pd.projects.push_back(projName.get<std::string>());
+			// Parse download location:
+			pd.downloadLocation = JsonView{*pkgDep}.stringFieldOr("from", "");
+			auto loc = DownloadLocation::parse(pd.downloadLocation);
+		
+			if (projects)
+			{
+				pd.projects.reserve(projects->size());
+				for(auto proj : projects->items())
+				{
+					json const& projName = require<json_vt::string>(proj.value());
+
+					pd.projects.push_back(projName.get<std::string>());
+				}
+			}
+			else
+			{
+				std::string originalName;
+
+				if (!loc.repository.empty())
+					originalName = loc.repository;
+				else
+					originalName = name;
+
+				pd.projects.emplace_back(std::move(originalName));
 			}
 
 			// Optional
@@ -479,13 +511,13 @@ VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direc
 }
 
 ///////////////////////////////////////////////////
-VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName)
+VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName, AccessType defaultAccess_)
 {
 	VecOfStrAcc result;
 	if (auto it = j.find(fieldName); it != j.end())
 	{
 		if (it.value().type() == json::value_t::array)
-			result.private_ = loadVecOfStrField(*it, fieldName, true);
+			targetByAccessType(result, defaultAccess_) = loadVecOfStrField(*it, fieldName, true);
 		else
 		{
 			result.private_ 	= loadVecOfStrField(*it, "private");

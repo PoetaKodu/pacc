@@ -340,7 +340,9 @@ void PaccApp::install()
 	{
 		std::string packageTemplate(args[2]);
 
-		if (!startsWith(packageTemplate, "github:"))
+		auto loc = DownloadLocation::parse( packageTemplate );
+
+		if (loc.platform != DownloadLocation::GitHub)
 		{
 			throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", packageTemplate)
 				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
@@ -348,38 +350,63 @@ void PaccApp::install()
 
 		std::string rest = packageTemplate.substr(7);
 
-		std::size_t slashPos = rest.find('/');
-		if (slashPos == std::string::npos)
+		if (fs::is_directory(targetPath / loc.repository))
 		{
-			throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", packageTemplate)
-				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
+			throw PaccException("Package \"{0}\" is already installed{1}.", loc.repository, global ? " globally" : "")
+				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", loc.repository, global ? " --global" : "");
 		}
 
-		std::string packageName = rest.substr(slashPos + 1);
-		std::string userName 	= rest.substr(0, slashPos);
+		this->downloadPackage(targetPath / loc.repository, loc.userName, loc.repository);
 
-		if (fs::is_directory(targetPath / packageName))
-		{
-			throw PaccException("Package \"{0}\" is already installed{1}.", packageName, global ? " globally" : "")
-				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", packageName, global ? " --global" : "");
-		}
-
-		this->downloadPackage(targetPath / packageName, userName, packageName);
-
-		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", packageName);
+		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", loc.repository);
 	}
 	else
 	{
+		if (global)
+			throw PaccException("Missing argument: package name")
+				.withHelp("Use \"pacc install [package_name] --global\"");
+
 		Package pkg = Package::load();
 
 		auto deps = this->collectMissingDependencies(pkg);
 
-		for (auto const& dep : deps)
-		{
-			this->downloadPackage(targetPath / dep.packageName, dep.downloadLocation, dep.packageName);
+		size_t numInstalled = 0;
+
+		try {
+			for (auto const& dep : deps)
+			{
+				auto loc = DownloadLocation::parse( dep.downloadLocation );
+				if (loc.platform == DownloadLocation::Unknown)
+				{
+					throw PaccException("Missing package \"{}\" with no download location specified.", dep.packageName)
+						.withHelp("Provide \"from\" for the package.\n");
+				}
+
+				// TODO: remove this when other platforms get support.
+				if (loc.platform != DownloadLocation::GitHub)
+				{
+					throw PaccException("Invalid package \"{}\", only GitHub packages are allowed (for now).", dep.downloadLocation)
+						.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
+				}
+
+				this->downloadPackage(targetPath / dep.packageName, loc.userName, loc.repository);
+
+				// TODO: download package dependencies
+
+				// TODO: run install script on package.
+
+
+				++numInstalled;
+			}
 		}
+		catch(...)
+		{
+			fmt::printErr(fg(color::red), "Installed {} / {} packages.\n", numInstalled, deps.size());
+			throw;
+		}
+
+		fmt::print(fg(color::lime_green), "Installed {} / {} packages.\n", numInstalled, deps.size());
 	}
-	
 }
 
 ///////////////////////////////////////////////////

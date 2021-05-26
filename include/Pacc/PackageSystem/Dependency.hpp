@@ -29,6 +29,23 @@ using VecOfStrAcc 		= AccessSplitVec<std::string>;
 template <typename T>
 T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
 
+struct DownloadLocation
+{
+	enum Platform
+	{
+		Unknown,
+		GitHub,
+		GitLab,
+		OfficialRepo // userName is ignored when this is used.
+	};
+
+	static DownloadLocation parse(std::string const& depTemplate_);
+
+	std::string repository;
+
+	std::string userName 	= "";
+	Platform platform 		= Unknown;
+};
 
 struct PackageDependency
 {
