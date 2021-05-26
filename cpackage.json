@@ -14,8 +14,16 @@
 	"dependencies": [
 		{
 			"name": "PaccAppDependencies",
-			"projects": [ "fmtlib", "nlohmann_json", "tiny-process-lib" ],
+			"projects": [ "tiny-process-lib" ],
 			"version": "^0.2.0"
+		},
+		{
+			"name": "fmt",
+			"from": "fmt@pacc-7.1.3"
+		},
+		{
+			"name": "json",
+			"from": "json@pacc-3.9.1"
 		}
 	],
 	"filters": {

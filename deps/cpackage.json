@@ -2,41 +2,18 @@
 	"name": "PaccAppDependencies",
 	"projects": [
 		{
-			"name": "fmtlib",
-			"type": "interface",
-			"includeFolders": {
-				"interface": [ "fmt/include" ]
-			},
-			"defines": {
-				"interface": "FMT_HEADER_ONLY"
-			},
-			"description": "FMT lib interface project"
-		},
-		{
-			"name": "nlohmann_json",
-			"type": "interface",
-			"includeFolders": {
-				"interface": [ "nlohmann_json/include" ]
-			},
-			"description": "JSON lib interface project"
-		},
-		{
 			"name": "tiny-process-lib",
 			"type": "interface",
-			"includeFolders": {
-				"interface": "tiny-process-lib/include"
-			},
+			"includeFolders": "tiny-process-lib/include",
 			"filters": {
 				"configurations:Debug": {
-					"linkerFolders": { "interface": "tiny-process-lib/lib/x64/Debug" }
+					"linkerFolders": "tiny-process-lib/lib/x64/Debug"
 				},
 				"configurations:Release": {
-					"linkerFolders": { "interface": "tiny-process-lib/lib/x64/Release" }
+					"linkerFolders": "tiny-process-lib/lib/x64/Release"
 				}
 			},
-			"dependencies": {
-				"interface": [ "tiny-process-library" ]
-			},
+			"dependencies": [ "tiny-process-library" ],
 			"description": "Process lib interface project"
 		}
 	],
