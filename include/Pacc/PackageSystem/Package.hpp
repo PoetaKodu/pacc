@@ -63,9 +63,11 @@ struct Project : TargetBase
 
 struct Package : TargetBase
 {
+
 	fs::path 				root;
 	std::vector<Project> 	projects;
 	Version					version;
+	std::string 			startupProject;
 
 	static Package load(fs::path dir_ = "");
 	static Package loadByName(std::string_view name_, VersionRequirement verReq_ = {});

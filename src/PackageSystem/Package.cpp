@@ -261,11 +261,11 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 
 	// Load JSON:
 	result.name = j["name"].get<std::string>();
+	result.startupProject = JsonView{j}.stringFieldOr("startupProject", "");
 
 	auto projects = j.find("projects");
 
 	result.projects.reserve(projects->size());
-
 	
 	// Read projects:
 	for(auto it : projects->items())

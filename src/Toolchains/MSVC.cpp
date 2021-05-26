@@ -73,16 +73,22 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 
 
 	// TODO: make configurable
-	std::string params[] = {
+	std::vector<std::string> params = {
 		"/m",
 		"/property:Configuration=" + settings_.configName,
 		"/property:Platform=" + handleWin32SpecialCase(settings_.platformName),
 		// Ask msbuild to generate full paths for file names.
-		"/property:GenerateFullPaths=true",
-		"/t:build"
+		"/property:GenerateFullPaths=true"
 	};
 
-	// TODO: Maybe make configurable?
+	if (settings_.targetName.empty())
+		params.push_back("/t:build");
+	else
+	{
+		params.push_back("/t:" + settings_.targetName);
+		params.push_back("/p:BuildProjectReferences=false");
+	}
+
 	fs::path const msbuildPath = mainPath / "MSBuild/Current/Bin/msbuild.exe";
 
 	std::string buildCommand = fmt::format("{} {}.sln", msbuildPath.string(), pkg_.name);

@@ -11,6 +11,8 @@ struct BuildSettings
 {
 	std::string configName 		= "Debug";
 	std::string platformName 	= "x64";
+
+	std::string targetName 		= "";
 };
 
 struct Toolchain
