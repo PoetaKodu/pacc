@@ -70,7 +70,8 @@ struct Package : TargetBase
 	std::string 			startupProject;
 
 	static Package load(fs::path dir_ = "");
-	static Package loadByName(std::string_view name_, VersionRequirement verReq_ = {});
+
+	static Package loadByName(std::string_view name_, VersionRequirement verReq_ = {}, Package* invalidVersion_ = nullptr);
 
 	Project const* findProject(std::string_view name_) const;
 

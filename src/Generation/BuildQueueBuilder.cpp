@@ -94,7 +94,24 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 					// TODO: load dependency (and bind it to shared pointer)
 					{
-						Package pkg = Package::loadByName(pkgDep.packageName);
+
+						Package pkg;
+						try {
+							pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
+						} 
+						catch(PaccException &)
+						{
+							// This means that the package was loaded, but does not meet version requirements.
+							if (!pkg.name.empty())
+							{
+								throw PaccException("Could not load package \"{}\". Version \"{}\" is incompatible with requirement \"{}\"",
+										pkgDep.packageName, pkg.version.toString(), pkgDep.version.toString()
+									)
+									.withHelp("Consider installing version of the package that meets requirements.\nYou can list available package versions with \"pacc lsver [package_name]\"\nTo install package at a specific version, use \"pacc install [package_name]@[version]\"\n");
+							}
+							else
+								throw; // Rethrow exception
+						}
 
 						if (this->isPackageLoaded(pkg.root))
 							continue; // ignore package, was loaded yet

@@ -39,6 +39,8 @@ Version Version::fromString(std::string const& str_)
 
 		if (!dotFound)
 			break;
+		else
+			searchStart = dotPos + 1;
 	}
 
 	return result;

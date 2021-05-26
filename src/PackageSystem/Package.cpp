@@ -114,7 +114,7 @@ Package Package::load(fs::path dir_)
 }
 
 /////////////////////////////////////////////////
-Package Package::loadByName(std::string_view name_, VersionRequirement verReq_)
+Package Package::loadByName(std::string_view name_, VersionRequirement verReq_, Package* invalidVersion_)
 {
 	const std::vector<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
@@ -136,6 +136,11 @@ Package Package::loadByName(std::string_view name_, VersionRequirement verReq_)
 
 		if (verReq_.test(pkg.version))
 			return pkg;
+		else
+		{
+			if (invalidVersion_)
+				*invalidVersion_ = std::move(pkg);
+		}
 	}
 
 	// (TODO: help here)
