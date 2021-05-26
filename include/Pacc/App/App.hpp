@@ -59,7 +59,7 @@ private:
 	/// <returns><c>true</c> if found otherwise <c>false</c></returns>
 	bool containsSwitch(std::string_view switch_) const;
 
-	void downloadPackage(fs::path const &target_, std::string const& user_, std::string const& packageName_);
+	void downloadPackage(fs::path const &target_, DownloadLocation const& loc_);
 
 	std::vector<PackageDependency> collectMissingDependencies(Package const & pkg_);
 };

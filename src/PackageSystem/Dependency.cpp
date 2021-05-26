@@ -32,9 +32,10 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 		result.platform = OfficialRepo;
 	}
 
+	std::string repo;
 	if (result.platform == OfficialRepo)
 	{
-		result.repository = rest;
+		repo = std::move(rest);
 	}
 	else
 	{
@@ -45,9 +46,15 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 				.withHelp("Use following syntax: \"{}:UserName/RepoName\"\n", platformName);
 		}
 
-		result.repository 	= rest.substr(slashPos + 1);
 		result.userName 	= rest.substr(0, slashPos);
+
+		repo = rest.substr(slashPos + 1);
 	}
-	
+
+	auto repoAndBranch = splitBy(repo, '@');
+
+	result.repository 	= repoAndBranch.first;
+	result.branch 		= repoAndBranch.second;
+
 	return result;
 }

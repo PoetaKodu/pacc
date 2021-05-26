@@ -378,12 +378,6 @@ void PaccApp::install()
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
-		if (loc.platform != DownloadLocation::GitHub && loc.platform != DownloadLocation::GitLab)
-		{
-			throw PaccException("Invalid package \"{}\", only GitHub and GitLab packages are allowed (for now).", packageTemplate)
-				.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
-		}
-
 		std::string rest = packageTemplate.substr(7);
 
 		fs::path targetPackagePath = targetPath / loc.repository;
@@ -393,7 +387,7 @@ void PaccApp::install()
 				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", loc.repository, global ? " --global" : "");
 		}
 
-		this->downloadPackage(targetPackagePath, loc.userName, loc.repository);
+		this->downloadPackage(targetPackagePath, loc);
 
 		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", loc.repository);
 	}
@@ -421,15 +415,13 @@ void PaccApp::install()
 				auto loc = DownloadLocation::parse( dep.downloadLocation );
 				if (loc.platform == DownloadLocation::Unknown)
 				{
-					throw PaccException("Missing package \"{}\" with no download location specified.", dep.packageName)
-						.withHelp("Provide \"from\" for the package.\n");
-				}
-
-				// TODO: remove this when other platforms get support.
-				if (loc.platform != DownloadLocation::GitHub && loc.platform != DownloadLocation::GitLab)
-				{
-					throw PaccException("Invalid package \"{}\", only GitHub and GitLab packages are allowed (for now).", dep.downloadLocation)
-						.withHelp("Use following syntax: \"github:UserName/RepoName\"\n");
+					throw PaccException("Missing package \"{}\" with no download location specified, or the location is wrong.", dep.packageName)
+						.withHelp(
+								"Provide \"from\" for the package. Use following syntax:\n"
+								"    - \"RepoName\" for package from official repository (https://github.com/pacc-repo)\n"
+								"    - \"github:UserName/RepoName\" for package from GitHub repository\n"
+								"    - \"gitlab:UserName/RepoName\" for package from GitLab repository\n"
+							);
 				}
 
 				fs::path targetPackagePath = targetPath / dep.packageName;
@@ -439,7 +431,7 @@ void PaccApp::install()
 						.withHelp("Remove the folder.\n");
 				}
 
-				this->downloadPackage(targetPackagePath, loc.userName, loc.repository);
+				this->downloadPackage(targetPackagePath, loc);
 
 				// TODO: download package dependencies
 
@@ -597,28 +589,55 @@ std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::downloadPackage(fs::path const &target_, std::string const& user_, std::string const& packageName_)
+void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& loc_)
 {
 	constexpr int GitListInvalidUrl = 128;
 
-	if (user_.empty() || packageName_.empty())
-		throw PaccException("Could not load package \"{0}\"", packageName_);
 
-	std::string githubLink = fmt::format("https://github.com/{}/{}", user_, packageName_);
+	if (loc_.platform == DownloadLocation::Unknown ||
+		(loc_.userName.empty() && loc_.platform != DownloadLocation::OfficialRepo) ||
+		loc_.repository.empty())
+	{
+		throw PaccException("Could not load package \"{0}\"", loc_.repository);
+	}
 
-	auto listCommand = fmt::format("git ls-remote \"{0}\"", githubLink);
+	std::string userName = loc_.userName;
+	std::string platformName;
+	switch(loc_.platform)
+	{
+	case DownloadLocation::OfficialRepo:
+	{
+		userName = "pacc-repo";
+		[[fallthrough]];
+	}
+	case DownloadLocation::GitHub:
+	{
+		platformName = "github";
+		break;
+	}
+	case DownloadLocation::GitLab:
+	{
+		platformName = "gitlab";
+		break;
+	}
+	}
+
+	std::string cloneLink = fmt::format("https://{}.com/{}/{}", platformName, userName, loc_.repository);
+
+	auto listCommand = fmt::format("git ls-remote \"{0}\"", cloneLink);
 	auto listExitStatus = ChildProcess{ listCommand, "", ch::seconds{2}}.runSync();
 	
 	if (listExitStatus.value_or(GitListInvalidUrl) != 0)
-		throw PaccException("Could not find remote repository \"{}\"", githubLink);
+		throw PaccException("Could not find remote repository \"{}\"", cloneLink);
 
 	fs::path cwd = fs::current_path();
 
-	auto cloneCommand = fmt::format("git clone --depth=1 \"{0}\" \"{1}\"", githubLink, fsx::fwd(target_).string());
+	std::string branchParam = loc_.branch.empty() ? "" : fmt::format("\"--branch={}\" ", loc_.branch);
+	auto cloneCommand = fmt::format("git clone --depth=1 {2}\"{0}\" \"{1}\"", cloneLink, fsx::fwd(target_).string(), branchParam);
 	auto cloneExitStatus = ChildProcess{ cloneCommand, "", ch::seconds{60} }.runSync();
 
 	if (cloneExitStatus.value_or(1) != 0)
-		throw PaccException("Could not clone remote repository \"{0}\", error code: {1}", githubLink, cloneExitStatus.value_or(-1));
+		throw PaccException("Could not clone remote repository \"{0}\", error code: {1}", cloneLink, cloneExitStatus.value_or(-1));
 
 	fs::path gitFolderPath = target_ / ".git";
 	if (fs::is_directory(gitFolderPath))

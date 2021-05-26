@@ -44,6 +44,7 @@ struct DownloadLocation
 	std::string repository;
 
 	std::string userName 	= "";
+	std::string branch		= ""; // Branch or a tag.
 	Platform platform 		= Unknown;
 };
 
