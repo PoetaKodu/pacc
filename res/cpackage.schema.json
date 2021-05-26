@@ -425,7 +425,7 @@
 						"markdownDescription": "Dependency loaded from `GitHub` repository.",
 						"body": {
 							"name": "${1:PackageName}",
-							"from": "github:${2:UserName}/${1:PackageName}",
+							"from": "github:${2:UserName}/${1}",
 							"projects": [ "${3:ProjectName}" ],
 							"version": "${4:^1.0.0}"
 						}
@@ -436,7 +436,7 @@
 						"markdownDescription": "Dependency loaded from `GitLab` repository.",
 						"body": {
 							"name": "${1:PackageName}",
-							"from": "gitlab:${2:UserName}/${1:PackageName}",
+							"from": "gitlab:${2:UserName}/${1}",
 							"projects": [ "${3:ProjectName}" ],
 							"version": "${4:^1.0.0}"
 						}
