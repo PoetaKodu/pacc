@@ -10,6 +10,7 @@ deps/*
 !deps/README.md
 *.user.*
 premake5.lua
+pacc_packages
 
 # Prerequisites
 *.d
