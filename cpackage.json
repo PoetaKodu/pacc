@@ -19,11 +19,11 @@
 		},
 		{
 			"name": "fmt",
-			"from": "fmt@pacc-7.1.3"
+			"from": "fmt@7.1.3"
 		},
 		{
 			"name": "json",
-			"from": "json@pacc-3.9.1"
+			"from": "json@3.9.1"
 		}
 	],
 	"filters": {

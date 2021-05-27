@@ -776,8 +776,9 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 	{
 		std::string branchParam;
 		
-		if (!loc_.branch.empty())
-			branchParam = fmt::format(BranchParam, loc_.branch);
+		std::string branch = loc_.getBranch();
+		if (!branch.empty())
+			branchParam = fmt::format(BranchParam, branch);
 
 		auto cloneCommand 		= fmt::format(CloneCommand, cloneLink, fsx::fwd(target_).string(), branchParam);
 		auto cloneExitStatus 	= ChildProcess{ cloneCommand, "", ch::seconds{60} }.runSync();

@@ -55,6 +55,13 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 
 	result.repository 	= repoAndBranch.first;
 	result.branch 		= repoAndBranch.second;
+	if (!result.branch.empty())
+	{
+		result.exactBranch = result.branch[0] == '!';
+
+		if (result.exactBranch) // exact branch
+			result.branch = result.branch.substr(1);		
+	}
 
 	return result;
 }
@@ -88,4 +95,16 @@ std::string DownloadLocation::getGitLink() const
 	}
 
 	return fmt::format("https://{}.com/{}/{}", platformName, user, repository);
+}
+
+///////////////////////////////////////
+std::string DownloadLocation::getBranch() const
+{
+	if (branch.empty())
+		return {};
+
+	if (exactBranch)
+		return branch;
+	
+	return "pacc-" + branch;
 }

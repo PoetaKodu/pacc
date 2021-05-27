@@ -42,12 +42,14 @@ struct DownloadLocation
 	static DownloadLocation parse(std::string const& depTemplate_);
 
 	std::string getGitLink() const;
+	std::string getBranch() const;
 
 	std::string repository;
 
 	std::string userName 	= "";
 	std::string branch		= ""; // Branch or a tag.
 	Platform platform 		= Unknown;
+	bool exactBranch 		= false;
 };
 
 struct PackageDependency
