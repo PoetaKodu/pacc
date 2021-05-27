@@ -41,6 +41,8 @@ struct DownloadLocation
 
 	static DownloadLocation parse(std::string const& depTemplate_);
 
+	std::string getGitLink() const;
+
 	std::string repository;
 
 	std::string userName 	= "";

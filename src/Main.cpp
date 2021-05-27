@@ -74,7 +74,7 @@ void handleArgs(ProgramArgs args_)
 
 		if (action == "version")
 		{
-			fmt::print("pacc v{}\n", PaccApp::Version);
+			fmt::print("pacc v{}\n", PaccApp::PaccVersion);
 		}
 		else if (action == "help")
 		{
@@ -117,6 +117,10 @@ void handleArgs(ProgramArgs args_)
 		else if (action == "uninstall")
 		{
 			app.uninstall();	
+		}
+		else if (action == "lsver" || action == "list-versions" || action == "list-versions")
+		{
+			app.listVersions();	
 		}
 		else if (action == "toolchain" || action == "toolchain" || action == "tc")
 		{

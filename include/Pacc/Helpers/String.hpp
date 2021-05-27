@@ -32,6 +32,70 @@ T convertToOr(std::string const& str_, T val={})
 	return convertTo<T>(str_).value_or();
 }
 
+struct StringTokenIterator
+{
+	/////////////////////////////////////
+	StringTokenIterator(std::string_view view_, std::string_view tokens_)
+		: view(view_), tokens(tokens_)
+	{
+	}
+
+	/////////////////////////////////
+	StringTokenIterator& operator++()
+	{
+		if (currentPos.has_value() &&
+			*currentPos == std::string_view::npos)
+			wasInvalid = true;
+		else
+		{
+			size_t startPos = currentPos.has_value() ? (*currentPos + 1) : 0;
+			currentPos = view.find_first_of(tokens, startPos);
+		}
+
+		return *this;
+	}
+
+	/////////////////////////////////
+	std::string_view operator*() const
+	{
+		size_t startPos = currentPos.has_value() ? (*currentPos + 1) : 0;
+		size_t nextToken = view.find_first_of(tokens, startPos);
+		if (nextToken == std::string_view::npos)
+			return view.substr(startPos);
+
+		return view.substr(startPos, nextToken - startPos);		
+	}
+
+	/////////////////////////////////
+	StringTokenIterator begin() const
+	{
+		return { view, tokens };
+	}
+
+	/////////////////////////////////
+	StringTokenIterator end() const
+	{
+		StringTokenIterator result{ view, tokens };
+		result.currentPos = std::string_view::npos;
+		result.wasInvalid = true;
+		return result;
+	}
+
+	bool operator!=(StringTokenIterator const& rhs) const
+	{
+		return
+			view 		!= rhs.view ||
+			tokens 		!= rhs.tokens ||
+			currentPos 	!= rhs.currentPos ||
+			wasInvalid 	!= rhs.wasInvalid;
+	}
+
+	std::string_view 		view;
+	std::string_view 		tokens;
+	std::optional<size_t> 	currentPos 	= std::nullopt;
+	bool 					wasInvalid 	= false;
+};
+
 
 /////////////////////////////////////////////////
 // Specialization:

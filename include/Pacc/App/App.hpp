@@ -10,7 +10,7 @@
 class PaccApp
 {
 public:
-	constexpr static std::string_view Version = "0.2-prealpha";
+	constexpr static std::string_view PaccVersion = "0.2-prealpha";
 
 	// Actions:
 	// help
@@ -35,6 +35,8 @@ public:
 	void 			install();
 	// uninstall
 	void 			uninstall();
+	// list-versions
+	void 			listVersions();
 
 	///////////////////////
 	// Other functions:

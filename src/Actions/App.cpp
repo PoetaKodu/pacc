@@ -6,6 +6,7 @@
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/App/Errors.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/PackageSystem/Version.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Generation/Premake5.hpp>
@@ -417,10 +418,8 @@ void PaccApp::install()
 				{
 					throw PaccException("Missing package \"{}\" with no download location specified, or the location is wrong.", dep.packageName)
 						.withHelp(
-								"Provide \"from\" for the package. Use following syntax:\n"
-								"    - \"RepoName\" for package from official repository (https://github.com/pacc-repo)\n"
-								"    - \"github:UserName/RepoName\" for package from GitHub repository\n"
-								"    - \"gitlab:UserName/RepoName\" for package from GitLab repository\n"
+								"Provide \"from\" for the package. Use following syntax:\n{}\n",
+								help::DependencySyntax
 							);
 				}
 
@@ -501,6 +500,159 @@ void PaccApp::uninstall()
 	else
 		throw PaccException("Missing argument: package name")
 			.withHelp("Use \"pacc uninstall [package_name]\"");
+}
+
+///////////////////////////////////////////////////
+void PaccApp::listVersions()
+{
+	constexpr auto DependencyNotFound 	= "Could not find remote repository \"{}\"";
+
+	constexpr auto ListRemoteCommand 	= "git ls-remote --tags --refs --sort=v:refname \"{}\"";
+
+	if (args.size() < 3)
+	{
+		throw PaccException("Missing argument: package name")
+			.withHelp(
+					"Use following syntax: \"pacc lsver [package_name]\", where \"package_name\" is \n{}\n",
+					help::DependencySyntax
+				);
+	}
+
+	std::string dependencyTemplate(args[2]);
+
+	auto loc = DownloadLocation::parse(dependencyTemplate);
+
+	std::string repoLink = loc.getGitLink();
+
+	std::string output;
+	// List versions
+	{
+		auto command 		= fmt::format(ListRemoteCommand, repoLink);
+		auto process 		= ChildProcess{ command, "", ch::seconds{2} };
+		auto listExitStatus	= process.runSync();
+
+		if (listExitStatus.value_or(1) != 0)
+		{
+			throw PaccException(DependencyNotFound, repoLink);
+		}
+
+		output = std::move(process.out.stdOut);
+	}
+
+	using StrVerPair = std::pair<std::string, Version>;
+
+	std::vector< StrVerPair > confirmed, rest;
+	
+	auto tryParseVersion = [](Version & ver, std::string const& str)
+		{
+			try {
+				ver = Version::fromString(str);
+			} catch(...) {
+				return false;
+			}
+			return true;
+		};
+
+	for(auto token : StringTokenIterator(output, "\r\n"))
+	{
+		if (token.empty())
+			continue;
+
+		std::size_t lastSlash = token.find_last_of("/");
+		if (lastSlash == std::string_view::npos)
+			continue;
+
+		std::string tagName(token.substr(lastSlash + 1));
+
+		Version ver;
+		if (startsWith(tagName, "pacc-"))
+		{
+			if (!tryParseVersion(ver, tagName.substr(5)))
+				continue;
+
+			confirmed.push_back( { std::move(tagName), std::move(ver) } );
+		}
+		else if (startsWith(tagName, "v"))
+		{
+			if (!tryParseVersion(ver, tagName.substr(1)))
+				continue;
+
+			rest.push_back( { std::move(tagName), std::move(ver) } );
+		}
+		else
+		{
+			if (!tryParseVersion(ver, tagName))
+				continue;
+			
+			rest.push_back( { std::move(tagName), std::move(ver) } );
+		}
+	}
+
+	auto greaterFirst = [](auto const& l, auto const& r)
+			{
+				return r.second < l.second;
+			};
+
+	std::sort(confirmed.begin(), confirmed.end(), greaterFirst);
+	std::sort(rest.begin(), rest.end(), greaterFirst);
+
+
+	{
+		VersionReq req;
+		if (args.size() >= 4 && args[3][0] != '-')
+		{
+			req = VersionReq::fromString( std::string(args[3]) );
+		}
+		else
+		{
+			using fmt::fg, fmt::color;
+			fmt::print(
+					fg(color::light_sky_blue) | fmt::emphasis::bold,
+					"Note: you filter compatible versions, f.e.: \"pacc lsver fmt ^7.1\"\n\n"
+				);
+		}
+
+		fmt::print("PACKAGE VERSIONS:\n");
+
+		size_t inLineIdx = 0;
+
+		fmt::print("Compatible:\n");
+		for(auto const& e : confirmed)
+		{
+			if (!req.test(e.second))
+				continue;
+
+			if (inLineIdx++ == 3)
+			{
+				fmt::print("\n");
+				inLineIdx %= 3;
+			}
+
+			fmt::print("{:>17}", e.first);
+		}
+		fmt::print("\n");
+
+		if (this->containsSwitch("--all"))
+		{
+			inLineIdx = 0;
+			fmt::print("Unknown:\n");
+			for(auto const& e : rest)
+			{
+				if (!req.test(e.second))
+					continue;
+
+				if (inLineIdx++ == 4)
+				{
+					fmt::print("\n");
+					inLineIdx %= 4;
+				}
+
+				fmt::print("{:>12}", e.first);
+			}
+			fmt::print("\n");
+		}
+	}
+
 }
 
 ///////////////////////////////////////////////////
@@ -592,53 +744,53 @@ std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const
 void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& loc_)
 {
 	constexpr int GitListInvalidUrl = 128;
+	constexpr auto CouldNotLoad 		= "Could not load package \"{0}\"";
+	constexpr auto DependencyNotFound 	= "Could not find remote repository \"{}\"";
+	constexpr auto CouldNotClone 		= "Could not clone remote repository \"{0}\", error code: {1}";
 
+	constexpr auto ListRemoteCommand 	= "git ls-remote \"{}\"";
+	constexpr auto BranchParam 			= "\"--branch={}\" "; // Notice the space at the end
+	constexpr auto CloneCommand 		= "git clone --depth=1 {2}\"{0}\" \"{1}\""; // 2 -> branch param
 
-	if (loc_.platform == DownloadLocation::Unknown ||
-		(loc_.userName.empty() && loc_.platform != DownloadLocation::OfficialRepo) ||
-		loc_.repository.empty())
+	// Ensure dependency is valid:
+	if (loc_.repository.empty()
+		|| loc_.platform == DownloadLocation::Unknown
+		|| (loc_.userName.empty() && loc_.platform != DownloadLocation::OfficialRepo) )
 	{
-		throw PaccException("Could not load package \"{0}\"", loc_.repository);
+		throw PaccException(CouldNotLoad, loc_.repository);
 	}
 
-	std::string userName = loc_.userName;
-	std::string platformName;
-	switch(loc_.platform)
-	{
-	case DownloadLocation::OfficialRepo:
-	{
-		userName = "pacc-repo";
-		[[fallthrough]];
-	}
-	case DownloadLocation::GitHub:
-	{
-		platformName = "github";
-		break;
-	}
-	case DownloadLocation::GitLab:
-	{
-		platformName = "gitlab";
-		break;
-	}
-	}
-
-	std::string cloneLink = fmt::format("https://{}.com/{}/{}", platformName, userName, loc_.repository);
-
-	auto listCommand = fmt::format("git ls-remote \"{0}\"", cloneLink);
-	auto listExitStatus = ChildProcess{ listCommand, "", ch::seconds{2}}.runSync();
+	std::string cloneLink = loc_.getGitLink();
 	
-	if (listExitStatus.value_or(GitListInvalidUrl) != 0)
-		throw PaccException("Could not find remote repository \"{}\"", cloneLink);
+	// Ensure repository exists and is available:
+	{
+		auto command 		= fmt::format(ListRemoteCommand, cloneLink);
+		auto process 		= ChildProcess{ command, "", ch::seconds{2} };
+		auto listExitStatus	= process.runSync();
 
-	fs::path cwd = fs::current_path();
+		if (listExitStatus.value_or(GitListInvalidUrl) != 0)
+		{
+			throw PaccException(DependencyNotFound, cloneLink);
+		}
+	}
 
-	std::string branchParam = loc_.branch.empty() ? "" : fmt::format("\"--branch={}\" ", loc_.branch);
-	auto cloneCommand = fmt::format("git clone --depth=1 {2}\"{0}\" \"{1}\"", cloneLink, fsx::fwd(target_).string(), branchParam);
-	auto cloneExitStatus = ChildProcess{ cloneCommand, "", ch::seconds{60} }.runSync();
+	// Clone the repository
+	{
+		std::string branchParam;
+		
+		if (!loc_.branch.empty())
+			branchParam = fmt::format(BranchParam, loc_.branch);
 
-	if (cloneExitStatus.value_or(1) != 0)
-		throw PaccException("Could not clone remote repository \"{0}\", error code: {1}", cloneLink, cloneExitStatus.value_or(-1));
+		auto cloneCommand 		= fmt::format(CloneCommand, cloneLink, fsx::fwd(target_).string(), branchParam);
+		auto cloneExitStatus 	= ChildProcess{ cloneCommand, "", ch::seconds{60} }.runSync();
 
+		if (cloneExitStatus.value_or(1) != 0)
+		{
+			throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1));
+		}
+	}
+
+	// Remove `.git` folder:
 	fs::path gitFolderPath = target_ / ".git";
 	if (fs::is_directory(gitFolderPath))
 	{
@@ -691,7 +843,7 @@ void PaccApp::displayHelp(bool abbrev_)
 	// Introduction:
 	fmt::print( "pacc v{} - a C++ package manager.\n\n"
 				"{USAGE}: {} [action] <params>\n\n",
-				PaccApp::Version,
+				PaccApp::PaccVersion,
 				programName.string(),
 
 				FMT_INLINE_ARG("USAGE", style.Yellow, "USAGE")
@@ -709,7 +861,7 @@ void PaccApp::displayHelp(bool abbrev_)
 					
 		for (auto action : help::actions)
 		{
-			fmt::print("\t{:12}{}\n", action.first, action.second);
+			fmt::print("\t{:16}{}\n", action.first, action.second);
 		}
 		std::cout << std::endl;
 	}

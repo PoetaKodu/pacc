@@ -58,3 +58,34 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 
 	return result;
 }
+
+
+///////////////////////////////////////
+std::string DownloadLocation::getGitLink() const
+{
+	if (platform == DownloadLocation::Unknown)
+		return "";
+
+	std::string platformName;
+	std::string user = userName;
+	switch(platform)
+	{
+	case DownloadLocation::OfficialRepo:
+	{
+		user = "pacc-repo";
+		[[fallthrough]];
+	}
+	case DownloadLocation::GitHub:
+	{
+		platformName = "github";
+		break;
+	}
+	case DownloadLocation::GitLab:
+	{
+		platformName = "gitlab";
+		break;
+	}
+	}
+
+	return fmt::format("https://{}.com/{}/{}", platformName, user, repository);
+}

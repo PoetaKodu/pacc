@@ -58,8 +58,8 @@ bool VersionRequirement::test(Version const& version_) const
 	switch(type)
 	{
 	case Exact: 	return (version == version_);
-	case SameMinor: return (version.major == version_.major && version.minor == version_.minor);
-	case SameMajor: return (version.major == version_.major);
+	case SameMinor: return (!(version_ < version) && version.major == version_.major && version.minor == version_.minor);
+	case SameMajor: return (!(version_ < version) && version.major == version_.major);
 	case Any: 		return true;
 	default: 		return false;
 	}

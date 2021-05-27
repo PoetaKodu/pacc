@@ -23,6 +23,11 @@ struct Version
 	/// <param name="rhs_">The other Version object.</param>
 	bool operator==(Version const& rhs_) const;
 
+	bool operator<(Version const& rhs_) const
+	{
+		return std::tie(major, minor, patch) < std::tie(rhs_.major, rhs_.minor, rhs_.patch);
+	}
+
 	static Version fromString(std::string const& str_);
 };
 
