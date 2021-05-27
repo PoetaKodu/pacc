@@ -265,8 +265,9 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 	// std::ofstream("package.dump.json") << j.dump(1, '\t');
 
 	// Load JSON:
-	result.name = j["name"].get<std::string>();
-	result.startupProject = JsonView{j}.stringFieldOr("startupProject", "");
+	result.name 			= j["name"].get<std::string>();
+	result.startupProject 	= JsonView{j}.stringFieldOr("startupProject", "");
+	result.version 			= Version::fromString( JsonView{j}.stringFieldOr("version", "0") );
 
 	auto projects = j.find("projects");
 

@@ -379,8 +379,6 @@ void PaccApp::install()
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
-		std::string rest = packageTemplate.substr(7);
-
 		fs::path targetPackagePath = targetPath / loc.repository;
 		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
 		{
