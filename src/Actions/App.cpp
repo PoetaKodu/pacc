@@ -542,7 +542,7 @@ void PaccApp::listVersions()
 		output = std::move(process.out.stdOut);
 	}
 
-	auto versions = parseTagsToGetVersions(output).sort();
+	auto versions = PackageVersions::parse(output).sort();
 
 	{
 		VersionReq req;

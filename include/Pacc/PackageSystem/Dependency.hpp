@@ -57,38 +57,12 @@ struct PackageVersions
 {
 	std::vector<StringVersionPair> confirmed, rest;
 
-	PackageVersions& sort()
-	{
-		auto greaterFirst = [](auto const& l, auto const& r)
-			{
-				return r.second < l.second;
-			};
+	PackageVersions& sort();
+	PackageVersions filter(VersionReq const& req_);
 
-		std::sort(confirmed.begin(), confirmed.end(), greaterFirst);
-		std::sort(rest.begin(), rest.end(), greaterFirst);
-
-		return *this;
-	}
-
-	PackageVersions filter(VersionReq const& req_)
-	{
-		std::vector<StringVersionPair> c, r;
-		c.reserve(confirmed.size());
-		r.reserve(rest.size());
-
-		auto meetsReq = [&](auto const& elem)
-			{
-				return req_.test(elem.second);
-			};
-
-		std::copy_if(confirmed.begin(), confirmed.end(), std::back_inserter(c), meetsReq);
-		std::copy_if(rest.begin(), rest.end(), std::back_inserter(r), meetsReq);
-	
-		return PackageVersions{ std::move(c), std::move(r) };
-	}
+	static PackageVersions parse(std::string const& lsRemoteOutput_);
 };
 	
-PackageVersions parseTagsToGetVersions(std::string const& lsRemoteOutput_);
 
 struct PackageDependency
 {
