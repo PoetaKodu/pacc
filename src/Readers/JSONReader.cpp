@@ -63,6 +63,7 @@ void PackageJsonReader::makeConformant()
 
 			root = json::object();
 			root["name"] 		= singleProject["name"];
+			root["version"]		= JV{singleProject}.stringFieldOr("version", "0.0.0");
 			root["projects"] 	= json::array();
 			root["projects"].push_back(std::move(singleProject));
 

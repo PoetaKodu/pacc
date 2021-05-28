@@ -17,14 +17,8 @@
 			"projects": [ "tiny-process-lib" ],
 			"version": "^0.2.0"
 		},
-		{
-			"name": "fmt",
-			"from": "fmt@7.1.3"
-		},
-		{
-			"name": "json",
-			"from": "json@3.9.1"
-		}
+		"fmt@7.1.3", 
+		"json@3.9.1"
 	],
 	"filters": {
 		"system:windows": 	{ "defines": [ "PACC_SYSTEM_WINDOWS" ] },

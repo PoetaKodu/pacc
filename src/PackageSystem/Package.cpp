@@ -381,9 +381,30 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 	{
 		if (json const* rawDep = expect<json_vt::string>(item.value()))
 		{
-			target_.push_back(
-					Dependency::raw( std::move( rawDep->get<std::string>() ) )
-				);
+			std::string depPattern = rawDep->get<std::string>();
+			if (startsWith(depPattern, "file:"))
+			{
+				target_.push_back( Dependency::raw( depPattern.substr(5) ) );
+			}
+			else
+			{
+				DownloadLocation loc = DownloadLocation::parse(depPattern);
+				
+				PackageDependency pd;
+				pd.packageName 		= loc.repository;
+
+				try {
+					pd.version = VersionReq::fromString(loc.branch);
+				}
+				catch(...) {} // just ignore
+
+				pd.projects.push_back(loc.repository);
+				pd.downloadLocation = std::move(depPattern);
+
+				target_.push_back(
+						Dependency::package( std::move(pd) )
+					);
+			}
 		}
 		else if (json const* pkgDep = expect<json_vt::object>(item.value()))
 		{

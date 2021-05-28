@@ -13,7 +13,7 @@
 					"linkerFolders": "tiny-process-lib/lib/x64/Release"
 				}
 			},
-			"dependencies": [ "tiny-process-library" ],
+			"dependencies": [ "file:tiny-process-library" ],
 			"description": "Process lib interface project"
 		}
 	],
