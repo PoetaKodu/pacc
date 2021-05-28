@@ -503,9 +503,14 @@ void PaccApp::uninstall()
 ///////////////////////////////////////////////////
 void PaccApp::listVersions()
 {
+	using fmt::fg, fmt::color;
+	auto boldBlue 	= fmt::emphasis::bold | fg(color::light_sky_blue);
+	auto boldYellow = fmt::emphasis::bold | fg(color::yellow);
+
 	constexpr auto DependencyNotFound 	= "Could not find remote repository \"{}\"";
 
 	constexpr auto ListRemoteCommand 	= "git ls-remote --tags --refs --sort=v:refname \"{}\"";
+
 
 	if (args.size() < 3)
 	{
@@ -537,117 +542,78 @@ void PaccApp::listVersions()
 		output = std::move(process.out.stdOut);
 	}
 
-	using StrVerPair = std::pair<std::string, Version>;
-
-	std::vector< StrVerPair > confirmed, rest;
-	
-	auto tryParseVersion = [](Version & ver, std::string const& str)
-		{
-			try {
-				ver = Version::fromString(str);
-			} catch(...) {
-				return false;
-			}
-			return true;
-		};
-
-	for(auto token : StringTokenIterator(output, "\r\n"))
-	{
-		if (token.empty())
-			continue;
-
-		std::size_t lastSlash = token.find_last_of("/");
-		if (lastSlash == std::string_view::npos)
-			continue;
-
-		std::string tagName(token.substr(lastSlash + 1));
-
-		Version ver;
-		if (startsWith(tagName, "pacc-"))
-		{
-			if (!tryParseVersion(ver, tagName.substr(5)))
-				continue;
-
-			confirmed.push_back( { std::move(tagName), std::move(ver) } );
-		}
-		else if (startsWith(tagName, "v"))
-		{
-			if (!tryParseVersion(ver, tagName.substr(1)))
-				continue;
-
-			rest.push_back( { std::move(tagName), std::move(ver) } );
-		}
-		else
-		{
-			if (!tryParseVersion(ver, tagName))
-				continue;
-			
-			rest.push_back( { std::move(tagName), std::move(ver) } );
-		}
-	}
-
-	auto greaterFirst = [](auto const& l, auto const& r)
-			{
-				return r.second < l.second;
-			};
-
-	std::sort(confirmed.begin(), confirmed.end(), greaterFirst);
-	std::sort(rest.begin(), rest.end(), greaterFirst);
-
+	auto versions = parseTagsToGetVersions(output).sort();
 
 	{
 		VersionReq req;
 		if (args.size() >= 4 && args[3][0] != '-')
 		{
 			req = VersionReq::fromString( std::string(args[3]) );
+			versions = versions.filter(req);
 		}
 		else
 		{
-			using fmt::fg, fmt::color;
-			fmt::print(
-					fg(color::light_sky_blue) | fmt::emphasis::bold,
-					"Note: you filter compatible versions, f.e.: \"pacc lsver fmt ^7.1\"\n\n"
-				);
+			fmt::print(boldBlue, "Note: you filter compatible versions, f.e.: \"pacc lsver fmt ^7.1\"\n\n" );
 		}
 
-		fmt::print("PACKAGE VERSIONS:\n");
+		bool showTags = this->containsSwitch("--tags");
 
-		size_t inLineIdx = 0;
-
-		fmt::print("Compatible:\n");
-		for(auto const& e : confirmed)
+		fmt::print("PACKAGE {}:\n", showTags ? "TAGS" : "VERSIONS");
+		if (showTags)
 		{
-			if (!req.test(e.second))
-				continue;
-
-			if (inLineIdx++ == 3)
-			{
-				fmt::print("\n");
-				inLineIdx %= 3;
-			}
-
-			fmt::print("{:>17}", e.first);
+			fmt::print(boldBlue, "Note: viewing real git tags. Remove \"--tags\" param to see version syntax.\n" );
 		}
-		fmt::print("\n");
 
+		// Print compatible:
+		{
+			int NumPerRow = showTags ? 3 : 4;
+			size_t numVer = versions.confirmed.size();
+
+			fmt::print("Compatible {}:\n", showTags ? "tags (prefix \"pacc-\" is required)" : "versions");
+			if (numVer > 0)
+			{
+				for(size_t i = 0; i < numVer; i += NumPerRow)
+				{
+					for (int j = 0; (j < NumPerRow && i + j < numVer); ++j)
+					{
+						auto const& v = versions.confirmed[i + j];
+						if (showTags)
+							fmt::print("{:>16}", v.first);
+						else
+							fmt::print("{:>12}", v.second.toString());
+					}
+					fmt::print("\n");
+				}
+			}
+			else
+				fmt::print( boldBlue, "    None\n" );
+		}
+
+		// Print rest:
 		if (this->containsSwitch("--all"))
 		{
-			inLineIdx = 0;
-			fmt::print("Unknown:\n");
-			for(auto const& e : rest)
+			constexpr int NumPerRow = 4;
+			size_t numVer = versions.rest.size();
+
+			fmt::print("Unconfirmed {}:\n", showTags ? "tags" : "versions (prefix \"!\" is required)");
+			if (numVer > 0)
 			{
-				if (!req.test(e.second))
-					continue;
-
-				if (inLineIdx++ == 4)
+				for(size_t i = 0; i < numVer; i += 4)
 				{
+					for (int j = 0; (j < 4 && i + j < numVer); ++j)
+					{
+						auto const& v = versions.rest[i + j];
+						if (showTags)
+							fmt::print("{:>12}", v.first);
+						else
+							fmt::print("{:>12}", "!" + v.second.toString());
+					}
 					fmt::print("\n");
-					inLineIdx %= 4;
 				}
-
-				fmt::print("{:>12}", e.first);
 			}
-			fmt::print("\n");
+			else
+				fmt::print( boldBlue, "    None\n" );
+
 		}
 	}
 

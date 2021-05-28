@@ -108,3 +108,60 @@ std::string DownloadLocation::getBranch() const
 	
 	return "pacc-" + branch;
 }
+
+///////////////////////////////////////
+PackageVersions parseTagsToGetVersions(std::string const& lsRemoteOutput_)
+{
+	PackageVersions result;
+
+	std::size_t numLines = std::count(lsRemoteOutput_.begin(), lsRemoteOutput_.end(), '\n') + 1;
+	result.confirmed.reserve(numLines / 2);
+	result.rest.reserve(numLines / 2);
+	
+	auto tryParseVersion = [](Version & ver, std::string const& str)
+		{
+			try {
+				ver = Version::fromString(str);
+			} catch(...) {
+				return false;
+			}
+			return true;
+		};
+
+	for(auto token : StringTokenIterator(lsRemoteOutput_, "\r\n"))
+	{
+		if (token.empty())
+			continue;
+
+		std::size_t lastSlash = token.find_last_of("/");
+		if (lastSlash == std::string_view::npos)
+			continue;
+
+		std::string tagName(token.substr(lastSlash + 1));
+
+		Version ver;
+		if (startsWith(tagName, "pacc-"))
+		{
+			if (!tryParseVersion(ver, tagName.substr(5)))
+				continue;
+
+			result.confirmed.push_back( { std::move(tagName), std::move(ver) } );
+		}
+		else if (startsWith(tagName, "v"))
+		{
+			if (!tryParseVersion(ver, tagName.substr(1)))
+				continue;
+
+			result.rest.push_back( { std::move(tagName), std::move(ver) } );
+		}
+		else
+		{
+			if (!tryParseVersion(ver, tagName))
+				continue;
+			
+			result.rest.push_back( { std::move(tagName), std::move(ver) } );
+		}
+	}
+
+	return result;
+}
