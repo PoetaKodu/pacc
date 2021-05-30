@@ -136,16 +136,13 @@ void runPremakeGeneration(std::string_view toolchainName_)
 
 
 /////////////////////////////////////////////////
-void Premake5::generate(Package & pkg_, BuildQueueBuilder & depQueue)
+void Premake5::generate(Package const & pkg_)
 {
 	// Prepare output buffer
 	std::string out;
 	out.reserve(4 * 1024 * 1024);
 
 	OutputFormatter fmt{out};
-
-	// TODO: make it a single-step setup:
-	depQueue.performConfigurationMerging();
 
 
 	appendWorkspace(fmt, pkg_);

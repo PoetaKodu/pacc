@@ -292,14 +292,11 @@ void PaccApp::runPackageStartupProject()
 
 
 ///////////////////////////////////////////////////
-void generatePremakeFiles(Package & pkg, BuildQueueBuilder& depQueue)
+void setupBuildQueue(Package & pkg, BuildQueueBuilder& depQueue)
 {
-	gen::Premake5 g;
-
 	depQueue.recursiveLoad(pkg);
 	depQueue.setup();
-
-	g.generate(pkg, depQueue);
+	depQueue.performConfigurationMerging();
 }
 
 ///////////////////////////////////////////////////
@@ -307,7 +304,8 @@ void PaccApp::generate()
 {
 	Package pkg = Package::load();
 	BuildQueueBuilder depQueue;
-	generatePremakeFiles(pkg, depQueue);
+	setupBuildQueue(pkg, depQueue);
+	gen::Premake5{}.generate(pkg);
 }
 
 ///////////////////////////////////////////////////
@@ -365,8 +363,17 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 			fmt::print("Building dependency project \"{}\" from package \"{}\".\n", projName, pkg_.name);
 
 			fs::current_path(rootFolder);
-			this->buildPackage(settings_);
+			try {
+				this->buildSpecifiedPackage(pkg_, *cfg.currentToolchain(), settings_);
+			}
+			catch(...)
+			{
+				// Ensure right working directory
+				fs::current_path(prevWorkingDir);
+				throw;
+			}
 			fs::current_path(prevWorkingDir);
+				
 		}
 	}
 }
@@ -400,34 +407,38 @@ void PaccApp::ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder con
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::buildPackage(std::optional<BuildSettings> settings_)
+void PaccApp::buildPackage()
 {
-	Package pkg = Package::load();
-	BuildQueueBuilder depQueue;
-	generatePremakeFiles(pkg, depQueue);
-
 	if (auto tc = cfg.currentToolchain())
 	{
-		BuildSettings finalSettings;
-		if (settings_.has_value())
-			finalSettings = std::move(*settings_);
-		else
-			finalSettings = this->determineBuildSettingsFromArgs();
+		auto settings = this->determineBuildSettingsFromArgs();
+		
+		Package pkg = Package::load(fs::current_path());
 
-		ensureDependenciesBuilt(pkg, depQueue, finalSettings);
+		BuildQueueBuilder depQueue;
+		setupBuildQueue(pkg, depQueue);
+		ensureDependenciesBuilt(pkg, depQueue, settings);
 
-		// Run premake:
-		gen::runPremakeGeneration(tc->premakeToolchainType());
-
-		// Run build toolchain
-		int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
-		handleBuildResult( tc->run(pkg, finalSettings, verbosityLevel) );
+		this->buildSpecifiedPackage( pkg, *tc, settings );
 	}
 	else
 	{
 		throw PaccException("No toolchain selected.")
 			.withHelp("Use \"pacc tc <toolchain id>\" to select toolchain.");
 	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_)
+{
+	gen::Premake5{}.generate(pkg_);
+
+	// Run premake:
+	gen::runPremakeGeneration(toolchain_.premakeToolchainType());
+
+	// Run build toolchain
+	int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
+	handleBuildResult( toolchain_.run(pkg_, settings_, verbosityLevel) );
 }
 
 ///////////////////////////////////////////////////

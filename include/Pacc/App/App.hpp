@@ -25,7 +25,7 @@ public:
 	// toolchains
 	void 			toolchains();
 	// build
-	void 			buildPackage(std::optional<BuildSettings> settings_ = std::nullopt);
+	void 			buildPackage();
 	// run
 	void 			runPackageStartupProject();
 	// init
@@ -53,6 +53,8 @@ public:
 
 private:
 	BuildSettings 	determineBuildSettingsFromArgs() const;
+
+	void 			buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_);
 
 	/// <summary>
 	/// 	Determines whether program arguments contain
