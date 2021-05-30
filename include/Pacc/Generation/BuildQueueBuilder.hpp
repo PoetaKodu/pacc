@@ -27,6 +27,7 @@ public:
 	using DepQueue 			= std::vector<DepQueueStep>;
 	using PendingDeps 		= DepQueueStep;
 
+	DepQueue const& 		getQueue() const { return queue; }
 
 	/// <summary>
 	/// 	Builds the queue.

@@ -20,7 +20,7 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 
 void BuildQueueBuilder::performConfigurationMerging()
 {
-	auto const& q = this->setup();
+	auto const& q = this->getQueue();
 
 	// fmt::print("Configuration steps: {}\n", q.size());
 	// size_t stepCounter = 0;

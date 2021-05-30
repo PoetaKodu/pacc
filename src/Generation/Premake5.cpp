@@ -4,7 +4,6 @@
 #include <Pacc/Generation/OutputFormatter.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Environment.hpp>
-#include <Pacc/Generation/BuildQueueBuilder.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/String.hpp>
@@ -137,7 +136,7 @@ void runPremakeGeneration(std::string_view toolchainName_)
 
 
 /////////////////////////////////////////////////
-void Premake5::generate(Package & pkg_)
+void Premake5::generate(Package & pkg_, BuildQueueBuilder & depQueue)
 {
 	// Prepare output buffer
 	std::string out;
@@ -146,9 +145,7 @@ void Premake5::generate(Package & pkg_)
 	OutputFormatter fmt{out};
 
 	// TODO: make it a single-step setup:
-	BuildQueueBuilder cfgQueue;
-	cfgQueue.recursiveLoad(pkg_);
-	cfgQueue.performConfigurationMerging();
+	depQueue.performConfigurationMerging();
 
 
 	appendWorkspace(fmt, pkg_);

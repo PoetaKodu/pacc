@@ -9,6 +9,7 @@
 #include <Pacc/PackageSystem/Version.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
+#include <Pacc/Generation/BuildQueueBuilder.hpp>
 #include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Generation/Logs.hpp>
 #include <Pacc/Readers/General.hpp>
@@ -291,20 +292,22 @@ void PaccApp::runPackageStartupProject()
 
 
 ///////////////////////////////////////////////////
-void generatePremakeFiles(Package & pkg)
+void generatePremakeFiles(Package & pkg, BuildQueueBuilder& depQueue)
 {
 	gen::Premake5 g;
-	g.generate(pkg);
+
+	depQueue.recursiveLoad(pkg);
+	depQueue.setup();
+
+	g.generate(pkg, depQueue);
 }
 
 ///////////////////////////////////////////////////
-Package PaccApp::generate()
+void PaccApp::generate()
 {
 	Package pkg = Package::load();
-
-	generatePremakeFiles(pkg);
-
-	return pkg;
+	BuildQueueBuilder depQueue;
+	generatePremakeFiles(pkg, depQueue);
 }
 
 ///////////////////////////////////////////////////
@@ -336,19 +339,89 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_)
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::buildPackage()
+void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::string> const& projectNames_, BuildSettings const& settings_)
 {
-	Package pkg = generate();
+	fs::path rootFolder = pkg_.root.parent_path();
+
+	fs::path prevWorkingDir = fs::current_path();
+
+	using fmt::fg, fmt::color;
+	for (auto const& projName : projectNames_)
+	{
+		Project const* p = pkg_.findProject(projName);
+		// Build only static and shared libs
+		if (p->type != "static lib" && p->type != "shared lib")
+			continue;
+
+
+		fs::path binaryPath = rootFolder / "bin" / settings_.platformName / settings_.configName;
+		#ifdef PACC_SYSTEM_WINDOWS
+			binaryPath /= (projName + ".lib");	
+		#else
+			binaryPath /= projName + ".a"; // TODO: determine it by used toolchain
+		#endif
+		if (!fs::exists(binaryPath))
+		{
+			fmt::print("Building dependency project \"{}\" from package \"{}\".\n", projName, pkg_.name);
+
+			fs::current_path(rootFolder);
+			this->buildPackage(settings_);
+			fs::current_path(prevWorkingDir);
+		}
+	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder const &depQueue_, BuildSettings const& settings_)
+{
+	using fmt::fg, fmt::color;
+
+	size_t numDeps = 0;
+	for(auto const& stage : depQueue_.getQueue())
+		numDeps += stage.size();
+
+	if (numDeps == 0)
+		return;
+
+	fmt::print(fg(color::light_gray), "Ensuring {} dependencies are built.\n", numDeps);
+
+	for(auto const& stage : depQueue_.getQueue())
+	{
+		for (auto const& dep : stage)
+		{
+			if (dep.dep->isPackage())
+			{
+				auto const& pkgDep = dep.dep->package();
+
+				ensureProjectsAreBuilt(*pkgDep.package, pkgDep.projects, settings_);
+			}
+		}
+	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::buildPackage(std::optional<BuildSettings> settings_)
+{
+	Package pkg = Package::load();
+	BuildQueueBuilder depQueue;
+	generatePremakeFiles(pkg, depQueue);
 
 	if (auto tc = cfg.currentToolchain())
 	{
+		BuildSettings finalSettings;
+		if (settings_.has_value())
+			finalSettings = std::move(*settings_);
+		else
+			finalSettings = this->determineBuildSettingsFromArgs();
+
+		ensureDependenciesBuilt(pkg, depQueue, finalSettings);
+
 		// Run premake:
 		gen::runPremakeGeneration(tc->premakeToolchainType());
 
 		// Run build toolchain
-		auto settings = this->determineBuildSettingsFromArgs();
 		int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
-		handleBuildResult( tc->run(pkg, settings, verbosityLevel) );
+		handleBuildResult( tc->run(pkg, finalSettings, verbosityLevel) );
 	}
 	else
 	{

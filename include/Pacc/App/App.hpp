@@ -6,6 +6,7 @@
 #include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
+#include <Pacc/Generation/BuildQueueBuilder.hpp>
 
 class PaccApp
 {
@@ -20,11 +21,11 @@ public:
 	// unlink
 	void 			unlinkPackage();
 	// generate
-	Package 		generate();
+	void 			generate();
 	// toolchains
 	void 			toolchains();
 	// build
-	void 			buildPackage();
+	void 			buildPackage(std::optional<BuildSettings> settings_ = std::nullopt);
 	// run
 	void 			runPackageStartupProject();
 	// init
@@ -62,6 +63,9 @@ private:
 	bool containsSwitch(std::string_view switch_) const;
 
 	void downloadPackage(fs::path const &target_, DownloadLocation const& loc_);
+
+	void ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::string> const& projectNames_, BuildSettings const& settings_);
+	void ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder const &depQueue_, BuildSettings const& settings_);
 
 	std::vector<PackageDependency> collectMissingDependencies(Package const & pkg_);
 };
