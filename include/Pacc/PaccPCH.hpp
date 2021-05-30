@@ -27,9 +27,7 @@
 #include <fmt/chrono.h>
 #include <fmt/compile.h>
 
-#undef UNICODE
-#include <tiny-process-lib/process.hpp>
-#define UNICODE
+#include <TinyProcessLib/Process.hpp>
 
 namespace fs 	= std::filesystem;
 namespace ch 	= std::chrono;

@@ -9,7 +9,10 @@ ChildProcess::ExitCode ChildProcess::runSync()
 	if (workingDirectory != "")
 		fs::current_path(workingDirectory); 
 		
-	proc::Process proc(command, "",
+	// TODO: remove this hack, use UNICODE!!!
+	std::wstring wCommand(command.begin(), command.end());
+
+	proc::Process proc(wCommand, L"",
 		// Handle stdout:
 		[&](const char *bytes, size_t n)
 		{

@@ -12,11 +12,7 @@
 		"definition": "PACC_PCH"
 	},
 	"dependencies": [
-		{
-			"name": "PaccAppDependencies",
-			"projects": [ "tiny-process-lib" ],
-			"version": "^0.2.0"
-		},
+		"tiny-process-lib@2.0.4",
 		"fmt@7.1.3", 
 		"json@3.9.1"
 	],
