@@ -4,7 +4,7 @@
 
 Your package most likely has one or many projects that you want to build.
 
-Use following command to build them all:
+Use the following command to build them all:
 
 ```
 pacc build
