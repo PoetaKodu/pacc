@@ -33,14 +33,14 @@ Use following switches to manipulate run settings:
 	<tr>
 		<td><pre>--platform</pre></td>
 		<td><pre>--plat<br>-p</pre></td>
-		<td>Changes the run platform to the specified one</td>
-		<td>For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
+		<td>Changes the run platform to the specified one.
+		For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
 	<tr>
 		<td><pre>--configuration</pre></td>
 		<td><pre>--config<br>--cfg<br>-c</pre></td>
-		<td>Changes the run configuration to the specified one</td>
-		<td>For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
+		<td>Changes the run configuration to the specified one. 
+		For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
 	</tr>
 </table>
 
