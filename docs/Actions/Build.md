@@ -29,17 +29,17 @@ Use following switches to manipulate build settings:
 	</tr>
 	<tr>
 		<td><pre>--platform</pre></td>
-		<td><pre>--plat</pre><br><pre>-p</pre></td>
+		<td><pre>--plat<br>-p</pre></td>
 		<td>Changes the build platform to the specified one.
-		For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
+		For now only <pre>x64</pre> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
 	<tr>
-		<td><code>--configuration</code></td>
-		<td><code>--config</code><br><code>--cfg</code><br><code>-c</code></td>
-		<td>Changes the build configuration to the specified one. For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
+		<td><pre>--configuration</pre></td>
+		<td><pre>--config<br>--cfg<br>-c</pre></td>
+		<td>Changes the build configuration to the specified one. For now only <code>Debug</code> and <code>Release</code> are supported (by default <pre>Debug</pre>).</td>
 	</tr>
 	<tr>
-		<td><code>--verbose</code></td>
+		<td><pre>--verbose</pre></td>
 		<td></td>
 		<td>Enables the <b>verbose</b> mode. 
 		Build logs will be printed directly to the output. <b>Verbose mode is disabled by default</b></td>
