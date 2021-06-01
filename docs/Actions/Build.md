@@ -23,13 +23,13 @@ Use following switches to manipulate build settings:
 		<th>Description</th>
 	</tr>
 	<tr>
-		<td><code>--target</code></td>
-		<td><code>-t</code></td>
+		<td><pre>--target</pre></td>
+		<td><pre>-t</pre></td>
 		<td>Forces to build only single, specified target (project)</td>
 	</tr>
 	<tr>
-		<td><code>--platform</code></td>
-		<td><code>--plat</code><br><code>-p</code></td>
+		<td><pre>--platform</pre></td>
+		<td><pre>--plat</pre><br><pre>-p</pre></td>
 		<td>Changes the build platform to the specified one.
 		For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
