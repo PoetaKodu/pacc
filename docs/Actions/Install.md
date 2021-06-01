@@ -30,6 +30,10 @@ To install package globally:
 
 ```
 pacc install PackagePattern --global
+
+// or shorter:
+
+pacc i PackagePattern -g
 ```
 
 ## Uninstalling packages
