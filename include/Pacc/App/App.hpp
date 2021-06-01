@@ -59,6 +59,8 @@ private:
 
 	void 			buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_);
 
+	size_t 			installPackageDependencies(Package& pkg_, bool isRoot);
+
 	/// <summary>
 	/// 	Determines whether program arguments contain
 	/// 	specified <paramref name="switch_"/>

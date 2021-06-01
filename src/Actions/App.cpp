@@ -455,6 +455,74 @@ void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_,
 }
 
 ///////////////////////////////////////////////////
+size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
+{
+	using fmt::fg, fmt::color;
+
+	fs::path targetPath = isRoot ? "pacc_packages" : "../pacc_packages";
+
+	auto deps = this->collectMissingDependencies(pkg_);
+	
+	if (deps.empty())
+	{
+		if (isRoot)
+			fmt::print("No packages to install.\n");
+		return 0;
+	}
+
+	size_t numInstalled = 0;
+
+	std::vector<fs::path> installed;
+
+	for (auto const& dep : deps)
+	{
+		auto loc = DownloadLocation::parse( dep.downloadLocation );
+		if (loc.platform == DownloadLocation::Unknown)
+		{
+			throw PaccException("Missing package \"{}\" with no download location specified, or the location is wrong.", dep.packageName)
+				.withHelp(
+						"Provide \"from\" for the package. Use following syntax:\n{}\n",
+						help::DependencySyntax
+					);
+		}
+
+		fs::path targetPackagePath = targetPath / dep.packageName;
+		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
+		{
+			throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
+				.withHelp("Remove the folder.\n");
+		}
+
+
+		this->downloadPackage(targetPackagePath, loc);
+
+		installed.emplace_back(std::move(targetPackagePath));
+		
+		// TODO: run install script on package.
+
+
+		++numInstalled;
+	}
+
+	fs::path prevPath = fs::current_path();
+	for (auto pkgPath : installed)
+	{
+		fs::current_path(pkgPath);
+		try {
+			auto pkg = Package::load();
+			numInstalled += this->installPackageDependencies(*pkg, false);
+		}
+		catch(...) {
+			fs::current_path(prevPath); // Make sure that we are at valid path
+			throw; // ... and rethrow
+		}
+		fs::current_path(prevPath);
+	}
+
+	return numInstalled;
+}
+
+///////////////////////////////////////////////////
 void PaccApp::install()
 {
 	using fmt::fg, fmt::color;
@@ -495,53 +563,17 @@ void PaccApp::install()
 
 		auto pkg = Package::load();
 
-		auto deps = this->collectMissingDependencies(*pkg);
-
-		if (deps.empty())
-		{
-			fmt::print("No packages to install.\n");
-			return;
-		}
-
 		size_t numInstalled = 0;
-
 		try {
-			for (auto const& dep : deps)
-			{
-				auto loc = DownloadLocation::parse( dep.downloadLocation );
-				if (loc.platform == DownloadLocation::Unknown)
-				{
-					throw PaccException("Missing package \"{}\" with no download location specified, or the location is wrong.", dep.packageName)
-						.withHelp(
-								"Provide \"from\" for the package. Use following syntax:\n{}\n",
-								help::DependencySyntax
-							);
-				}
-
-				fs::path targetPackagePath = targetPath / dep.packageName;
-				if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
-				{
-					throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
-						.withHelp("Remove the folder.\n");
-				}
-
-				this->downloadPackage(targetPackagePath, loc);
-
-				// TODO: download package dependencies
-
-				// TODO: run install script on package.
-
-
-				++numInstalled;
-			}
+			numInstalled = this->installPackageDependencies(*pkg, true);
 		}
 		catch(...)
 		{
-			fmt::printErr(fg(color::red), "Installed {} / {} packages.\n", numInstalled, deps.size());
+			fmt::printErr(fg(color::red), "Installed {} packages.\n", numInstalled);
 			throw;
 		}
-
-		fmt::print(fg(color::lime_green), "Installed {} / {} packages.\n", numInstalled, deps.size());
+		if (numInstalled > 0)
+			fmt::print(fg(color::lime_green), "Installed {} packages.\n", numInstalled);
 	}
 }
 
