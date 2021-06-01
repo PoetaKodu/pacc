@@ -21,31 +21,28 @@ Use following switches to manipulate build settings:
 		<th>Switch</th>
 		<th>Aliases</th>
 		<th>Description</th>
-		<th>Remarks</th>
 	</tr>
 	<tr>
 		<td><code>--target</code></td>
 		<td><code>-t</code></td>
 		<td>Forces to build only single, specified target (project)</td>
-		<td></td>
 	</tr>
 	<tr>
 		<td><code>--platform</code></td>
 		<td><code>--plat</code><br><code>-p</code></td>
-		<td>Changes the build platform to the specified one</td>
-		<td>For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
+		<td>Changes the build platform to the specified one.
+		For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
 	<tr>
 		<td><code>--configuration</code></td>
 		<td><code>--config</code><br><code>--cfg</code><br><code>-c</code></td>
-		<td>Changes the build configuration to the specified one</td>
-		<td>For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
+		<td>Changes the build configuration to the specified one. For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
 	</tr>
 	<tr>
 		<td><code>--verbose</code></td>
 		<td></td>
-		<td>Enables the <b>verbose</b> mode.</td>
-		<td>Build logs will be printed directly to the output. <b>Verbose mode is disabled by default</b></td>
+		<td>Enables the <b>verbose</b> mode. 
+		Build logs will be printed directly to the output. <b>Verbose mode is disabled by default</b></td>
 	</tr>
 </table>
 
