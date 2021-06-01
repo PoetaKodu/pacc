@@ -848,7 +848,13 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 
 		if (cloneExitStatus.value_or(1) != 0)
 		{
-			throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1));
+			if (!branch.empty())
+			{
+				throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1))
+					.withHelp("Make sure that the version/branch \"{}\" is correct.\nUse \"pacc lsver {}\" to check available versions.", loc_.branch, loc_.repository);
+			}
+			else 
+				throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1));
 		}
 	}
 

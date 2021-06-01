@@ -307,9 +307,9 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 	for (auto const& projectName : dep.projects)
 	{
 		// Find pointer to project:
-		auto project = packagePtr->findProject(projectName);
+		auto& project = packagePtr->requireProject(projectName);
 
-		if (projectHasPendingDependencies(*project, readyQueue_))
+		if (projectHasPendingDependencies(project, readyQueue_))
 			return true;	
 	}
 
@@ -322,9 +322,9 @@ bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::
 	auto& packagePtr = dep.package;
 
 	// Find pointer to project:
-	auto project = packagePtr->findProject(dep.depProjName);
+	auto& project = packagePtr->requireProject(dep.depProjName);
 
-	if (projectHasPendingDependencies(*project, readyQueue_))
+	if (projectHasPendingDependencies(project, readyQueue_))
 		return true;	
 
 	return false;
