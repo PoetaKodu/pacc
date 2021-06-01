@@ -31,12 +31,12 @@ Use following switches to manipulate build settings:
 		<td><pre>--platform</pre></td>
 		<td><pre>--plat<br>-p</pre></td>
 		<td>Changes the build platform to the specified one.
-		For now only <pre>x64</pre> and <code>x86</code> are supported (by default <code>x64</code>).</td>
+		For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
 	<tr>
 		<td><pre>--configuration</pre></td>
 		<td><pre>--config<br>--cfg<br>-c</pre></td>
-		<td>Changes the build configuration to the specified one. For now only <code>Debug</code> and <code>Release</code> are supported (by default <pre>Debug</pre>).</td>
+		<td>Changes the build configuration to the specified one. For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
 	</tr>
 	<tr>
 		<td><pre>--verbose</pre></td>

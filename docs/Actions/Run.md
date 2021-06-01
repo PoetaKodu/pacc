@@ -29,17 +29,16 @@ Use following switches to manipulate run settings:
 		<th>Switch</th>
 		<th>Aliases</th>
 		<th>Description</th>
-		<th>Remarks</th>
 	</tr>
 	<tr>
-		<td><code>--platform</code></td>
-		<td><code>--plat</code><br><code>-p</code></td>
+		<td><pre>--platform</pre></td>
+		<td><pre>--plat<br>-p</pre></td>
 		<td>Changes the run platform to the specified one</td>
 		<td>For now only <code>x64</code> and <code>x86</code> are supported (by default <code>x64</code>).</td>
 	</tr>
 	<tr>
-		<td><code>--configuration</code></td>
-		<td><code>--config</code><br><code>--cfg</code><br><code>-c</code></td>
+		<td><pre>--configuration</pre></td>
+		<td><pre>--config<br>--cfg<br>-c</pre></td>
 		<td>Changes the run configuration to the specified one</td>
 		<td>For now only <code>Debug</code> and <code>Release</code> are supported (by default <code>Debug</code>).</td>
 	</tr>
