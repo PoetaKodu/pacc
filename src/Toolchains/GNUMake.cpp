@@ -3,45 +3,15 @@
 #include <Pacc/Toolchains/GNUMake.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/String.hpp>
+#include <Pacc/System/Environment.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Generation/Logs.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 
 ///////////////////////////////////////////////
-fs::path GNUMakeToolchain::findMake()
-{
-	const std::string command =
-	#ifdef PACC_SYSTEM_WINDOWS
-		"where make";
-	#else
-		"type -a -P make";
-	#endif
-
-	// TODO:
-	ChildProcess make{command, "", ch::milliseconds{500}};
-	auto exitStatus = make.runSync();
-
-	if (exitStatus.value_or(1) == 0)
-	{
-		std::string& stdOut = make.out.stdOut;
-
-		fs::path makePath;
-
-		// Parse `where make` output
-		size_t newLinePos = make.out.stdOut.find_first_of("\r\n");
-		if (newLinePos != std::string::npos)
-			return stdOut.substr(0, newLinePos);
-		else
-			return stdOut;
-	}
-
-	return {};
-}
-
-///////////////////////////////////////////////
 std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 {
-	fs::path makePath = findMake();
+	fs::path makePath = env::findExecutable("make");
 
 	std::vector<GNUMakeToolchain> tcs;
 

@@ -78,6 +78,13 @@ struct PackageDependency
 
 };
 
+struct SelfDependency
+{
+	struct Project*	project;
+	std::string 	depProjName;
+	struct Package*	package;
+};
+
 class Dependency
 {
 public:	
@@ -89,11 +96,13 @@ public:
 	{
 		Raw,
 		Package,
+		Self,
 		None
 	};
 
 	bool isRaw() const 		{ return val.index() == 0; }
 	bool isPackage() const 	{ return val.index() == 1; }
+	bool isSelf() const 	{ return val.index() == 2; }
 
 	Type type() const
 	{
@@ -101,6 +110,8 @@ public:
 			return Type::Raw;
 		else if (this->isPackage())
 			return Type::Package;
+		else if (this->isSelf())
+			return Type::Self;
 		
 		return Type::None;
 	}	
@@ -109,17 +120,24 @@ public:
 
 	auto const& raw() const			{ return std::get<RawDependency>(val); }
 	auto const& package() const 	{ return std::get<PackageDependency>(val); }
+	auto const& self() const 		{ return std::get<SelfDependency>(val); }
 
 	// getters
 
 	auto& 		raw() 				{ return std::get<RawDependency>(val); }
 	auto& 		package() 			{ return std::get<PackageDependency>(val); }
+	auto& 		self() 				{ return std::get<Self>(val); }
 
 	static Dependency raw(RawDependency d) 			{ return Dependency{ std::move(d) }; }
 	static Dependency package(PackageDependency d) 	{ return Dependency{ std::move(d) }; }
+	static Dependency self(SelfDependency d) 		{ return Dependency{ std::move(d) }; }
 
 private:
-	using ValType = std::variant<RawDependency, PackageDependency>;
+	using ValType = std::variant<
+			RawDependency,
+			PackageDependency,
+			SelfDependency
+		>;
 	// Construct from variant
 	Dependency(ValType v)
 	{

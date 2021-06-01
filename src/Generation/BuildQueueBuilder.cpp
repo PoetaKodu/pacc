@@ -12,6 +12,7 @@
 bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue const& readyQueue_);
 bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::DepQueue const& readyQueue_);
 bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_);
+bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_);
 
 
 ///////////////////////////////////////////////////////////////
@@ -37,17 +38,27 @@ void BuildQueueBuilder::performConfigurationMerging()
 			Project& mergeTarget = *(depInfo.project);
 			AccessType mergeMode = depInfo.dep->accessType;
 			
-			auto& packageDependency = depInfo.dep->package();
-			// Should be loaded by now
-			auto& depReferencedPkg = *packageDependency.package;
-
-			for (auto const & depProjName : packageDependency.projects)
+			if (depInfo.dep->isSelf())
 			{
-				Project const& depProj = depReferencedPkg.requireProject(depProjName);
+				auto &selfDependency = depInfo.dep->self();
 
-				mergeTarget.inheritConfigurationFrom(depReferencedPkg, depProj, mergeMode );
+				Project const& depProj = selfDependency.package->requireProject(selfDependency.depProjName);
+
+				mergeTarget.inheritConfigurationFrom(*selfDependency.package, depProj, mergeMode );
 			}
+			else if (depInfo.dep->isPackage())
+			{
+				auto& packageDependency = depInfo.dep->package();
+				// Should be loaded by now
+				auto& depReferencedPkg = *packageDependency.package;
 
+				for (auto const & depProjName : packageDependency.projects)
+				{
+					Project const& depProj = depReferencedPkg.requireProject(depProjName);
+
+					mergeTarget.inheritConfigurationFrom(depReferencedPkg, depProj, mergeMode );
+				}
+			}
 		}
 		// fmt::print(" ]\n", stepCounter++);
 	}
@@ -85,27 +96,33 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 					target.push_back( rawDep );
 					break;
 				}
+				case Dependency::Self:
+				{
+					pendingDeps.push_back( { &p, &dep } );
+					break;
+				}
 				case Dependency::Package:
 				{
 					pendingDeps.push_back( { &p, &dep } );
 
 					auto& pkgDep = dep.package();
+
 					PackagePtr pkgPtr;
 
-					// TODO: load dependency (and bind it to shared pointer)
+					// Load dependency (and bind it to shared pointer)
 					{
 
-						Package pkg;
+						UPtr<Package> pkg;
 						try {
 							pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
 						} 
 						catch(PaccException &)
 						{
 							// This means that the package was loaded, but does not meet version requirements.
-							if (!pkg.name.empty())
+							if (pkg && !pkg->name.empty())
 							{
 								throw PaccException("Could not load package \"{}\". Version \"{}\" is incompatible with requirement \"{}\"",
-										pkgDep.packageName, pkg.version.toString(), pkgDep.version.toString()
+										pkgDep.packageName, pkg->version.toString(), pkgDep.version.toString()
 									)
 									.withHelp("Consider installing version of the package that meets requirements.\nYou can list available package versions with \"pacc lsver [package_name]\"\nTo install package at a specific version, use \"pacc install [package_name]@[version]\"\n");
 							}
@@ -113,7 +130,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 								throw; // Rethrow exception
 						}
 
-						if (this->isPackageLoaded(pkg.root))
+						if (this->isPackageLoaded(pkg->root))
 							continue; // ignore package, was loaded yet
 
 						// if (pkgDep.version.empty())
@@ -121,7 +138,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 						// else
 						// 	fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
 				
-						pkgPtr = std::make_shared<Package>(std::move(pkg));
+						pkgPtr = std::move(pkg);
 					}
 
 					// Assign loaded package:
@@ -183,7 +200,15 @@ BuildQueueBuilder::DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQ
 	{
 		auto& dep = *depIt;
 
-		bool ready = !packageHasPendingDependencies(dep.dep->package(), ready_);
+		bool ready = false;
+		if (dep.dep->isPackage())
+		{
+			ready = !packageHasPendingDependencies(dep.dep->package(), ready_);
+		}
+		else if (dep.dep->isSelf())
+		{
+			ready = !selfPackageHasPendingDependencies(dep.dep->self(), ready_);
+		}
 
 		if (!ready)
 			newPending.push_back(dep);
@@ -264,7 +289,7 @@ bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::De
 	{
 		for(auto& selfDep : *access)
 		{
-			if (!selfDep.isPackage())
+			if (!selfDep.isPackage() && !selfDep.isSelf())
 				continue;
 
 			if (!wasDependencyQueued(selfDep, readyQueue_))
@@ -287,6 +312,20 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 		if (projectHasPendingDependencies(*project, readyQueue_))
 			return true;	
 	}
+
+	return false;
+}
+
+/////////////////////////////////////////////////
+bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_)
+{
+	auto& packagePtr = dep.package;
+
+	// Find pointer to project:
+	auto project = packagePtr->findProject(dep.depProjName);
+
+	if (projectHasPendingDependencies(*project, readyQueue_))
+		return true;	
 
 	return false;
 }

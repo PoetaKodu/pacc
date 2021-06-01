@@ -9,7 +9,11 @@ namespace gen
 
 class Premake5
 {
+	static bool exportCompileCommands();
+
 public:
+	bool compileCommands = false; // Should export compile commands?
+
 	void generate(Package const & package_);
 };
 

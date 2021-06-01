@@ -69,9 +69,9 @@ struct Package : TargetBase
 	Version					version;
 	std::string 			startupProject;
 
-	static Package load(fs::path dir_ = "");
+	static UPtr<Package> load(fs::path dir_ = "");
 
-	static Package loadByName(std::string_view name_, VersionRequirement verReq_ = {}, Package* invalidVersion_ = nullptr);
+	static UPtr<Package> loadByName(std::string_view name_, VersionRequirement verReq_ = {}, UPtr<Package>* invalidVersion_ = nullptr);
 
 	Project const* findProject(std::string_view name_) const;
 
@@ -84,7 +84,7 @@ struct Package : TargetBase
 	fs::path resolvePath( fs::path const& path_) const;
 
 private:
-	static Package loadFromJSON(std::string const& packageContent_);
+	static UPtr<Package> loadFromJSON(std::string const& packageContent_);
 };
 
 

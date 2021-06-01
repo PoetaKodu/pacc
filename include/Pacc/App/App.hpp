@@ -5,6 +5,7 @@
 #include <Pacc/Main.hpp>
 #include <Pacc/App/PaccConfig.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
 
@@ -52,6 +53,8 @@ public:
 	void 			cleanupLogs(size_t maxLogs_) const;
 
 private:
+	gen::Premake5 	createPremake5Generator();
+
 	BuildSettings 	determineBuildSettingsFromArgs() const;
 
 	void 			buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_);

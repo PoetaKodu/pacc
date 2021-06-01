@@ -20,4 +20,9 @@ fs::path getPaccDataStorageFolder();
 /// <returns>Path of the data storage.</returns>
 fs::path requirePaccDataStorageFolder();
 
+/// <summary>Finds executable with given name, that is visible from current folder (either in path, or same folder)</summary>
+/// <param name="execName_">The executable name</param>
+/// <returns>fs::path</returns>
+fs::path findExecutable(std::string_view execName_);
+
 }

@@ -29,7 +29,7 @@ json const* 	selfOrSubfieldOpt(json const& self, std::string_view fieldName = ""
 json const& 	selfOrSubfieldReq(json const& self, std::string_view fieldName = "");
 json const* 	selfOrSubfield(json const& self, std::string_view fieldName, bool required = false);
 
-void 			readDependencyAccess(json const& deps_, std::vector<Dependency> &target_);
+void 			readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std::vector<Dependency> &target_);
 VecOfStr 		loadVecOfStrField(json const& j, std::string_view fieldName, bool direct = false, bool required = false);
 VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName, AccessType defaultAccess_ = AccessType::Private);
 
@@ -57,7 +57,7 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 }
 
 ///////////////////////////////////////////////////
-Package Package::load(fs::path dir_)
+UPtr<Package> Package::load(fs::path dir_)
 {
 	if (dir_.empty()) {
 		dir_ = fs::current_path();
@@ -71,13 +71,12 @@ Package Package::load(fs::path dir_)
 
 	PackageFileSource pkgSrcFile;
 	
-	Package pkg;
+	UPtr<Package> pkg;
 
 	// Detect package file
 	if (fs::exists(dir_ / PackageLUA)) // LuaScript has higher priority
 	{
 		pkgSrcFile = PackageFileSource::LuaScript;
-		pkg.root = dir_ / PackageLUA;
 	}
 	else if (fs::exists(dir_ / PackageJSON))
 	{
@@ -96,7 +95,7 @@ Package Package::load(fs::path dir_)
 		// std::cout << "Loading \"" << PackageJSON << "\" file\n";\
 
 		pkg = Package::loadFromJSON(readFileContents(dir_ / PackageJSON));
-		pkg.root = dir_ / PackageJSON;
+		pkg->root = dir_ / PackageJSON;
 		break;
 	}
 	case PackageFileSource::LuaScript:
@@ -106,7 +105,7 @@ Package Package::load(fs::path dir_)
 
 		// TODO: implement this.
 		std::cout << "This function is not implemented yet." << std::endl;
-		pkg.root = dir_ / PackageLUA;
+		pkg->root = dir_ / PackageLUA;
 		break;
 	}
 	}
@@ -114,7 +113,7 @@ Package Package::load(fs::path dir_)
 }
 
 /////////////////////////////////////////////////
-Package Package::loadByName(std::string_view name_, VersionRequirement verReq_, Package* invalidVersion_)
+UPtr<Package> Package::loadByName(std::string_view name_, VersionRequirement verReq_, UPtr<Package>* invalidVersion_)
 {
 	const std::vector<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
@@ -125,7 +124,7 @@ Package Package::loadByName(std::string_view name_, VersionRequirement verReq_, 
 	for(auto const& c : candidates)
 	{
 		auto pkgFolder = c / name_;
-		Package pkg;
+		UPtr<Package> pkg;
 		try {
 			pkg = Package::load(pkgFolder);
 		}
@@ -134,7 +133,7 @@ Package Package::loadByName(std::string_view name_, VersionRequirement verReq_, 
 			continue;
 		}
 
-		if (verReq_.test(pkg.version))
+		if (verReq_.test(pkg->version))
 			return pkg;
 		else
 		{
@@ -202,7 +201,7 @@ fs::path Package::resolvePath( fs::path const& path_) const
 }
 
 ///////////////////////////////////////////////////
-void loadConfigurationFromJSON(Project & project_, Configuration& conf_, json const& root_)
+void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration& conf_, json const& root_)
 {
 	using fmt::fg, fmt::color;
 	using json_vt = json::value_t;
@@ -226,7 +225,7 @@ void loadConfigurationFromJSON(Project & project_, Configuration& conf_, json co
 		auto& projSelfDeps = conf_.dependencies.self;
 		if (deps.type() == json_vt::array)
 		{
-			readDependencyAccess(*depsIt, targetByAccessType(projSelfDeps, defaultAccess));
+			readDependencyAccess(pkg_, project_, *depsIt, targetByAccessType(projSelfDeps, defaultAccess));
 		}
 		else if (deps.type() == json_vt::object)
 		{
@@ -237,11 +236,11 @@ void loadConfigurationFromJSON(Project & project_, Configuration& conf_, json co
 			}
 			else
 			{
-				if (deps.contains("public")) readDependencyAccess(deps["public"], projSelfDeps.public_);
-				if (deps.contains("private")) readDependencyAccess(deps["private"], projSelfDeps.private_);
+				if (deps.contains("public")) readDependencyAccess(pkg_, project_, deps["public"], projSelfDeps.public_);
+				if (deps.contains("private")) readDependencyAccess(pkg_, project_, deps["private"], projSelfDeps.private_);
 			}
 
-			if (deps.contains("interface")) readDependencyAccess(deps["interface"], projSelfDeps.interface_);
+			if (deps.contains("interface")) readDependencyAccess(pkg_, project_, deps["interface"], projSelfDeps.interface_);
 		}
 		else
 			throw PaccException("Invalid type of \"dependencies\" field (must be an array or an object)");
@@ -249,11 +248,12 @@ void loadConfigurationFromJSON(Project & project_, Configuration& conf_, json co
 }
 
 ///////////////////////////////////////////////////
-Package Package::loadFromJSON(std::string const& packageContent_)
+UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 {
 	using json_vt = json::value_t;
 
-	Package result;
+	auto resultPtr = std::make_unique<Package>();
+	auto& result = *resultPtr;
 
 	// Parse and make conformant:
 	json j;
@@ -297,7 +297,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();
 
-		loadConfigurationFromJSON(project, project, jsonProject);
+		loadConfigurationFromJSON(result, project, project, jsonProject);
 
 		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
 		if (filters)
@@ -309,7 +309,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 				{
 					// Create and reference the configuration:
 					Configuration& cfg = project.premakeFilters[filterIt.key()];
-					loadConfigurationFromJSON(project, cfg, val);
+					loadConfigurationFromJSON(result, project, cfg, val);
 				}
 			}
 		}
@@ -317,7 +317,7 @@ Package Package::loadFromJSON(std::string const& packageContent_)
 		result.projects.push_back(std::move(project));
 	}
 
-	return result;
+	return resultPtr;
 }
 
 /////////////////////////////////////////////////
@@ -368,7 +368,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
-void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
+void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std::vector<Dependency> &target_)
 {
 	using json_vt = json::value_t;
 
@@ -385,6 +385,11 @@ void readDependencyAccess(json const& deps_, std::vector<Dependency> &target_)
 			if (startsWith(depPattern, "file:"))
 			{
 				target_.push_back( Dependency::raw( depPattern.substr(5) ) );
+			}
+			else if (startsWith(depPattern, "self:"))
+			{
+				SelfDependency sd { &proj_, depPattern.substr(5), &pkg_ };
+				target_.push_back( Dependency::self( std::move(sd) ) );
 			}
 			else
 			{

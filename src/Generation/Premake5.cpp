@@ -149,8 +149,46 @@ void Premake5::generate(Package const & pkg_)
 
 	// Store the output in the premake file
 	std::ofstream("premake5.lua") << out;
+
+	if (compileCommands)
+	{
+		try {
+			exportCompileCommands();
+		}
+		catch(PaccException&) {
+			// Ignore.
+		}
+	}
 }
 
+/////////////////////////////////////////////////
+bool Premake5::exportCompileCommands()
+{
+	fs::path premake5ScriptPath = env::findExecutable("premake5").parent_path().parent_path() / "premake";
+
+	using fmt::fg, fmt::color;
+
+	fmt::print(fg(color::gray), "Exporting compile commands... ");
+	
+	std::string command = fmt::format("premake5 \"--scripts={}\" export-compile-commands", premake5ScriptPath.string());
+	
+	auto exitStatus = ChildProcess{command, "", ch::seconds{10}}.runSync();
+
+	if (exitStatus.has_value())
+	{
+		if (exitStatus.value() == 0)
+		{
+			fmt::print(fg(color::green), "success (build/compile_commands/*.json)\n");
+			return true;
+		}
+
+		fmt::printErr(fg(color::red), "failure ({})\n", exitStatus.value());
+		return false;
+	}
+
+	fmt::printErr(fg(color::red), "timeout\n");
+	return false;
+}
 
 /////////////////////////////////////////////////
 void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)

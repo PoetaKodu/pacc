@@ -10,7 +10,6 @@
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
-#include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Generation/Logs.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
@@ -85,12 +84,12 @@ R"PKG({{
 ///////////////////////////////////////////////////
 void PaccApp::linkPackage()
 {
-	Package pkg = Package::load();
+	auto pkg = Package::load();
 
 	fs::path appData = env::getPaccDataStorageFolder();
 
 	fs::path packagesDir 	= appData / "packages";
-	fs::path targetSymlink 	= packagesDir / pkg.name;
+	fs::path targetSymlink 	= packagesDir / pkg->name;
 
 	fs::create_directories(packagesDir);
 
@@ -100,7 +99,7 @@ void PaccApp::linkPackage()
 		{
 			throw PaccException(
 					"Package \"{}\" is already linked to {}.\n",
-					pkg.name,
+					pkg->name,
 					fs::read_symlink(targetSymlink).string()
 				)
 				.withHelp("If you want to update the link, use \"pacc unlink\" first.");
@@ -109,7 +108,7 @@ void PaccApp::linkPackage()
 		{
 			throw PaccException(
 					"Package \"{}\" is already installed in users environment.\n",
-					pkg.name
+					pkg->name
 				)
 				.withHelp("If you want to link current package, uninstall existing one with \"pacc uninstall\" first.");
 		}
@@ -117,7 +116,7 @@ void PaccApp::linkPackage()
 	else
 	{
 		fs::create_directory_symlink(fs::current_path(), targetSymlink);
-		fmt::print("Package \"{}\" has been linked inside the user environment.", pkg.name);
+		fmt::print("Package \"{}\" has been linked inside the user environment.", pkg->name);
 	}
 }
 
@@ -205,8 +204,8 @@ void PaccApp::unlinkPackage()
 
 	if (pkgName.empty())
 	{
-		Package pkg = Package::load();
-		pkgName = pkg.name;
+		auto pkg = Package::load();
+		pkgName = pkg->name;
 	}
 
 	fs::path storage = env::getPaccDataStorageFolder();
@@ -228,10 +227,10 @@ void PaccApp::unlinkPackage()
 ///////////////////////////////////////////////////
 void PaccApp::runPackageStartupProject()
 {
-	Package pkg = Package::load();
+	auto pkg = Package::load();
 
-	if (pkg.projects.empty())
-		throw PaccException("Package \"{}\" does not contain any projects.", pkg.name);
+	if (pkg->projects.empty())
+		throw PaccException("Package \"{}\" does not contain any projects.", pkg->name);
 
 	auto settings = this->determineBuildSettingsFromArgs();
 
@@ -243,26 +242,26 @@ void PaccApp::runPackageStartupProject()
 		targetName = args[2];
 
 	if (targetName.empty())
-		targetName = pkg.startupProject;
+		targetName = pkg->startupProject;
 
 	if (targetName.empty())
 	{
-		for(auto const &proj : pkg.projects)
+		for(auto const &proj : pkg->projects)
 		{
 			if (proj.type == "app")
 			{
-				project = &pkg.projects[0];
+				project = &pkg->projects[0];
 				break;
 			}
 		}
 		if (!project)
-			throw PaccException("Package \"{}\" does not contain any runnable projects.", pkg.name);
+			throw PaccException("Package \"{}\" does not contain any runnable projects.", pkg->name);
 	}
 	else
 	{
-		project = pkg.findProject(targetName);
+		project = pkg->findProject(targetName);
 		if (!project)
-			throw PaccException("Package \"{}\" does not contain project with name \"{}\".", pkg.name, targetName);
+			throw PaccException("Package \"{}\" does not contain project with name \"{}\".", pkg->name, targetName);
 	}
 
 	if (project->type != "app")
@@ -271,7 +270,7 @@ void PaccApp::runPackageStartupProject()
 			.withHelp("If the package contains other application projects, use \"pacc run [project_name]\"\n");
 	}
 
-	fs::path outputFile = fsx::fwd(pkg.predictRealOutputFolder(*project, settings) / project->name);
+	fs::path outputFile = fsx::fwd(pkg->predictRealOutputFolder(*project, settings) / project->name);
 
 	#ifdef PACC_SYSTEM_WINDOWS
 	outputFile += ".exe";
@@ -302,10 +301,18 @@ void setupBuildQueue(Package & pkg, BuildQueueBuilder& depQueue)
 ///////////////////////////////////////////////////
 void PaccApp::generate()
 {
-	Package pkg = Package::load();
+	auto pkg = Package::load();
 	BuildQueueBuilder depQueue;
-	setupBuildQueue(pkg, depQueue);
-	gen::Premake5{}.generate(pkg);
+	setupBuildQueue(*pkg, depQueue);
+	this->createPremake5Generator().generate(*pkg);
+}
+
+///////////////////////////////////////////////////
+gen::Premake5 PaccApp::createPremake5Generator()
+{
+	gen::Premake5 gen;
+	gen.compileCommands = this->containsSwitch("--compile-commands") || this->containsSwitch("-cc");
+	return gen;
 }
 
 ///////////////////////////////////////////////////
@@ -385,7 +392,13 @@ void PaccApp::ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder con
 
 	size_t numDeps = 0;
 	for(auto const& stage : depQueue_.getQueue())
-		numDeps += stage.size();
+	{
+		for(auto const& dep : stage)
+		{
+			if (dep.dep->isPackage())
+				++numDeps;
+		}
+	}
 
 	if (numDeps == 0)
 		return;
@@ -413,13 +426,13 @@ void PaccApp::buildPackage()
 	{
 		auto settings = this->determineBuildSettingsFromArgs();
 		
-		Package pkg = Package::load(fs::current_path());
+		auto pkg = Package::load(fs::current_path());
 
 		BuildQueueBuilder depQueue;
-		setupBuildQueue(pkg, depQueue);
-		ensureDependenciesBuilt(pkg, depQueue, settings);
+		setupBuildQueue(*pkg, depQueue);
+		ensureDependenciesBuilt(*pkg, depQueue, settings);
 
-		this->buildSpecifiedPackage( pkg, *tc, settings );
+		this->buildSpecifiedPackage( *pkg, *tc, settings );
 	}
 	else
 	{
@@ -431,7 +444,7 @@ void PaccApp::buildPackage()
 ///////////////////////////////////////////////////
 void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_)
 {
-	gen::Premake5{}.generate(pkg_);
+	this->createPremake5Generator().generate(pkg_);
 
 	// Run premake:
 	gen::runPremakeGeneration(toolchain_.premakeToolchainType());
@@ -480,9 +493,9 @@ void PaccApp::install()
 			throw PaccException("Missing argument: package name")
 				.withHelp("Use \"pacc install [package_name] --global\"");
 
-		Package pkg = Package::load();
+		auto pkg = Package::load();
 
-		auto deps = this->collectMissingDependencies(pkg);
+		auto deps = this->collectMissingDependencies(*pkg);
 
 		if (deps.empty())
 		{
