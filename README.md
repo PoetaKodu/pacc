@@ -1,14 +1,19 @@
-# Pacc
+# pacc
 
-An easy to use and powerful C++ package manager with an integrated build tools.
-
-<hr/>
-
-**Note**: this project is under development. Wait for first alpha release.
+An easy to use and powerful C++ package manager with integrated build tools, written in C++.
 
 <hr/>
+<table>
+	<tr>
+		<th><a href="https://github.com/PoetaKodu/pacc/releases">Download</a>
+		<th><a href="docs/GettingStarted.md">Getting started</a>
+		<th><a href="docs/Actions.md">Actions</a></th>
+		<th><a href="#contributing">Contributing</a></th>
+	</tr>
+</table>
+<hr/>
 
-## Overview (early 05.2021)
+## Quick overview (early 06.2021)
 
 
 ### Configure projects easily with JSON
@@ -22,20 +27,6 @@ An easy to use and powerful C++ package manager with an integrated build tools.
 	"files": "src/Main.hpp"
 }
 ```
-
-### Rich editor support
-
-- Self-explainatory syntax and naming
-- Good docs
-- Rapid development
-- Editor does most of the job for you
-
-<p align="center">
-	<img src="res/img/support.gif" alt="Support"/>
-</p>
-
-Set up libraries and applications with few clicks or keystrokes.
-
 ### Build with ease
 
 All you need is a single command.
@@ -46,6 +37,26 @@ pacc build
 
 <p align="center">
 	<img src="res/img/build.gif" alt="Build"/>
+</p>
+
+### Install remote packages
+
+Use:
+
+```
+pacc install
+```
+
+to install missing dependencies, and:
+
+```
+pacc install PackageName
+```
+
+to install specific package
+
+<p align="center">
+	<img src="res/img/install_and_build.gif" alt="Installing packages"/>
 </p>
 
 ### Automatic toolchain detection
@@ -60,6 +71,18 @@ pacc tc
 	<img src="res/img/toolchains.gif" alt="Toolchains"/>
 </p>
 
+### Rich editor support
+
+- Self-explainatory syntax and naming
+- Good docs
+- Rapid development
+- Editor does most of the job for you
+
+<p align="center">
+	<img src="res/img/support.gif" alt="Support"/>
+</p>
+
+Set up libraries and applications with few clicks or keystrokes.
 
 ### Insanely fast precompiled header setup
 
@@ -69,31 +92,7 @@ Use `"pch"` field inside `cpackage.json` to set up Precompiled Headers easily:
 	<img src="res/img/pch.gif" alt="Precompiled Headers"/>
 </p>
 
-## 1. Quick Start
-
-Download the package manager and then do the following:
-
-### 1. To create a new project:
-
-Open a terminal inside an empty folder and type the following command:
-
-```
-pacc init
-```
-
-This will create a default package inside the current folder (see [init templates](docs/InitTemplates.md)).
-
-### 2. To build a package
-
-Run following command
-
-```
-pacc build
-```
-
-This will regenerate build files and build the application with default mode (see [build modes](docs/BuildModes.md))
-
-## 2. Example package
+### Example package
 
 Folder contents:
 ```
@@ -120,3 +119,9 @@ int main() {
 	std::cout << "Hello, World!";
 }
 ```
+
+## Contributing
+
+Contributions are appreciated.
+
+`// TODO: contributing instructions`
