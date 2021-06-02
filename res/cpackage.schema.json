@@ -160,7 +160,7 @@
 				"type": {
 					"type": "string",
 					"description": "Type of the project (causes different build results)",
-					"markdownDescription": "# Project type\n\nDetermines what `pacc` should do with this project, affects build results.\n\nAvailable project types:\n- `app`  \nan executable application (EXE on Windows systems);\n- `static lib`  \na library that is compiled into binaries while linking (integrated into one file, bigger file sizes)\n- `shared lib`  \na standalone library (sharable between binaries);\n- `interface`  \na project that doesn't result in a binary itself, instead it provides configuration to other projects.",
+					"markdownDescription": "# Project type\n\nDetermines what `pacc` should do with this project, affects build results.\n\nAvailable project types:\n- `app`  \nan executable application (EXE on Windows systems);\n- `static lib`  \na library that is compiled into binaries while linking (integrated into one file, bigger file sizes)\n- `shared lib`  \na standalone library (sharable between binaries);\n- `interface`  \na project that doesn't result in a binary itself, instead it provides configuration to other projects.\n**Note:** for interface projects, each field defines **interface** access by default.  \nFor non-interface projects, the default access is **private**.",
 					"oneOf": [
 						{
 							"enum": ["app"]
