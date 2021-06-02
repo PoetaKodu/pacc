@@ -71,7 +71,7 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 	{
 		Project const* p = pkg_.findProject(projName);
 		// Build only static and shared libs
-		if (p->type != "static lib" && p->type != "shared lib")
+		if (p->type != Project::Type::StaticLib && p->type != Project::Type::SharedLib)
 			continue;
 
 

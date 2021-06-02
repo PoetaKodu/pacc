@@ -10,11 +10,6 @@
 
 using namespace fmt;
 
-template <typename T = std::string_view>
-using DictElem 	= std::pair<std::string_view, T>;
-template <typename T = std::string_view>
-using Dict 		= std::vector< DictElem<T> >;
-
 namespace constants
 {
 
@@ -55,32 +50,35 @@ namespace mappings
 auto const& LangToPremakeLangAndDialect()
 {
 	using LangAndDialect = std::pair<std::string_view, std::string_view>;
-	static const Dict<LangAndDialect> dict = {
-		{ "C89", 	{ "C", 		"" } },
-		{ "C90", 	{ "C", 		"" } },
-		{ "C95", 	{ "C", 		"" } },
-		{ "C99", 	{ "C", 		"" } },
-		{ "C11", 	{ "C", 		"" } },
-		{ "C17", 	{ "C", 		"" } },
-		{ "C++98", 	{ "C++", 	"C++98" } },
-		{ "C++0x", 	{ "C++", 	"C++11" } },
-		{ "C++11", 	{ "C++", 	"C++11" } },
-		{ "C++1y", 	{ "C++", 	"C++14" } },
-		{ "C++14", 	{ "C++", 	"C++14" } },
-		{ "C++1z", 	{ "C++", 	"C++17" } },
-		{ "C++17", 	{ "C++", 	"C++17" } }
-	};
+	static const std::map<std::string_view, LangAndDialect, IgnoreCaseLess> dict =
+		{
+			{ "C89", 	{ "C", 		"" } },
+			{ "C90", 	{ "C", 		"" } },
+			{ "C95", 	{ "C", 		"" } },
+			{ "C99", 	{ "C", 		"" } },
+			{ "C11", 	{ "C", 		"" } },
+			{ "C17", 	{ "C", 		"" } },
+			{ "C++98", 	{ "C++", 	"C++98" } },
+			{ "C++0x", 	{ "C++", 	"C++11" } },
+			{ "C++11", 	{ "C++", 	"C++11" } },
+			{ "C++1y", 	{ "C++", 	"C++14" } },
+			{ "C++14", 	{ "C++", 	"C++14" } },
+			{ "C++1z", 	{ "C++", 	"C++17" } },
+			{ "C++17", 	{ "C++", 	"C++17" } },
+			{ "C++20", 	{ "C++", 	"C++20" } },
+		};
 	return dict;
 }
 
 /////////////////////////////////////////////////////////////////////
 auto const& AppTypeToPremakeKind()
 {
-	static const Dict<> AppTypeToPremakeKind = {
-		{ "app", 		"ConsoleApp" },
-		{ "static lib", "StaticLib" },
-		{ "shared lib", "SharedLib" }
-	};
+	static const std::map<Project::Type, std::string_view> AppTypeToPremakeKind =
+		{
+			{ Project::Type::App, 		"ConsoleApp" },
+			{ Project::Type::StaticLib, "StaticLib" },
+			{ Project::Type::SharedLib, "SharedLib" }
+		};
 	return AppTypeToPremakeKind;
 }
 
@@ -103,10 +101,6 @@ template <typename T>
 void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
-
-/////////////////////////////////////////////////
-template <typename T>
-typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v);
 
 /////////////////////////////////////////////////
 void runPremakeGeneration(std::string_view toolchainName_)
@@ -203,7 +197,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 		
 		for(auto const& project : pkg_.projects)
 		{
-			if (project.type != "interface")
+			if (project.type != Project::Type::Interface)
 				appendProject(fmt_, pkg_, project);
 		}
 	}
@@ -213,11 +207,11 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 
 
 /////////////////////////////////////////////////
-std::string_view mapToPremake5Kind(std::string_view projectType_)
+std::string_view mapToPremake5Kind(Project::Type projectType_)
 {
 	auto const& AppTypeMapping = constants::mappings::AppTypeToPremakeKind();
 
-	auto it = mapString(AppTypeMapping, projectType_);
+	auto it = AppTypeMapping.find(projectType_);
 	if (it != AppTypeMapping.end())
 		return it->second;
 	
@@ -229,7 +223,7 @@ void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 {
 	auto const& LangMapping = constants::mappings::LangToPremakeLangAndDialect();
 
-	auto it = mapString(LangMapping, lang_);
+	auto it = LangMapping.find(lang_);
 	if (it != LangMapping.end())
 	{
 		auto const& premakeVal = it->second;
@@ -355,19 +349,6 @@ void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
 {
 	for(auto const & str : vec_)
 		fmt_.write("\"{}\",\n", str);
-}
-
-
-/////////////////////////////////////////////////
-template <typename T>
-typename Dict<T>::const_iterator mapString(Dict<T> const& dict_, std::string_view v)
-{
-	for(auto it = dict_.begin(); it != dict_.end(); it++)
-	{
-		if (compareIgnoreCase(std::get<0>(*it), v))
-			return it;
-	}
-	return dict_.end();
 }
 
 

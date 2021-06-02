@@ -38,7 +38,6 @@ VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName, Acc
 // Public functions
 ///////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////
 void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_)
 {
@@ -54,6 +53,21 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 		// Merge configuration:
 		computeConfiguration( premakeFilters.at(it.first), fromPkg_, fromProject_, it.second, mode_ );
 	}
+}
+
+///////////////////////////////////////////////////
+Project::Type Project::parseType(std::string_view type_)
+{
+	if (compareIgnoreCase(type_, "app"))
+		return Project::Type::App;
+	else if (compareIgnoreCase(type_, "static lib"))
+		return Project::Type::StaticLib;
+	else if (compareIgnoreCase(type_, "shared lib"))
+		return Project::Type::SharedLib;
+	else if (compareIgnoreCase(type_, "interface"))
+		return Project::Type::Interface;
+	
+	return Project::Type::Unknown;
 }
 
 ///////////////////////////////////////////////////
@@ -209,7 +223,7 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 
 	conf_.moduleDefinitionFile 	= JsonView{root_}.stringFieldOr("moduleDefinitionFile", "");
 	
-	bool isInterface = (project_.type == "interface");
+	bool isInterface = (project_.type == Project::Type::Interface);
 
 	AccessType defaultAccess = isInterface ? AccessType::Interface : AccessType::Private;
 
@@ -282,7 +296,7 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 		Project project;
 
 		project.name 					= jsonProject["name"].get<std::string>();
-		project.type 					= jsonProject["type"].get<std::string>();
+		project.type 					= Project::parseType(jsonProject["type"].get<std::string>());
 
 		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
 		{
@@ -348,7 +362,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 	mergeAccesses(into_.linkedLibraries, 	from_.linkedLibraries, 		mode_);
 
 	// TODO: case, enums
-	if (fromProject_.type == "static lib" || fromProject_.type == "shared lib")
+	if (fromProject_.type == Project::Type::StaticLib || fromProject_.type == Project::Type::SharedLib)
 	{
 		// Add dependency output folder:
 		{

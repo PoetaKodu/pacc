@@ -56,13 +56,24 @@ struct PrecompiledHeader
 
 struct Project : TargetBase
 {
-	std::string type;
 	std::string language;
 	std::optional<PrecompiledHeader> pch;
+
+	enum class Type
+	{
+		App,
+		StaticLib,
+		SharedLib,
+		Interface,
+		Unknown
+	} type;
+
+	static Type parseType(std::string_view type_);
 };
 
 struct Package : TargetBase
 {
+	
 
 	fs::path 				root;
 	std::vector<Project> 	projects;
@@ -82,6 +93,8 @@ struct Package : TargetBase
 
 	/////////////////////////////////////////////////
 	fs::path resolvePath( fs::path const& path_) const;
+
+
 
 private:
 	static UPtr<Package> loadFromJSON(std::string const& packageContent_);

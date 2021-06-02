@@ -21,6 +21,22 @@ bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string
 /////////////////////////////////////////////////
 bool compareIgnoreCase(std::string_view l, std::string_view r);
 
+struct IgnoreCaseLess
+{
+	// case-independent (ci) compare_less binary function
+	struct CompareIgnoreCase
+	{
+		bool operator() (unsigned char c1_, unsigned char c2_) const
+		{
+			return tolower(c1_) < tolower(c2_); 
+		}
+	};
+	bool operator() (std::string_view const& s1_, std::string_view const& s2_) const
+	{
+		return std::lexicographical_compare(s1_.begin(), s1_.end(), s2_.begin(), s2_.end(), CompareIgnoreCase{});
+	}
+};
+
 /////////////////////////////////////////////////
 template <typename T>
 std::optional<T> convertTo(std::string const& str_) = delete;
@@ -108,6 +124,3 @@ inline std::optional<int> convertTo(std::string const& str_)
 	try 		{ return std::stoi(str_); }
 	catch(...) 	{ return std::nullopt; }
 }
-
-
-

@@ -29,7 +29,7 @@ void PaccApp::run()
 	{
 		for(auto const &proj : pkg->projects)
 		{
-			if (proj.type == "app")
+			if (proj.type == Project::Type::App)
 			{
 				project = &pkg->projects[0];
 				break;
@@ -45,7 +45,7 @@ void PaccApp::run()
 			throw PaccException("Package \"{}\" does not contain project with name \"{}\".", pkg->name, targetName);
 	}
 
-	if (project->type != "app")
+	if (project->type != Project::Type::App)
 	{
 		throw PaccException("Cannot run project \"{}\", because it's not an application (type: \"{}\", expected: \"app\").", project->name, project->type)
 			.withHelp("If the package contains other application projects, use \"pacc run [project_name]\"\n");
