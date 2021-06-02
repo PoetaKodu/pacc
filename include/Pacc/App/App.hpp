@@ -28,7 +28,7 @@ public:
 	// build
 	void 			buildPackage();
 	// run
-	void 			runPackageStartupProject();
+	void 			run();
 	// init
 	void 			initPackage();
 	// logs

@@ -132,7 +132,7 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.loadPaccConfig();
 
-			app.runPackageStartupProject();
+			app.run();
 		}
 		else
 		{
