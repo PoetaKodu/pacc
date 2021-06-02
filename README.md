@@ -16,7 +16,7 @@ An easy to use and powerful C++ package manager with integrated build tools, wri
 ## Quick overview (early 06.2021)
 
 
-### Configure projects easily with JSON
+### Configure projects easily with [JSON](https://en.wikipedia.org/wiki/JSON)
 
 
 
@@ -120,8 +120,19 @@ int main() {
 }
 ```
 
+
 ## Contributing
 
 Contributions are appreciated.
 
 `// TODO: contributing instructions`
+
+## Goals
+
+pacc is hugely inspired by [**npm**](https://github.com/npm/cli) and rust's [**cargo**](https://github.com/rust-lang/cargo)
+
+The main goal is to create a very easy to use, powerful and extensible package manager for C++, something that should've been created a long time ago. I know that there are other package managers. Their main flaw is that they use `CMake` as a (meta)build system, which is a **horrible** tool. I won't rant on that here... man, I hate it, but this time I will pass.
+
+*\*Insert xkcd competing standards meme here\**
+
+I won't give up until there is a decent and easy to use package manager with integrated build tools.
