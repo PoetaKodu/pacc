@@ -19,7 +19,11 @@
 	"filters": {
 		"system:windows": 	{ "defines": [ "PACC_SYSTEM_WINDOWS" ] },
 		"system:linux": 	{ "defines": [ "PACC_SYSTEM_LINUX" ] },
-		"system:macosx": 	{ "defines": [ "PACC_SYSTEM_MACOSX" ] }
+		"system:macosx": 	{ "defines": [ "PACC_SYSTEM_MACOSX" ] },
+
+		"action:gmake*": {
+			"dependencies": [ "file:stdc++fs", "file:pthread" ]
+		}
 	},
 	"description": "Main pacc app project"
 }
