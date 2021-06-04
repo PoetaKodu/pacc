@@ -34,7 +34,7 @@ fs::path findExecutable(std::string_view execName_)
 		#ifdef PACC_SYSTEM_WINDOWS
 			"where \"{}\"",
 		#else
-			"type -a -P \"{}\"",
+			"which \"{}\"",
 		#endif
 			execName_
 		);
