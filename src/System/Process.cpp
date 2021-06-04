@@ -19,7 +19,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		std::string 	env = "";
 	#endif
 
-	proc::Process proc(command, env,
+	proc::Process proc(theCommand, env,
 		// Handle stdout:
 		[&](const char *bytes, size_t n)
 		{
