@@ -12,7 +12,7 @@
 class PaccApp
 {
 public:
-	constexpr static std::string_view PaccVersion = "0.3-prealpha";
+	constexpr static std::string_view PaccVersion = "0.3.1-prealpha";
 
 	// Actions:
 	// help
