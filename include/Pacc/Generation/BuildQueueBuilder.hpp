@@ -14,12 +14,13 @@ public:
 	/// </summary>
 	struct ProjectDep
 	{
-		Project* 	project;
-		Dependency* dep;
+		Project* 		project;
+		Dependency* 	dep;
 		
 		bool operator==(ProjectDep const& rhs_) const
 		{
-			return project == rhs_.project && dep == rhs_.dep;
+			return project == rhs_.project
+				&& dep == rhs_.dep;
 		}
 	};
 

@@ -36,6 +36,7 @@ void BuildQueueBuilder::performConfigurationMerging()
 			// fmt::print("\"{}\"", dep.project->name);
 
 			Project& mergeTarget = *(depInfo.project);
+			
 			AccessType mergeMode = depInfo.dep->accessType;
 			
 			if (depInfo.dep->isSelf())
@@ -77,91 +78,102 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 	for(auto & p : pkg_.projects)
 	{
-		methodIdx = 0;
-		for(auto* access : getAccesses(p.dependencies.self))
+		std::vector<Configuration*> configs;
+		configs.reserve(1 + p.premakeFilters.size());
+		configs.push_back(&p);
+		for(auto& [key, value] : p.premakeFilters)
 		{
-			for(auto& dep : *access)
+			configs.push_back(&value);
+		}
+
+		for(Configuration* cfg : configs)
+		{
+			methodIdx = 0;
+			for(auto* access : getAccesses(cfg->dependencies.self))
 			{
-				dep.accessType = methodsLoop[methodIdx];
-
-				switch(dep.type())
+				for(auto& dep : *access)
 				{
-				case Dependency::Raw:
-				{
-					auto& rawDep = dep.raw();
-					// fmt::print("Added raw dependency \"{}\"\n", rawDep);
+					dep.accessType = methodsLoop[methodIdx];
 
-					auto& target = targetByAccessType(p.linkedLibraries.computed, dep.accessType);
-					// TODO: improve this:
-					target.push_back( rawDep );
-					break;
-				}
-				case Dependency::Self:
-				{
-					pendingDeps.push_back( { &p, &dep } );
-					break;
-				}
-				case Dependency::Package:
-				{
-					pendingDeps.push_back( { &p, &dep } );
-
-					auto& pkgDep = dep.package();
-
-					PackagePtr pkgPtr;
-
-					// Load dependency (and bind it to shared pointer)
+					switch(dep.type())
 					{
+					case Dependency::Raw:
+					{
+						auto& rawDep = dep.raw();
+						// fmt::print("Added raw dependency \"{}\"\n", rawDep);
 
-						UPtr<Package> pkg;
-						try {
-							pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
-						} 
-						catch(PaccException &)
+						auto& target = targetByAccessType(cfg->linkedLibraries.computed, dep.accessType);
+						// TODO: improve this:
+						target.push_back( rawDep );
+						break;
+					}
+					case Dependency::Self:
+					{
+						pendingDeps.push_back( { &p, &dep } );
+						break;
+					}
+					case Dependency::Package:
+					{
+						pendingDeps.push_back( { &p, &dep } );
+
+						auto& pkgDep = dep.package();
+
+						PackagePtr pkgPtr;
+
+						// Load dependency (and bind it to shared pointer)
 						{
-							// This means that the package was loaded, but does not meet version requirements.
-							if (pkg && !pkg->name.empty())
+
+							UPtr<Package> pkg;
+							try {
+								pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
+							} 
+							catch(PaccException &)
 							{
-								throw PaccException("Could not load package \"{}\". Version \"{}\" is incompatible with requirement \"{}\"",
-										pkgDep.packageName, pkg->version.toString(), pkgDep.version.toString()
-									)
-									.withHelp("Consider installing version of the package that meets requirements.\nYou can list available package versions with \"pacc lsver [package_name]\"\nTo install package at a specific version, use \"pacc install [package_name]@[version]\"\n");
+								// This means that the package was loaded, but does not meet version requirements.
+								if (pkg && !pkg->name.empty())
+								{
+									throw PaccException("Could not load package \"{}\". Version \"{}\" is incompatible with requirement \"{}\"",
+											pkgDep.packageName, pkg->version.toString(), pkgDep.version.toString()
+										)
+										.withHelp("Consider installing version of the package that meets requirements.\nYou can list available package versions with \"pacc lsver [package_name]\"\nTo install package at a specific version, use \"pacc install [package_name]@[version]\"\n");
+								}
+								else
+									throw; // Rethrow exception
 							}
-							else
-								throw; // Rethrow exception
+
+							if (this->isPackageLoaded(pkg->root))
+								continue; // ignore package, was loaded yet
+
+							// if (pkgDep.version.empty())
+							// 	fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
+							// else
+							// 	fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+					
+							pkgPtr = std::move(pkg);
 						}
 
-						if (this->isPackageLoaded(pkg->root))
-							continue; // ignore package, was loaded yet
+						// Assign loaded package:
+						pkgDep.package = pkgPtr;
 
-						// if (pkgDep.version.empty())
-						// 	fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
-						// else
-						// 	fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
+						// Insert in sorted order:
+						{
+							auto it = std::upper_bound(
+									loadedPackages.begin(), loadedPackages.end(),
+									pkgPtr->root,
+									[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
+								);
+
+							loadedPackages.insert(it, pkgPtr);
+						}
+						this->recursiveLoad(*pkgPtr);
+						
+						break;
+					}
+					}
+				}
 				
-						pkgPtr = std::move(pkg);
-					}
-
-					// Assign loaded package:
-					pkgDep.package = pkgPtr;
-
-					// Insert in sorted order:
-					{
-						auto it = std::upper_bound(
-								loadedPackages.begin(), loadedPackages.end(),
-								pkgPtr->root,
-								[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
-							);
-
-						loadedPackages.insert(it, pkgPtr);
-					}
-					this->recursiveLoad(*pkgPtr);
-					
-					break;
-				}
-				}
+				methodIdx++;
 			}
-			
-			methodIdx++;
 		}
 	}
 }
