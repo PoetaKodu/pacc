@@ -5,15 +5,16 @@ An easy to use and powerful C++ package manager with integrated build tools, wri
 <hr/>
 <table>
 	<tr>
+		<th><a href="docs/Installation.md">Installation</a>
 		<th><a href="https://github.com/PoetaKodu/pacc/releases">Download</a>
 		<th><a href="docs/GettingStarted.md">Getting started</a>
 		<th><a href="docs/Actions.md">Actions</a></th>
-		<th><a href="#contributing">Contributing</a></th>
+		<th><a href="#-contributing">Contributing</a></th>
 	</tr>
 </table>
 <hr/>
 
-## Quick overview (early 06.2021)
+## 👀 Quick overview (early 06.2021)
 
 
 ### Configure projects easily with [JSON](https://en.wikipedia.org/wiki/JSON)
@@ -121,13 +122,13 @@ int main() {
 ```
 
 
-## Contributing
+## 👨‍🔧 Contributing
 
 Contributions are appreciated.
 
 `// TODO: contributing instructions`
 
-## Goals
+## ⚽ Goals
 
 pacc is hugely inspired by [**npm**](https://github.com/npm/cli) and rust's [**cargo**](https://github.com/rust-lang/cargo)
 
@@ -136,3 +137,9 @@ The main goal is to create a very easy to use, powerful and extensible package m
 *\*Insert xkcd competing standards meme here\**
 
 I won't give up until there is a decent and easy to use package manager with integrated build tools.
+
+## 🖋 Credits
+
+Written by Paweł Syska (@PoetaKodu).
+
+For complete credit information, visit [this page](docs/Credits.md).
