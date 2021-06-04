@@ -13,9 +13,9 @@ fs::path getPaccDataStorageFolder()
 	#ifdef PACC_SYSTEM_WINDOWS
 		appData = std::getenv("APPDATA");
 	#else
-		appData = std::getenv("USER");
+		appData = std::getenv("HOME");
 	#endif
-	appData /= "pacc";
+	appData /= ".pacc";
 	return appData;
 }
 
