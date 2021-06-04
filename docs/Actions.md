@@ -3,7 +3,7 @@
 Pacc can do various things. Just use:
 
 ```
-pacc action
+pacc [action]
 ```
 
 Whenever you find yourself lost, just use:
