@@ -40,7 +40,7 @@ fs::path findExecutable(std::string_view execName_)
 		);
 
 	// TODO:
-	ChildProcess finder{command, "", ch::milliseconds{500}};
+	ChildProcess finder{command, "", ch::milliseconds{2500}};
 	auto exitStatus = finder.runSync();
 
 	if (exitStatus.value_or(1) == 0)

@@ -15,7 +15,7 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 
 	std::vector<MSVCToolchain> tcs;
 
-	ChildProcess vswhere{vswherePath + params, "", ch::milliseconds{500}};
+	ChildProcess vswhere{vswherePath + params, "", ch::milliseconds{2500}};
 	auto exitCode = vswhere.runSync();
 
 	if (exitCode.value_or(1) == 0)

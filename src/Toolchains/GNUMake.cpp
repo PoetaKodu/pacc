@@ -21,7 +21,7 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 		// make -v 
 		std::string command = makePath.string() + " -v";
 
-		ChildProcess makeVer{command, "", ch::milliseconds{500}};
+		ChildProcess makeVer{command, "", ch::milliseconds{2500}};
 
 		auto exitStatus = makeVer.runSync();
 		if (exitStatus.value_or(1) == 0)

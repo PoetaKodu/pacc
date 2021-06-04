@@ -113,7 +113,7 @@ void runPremakeGeneration(std::string_view toolchainName_)
 	std::string command = "premake5 ";
 	command += toolchainName_;
 	
-	auto exitStatus = ChildProcess{command, "", ch::seconds{10}}.runSync();
+	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
 	if (exitStatus.has_value())
 	{
@@ -167,7 +167,7 @@ bool Premake5::exportCompileCommands()
 	
 	std::string command = fmt::format("premake5 \"--scripts={}\" export-compile-commands", premake5ScriptPath.string());
 	
-	auto exitStatus = ChildProcess{command, "", ch::seconds{10}}.runSync();
+	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
 	if (exitStatus.has_value())
 	{

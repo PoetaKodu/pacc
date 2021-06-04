@@ -11,9 +11,15 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		fs::current_path(workingDirectory); 
 		
 	// TODO: remove this hack, use UNICODE!!!
-	std::wstring wCommand(command.begin(), command.end());
+	#ifdef PACC_SYSTEM_WINDOWS
+		std::wstring 	theCommand(command.begin(), command.end());
+		std::wstring 	env = L"";
+	#else
+		std::string const& theCommand = this->command;
+		std::string 	env = "";
+	#endif
 
-	proc::Process proc(wCommand, L"",
+	proc::Process proc(command, env,
 		// Handle stdout:
 		[&](const char *bytes, size_t n)
 		{

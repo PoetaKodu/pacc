@@ -37,7 +37,7 @@ void PaccApp::listVersions()
 	// List versions
 	{
 		auto command 		= fmt::format(ListRemoteCommand, repoLink);
-		auto process 		= ChildProcess{ command, "", ch::seconds{2} };
+		auto process 		= ChildProcess{ command, "", ch::seconds{10} };
 		auto listExitStatus	= process.runSync();
 
 		if (listExitStatus.value_or(1) != 0)

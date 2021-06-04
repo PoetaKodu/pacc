@@ -76,7 +76,7 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 	// Ensure repository exists and is available:
 	{
 		auto command 		= fmt::format(ListRemoteCommand, cloneLink);
-		auto process 		= ChildProcess{ command, "", ch::seconds{2} };
+		auto process 		= ChildProcess{ command, "", ch::seconds{30} };
 		auto listExitStatus	= process.runSync();
 
 		if (listExitStatus.value_or(GitListInvalidUrl) != 0)
