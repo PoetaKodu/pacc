@@ -2,7 +2,7 @@
 
 #include PACC_PCH
 
-#include <PACC/Helpers/HelperTypes.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 #include <Pacc/PackageSystem/Dependency.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
 

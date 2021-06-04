@@ -5,14 +5,14 @@
 #include <Pacc/Helpers/Formatting.hpp>
 
 struct PaccException
-	: std::exception
+	: std::runtime_error
 {
 	// TODO: this is not professional
 	// String itself may cause exception
 	std::string helpMessage;
 
 public:
-	using Super = std::exception;
+	using Super = std::runtime_error;
 
 	// Add super-class constructors
 	using Super::Super;

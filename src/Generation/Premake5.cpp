@@ -101,6 +101,7 @@ template <typename T>
 void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
+void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_);
 
 /////////////////////////////////////////////////
 void runPremakeGeneration(std::string_view toolchainName_)
