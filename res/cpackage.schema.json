@@ -149,12 +149,8 @@
 			"symbolVisibility": {
 				"type": "string",
 				"description": "GNU symbol visibility (default: \"Default\")",
-				"markdownDescription": "# GNU symbol visibility\nAffects only shared libraries.\n\nDefault value: `Default`.\n\n> **Note**: see GNU GCC [visibility documentation](https://gcc.gnu.org/wiki/Visibility)\n",
-				"oneOf": [
-					{"enum": ["Default"], 	"title": "Default visibility (visible if not marked with __attribute__ ((visibility (\"hidden\"))))"},
-					{"enum": ["Hidden"], 	"title": "Symbols will be hidden unless marked __attribute__ ((visibility (\"default\")))"},
-					{"enum": ["Inline"], 	"title": "Only inline class methods will be hidden"}
-				]
+				"markdownDescription": "# GNU symbol visibility\nAffects only shared libraries.\n\nDefault value: `Default`.\n\n> **Note**: see GNU GCC [visibility documentation](https://gcc.gnu.org/wiki/Visibility)\n\nAvailable modes:\n- `Default` - default visibility (visible if not marked with `__attribute__ ((visibility (\"hidden\")))`)\n- `Hidden` - symbols will be hidden unless marked with `__attribute__ ((visibility (\"default\")))`\n- `Inline` - only inline class methods will be hidden, unless marked otherwise",
+				"enum": ["Default", "Hidden", "Inline"]
 			},
 			"moduleDefinitionFile": {
 				"type": "string",
@@ -251,7 +247,7 @@
 				},
 				"filters": {
 					"type": "object",
-					"markdownDescription": "# Filters\n\nThey allows you to filter configuration by applying it only under certain condition.",
+					"markdownDescription": "# Premake5 Filters\n\nThey allows you to filter configuration by applying it only under certain condition.\n\nSee:\n- [Old docs on filters (Premake5 GitHub Wiki)](https://github.com/premake/premake-core/wiki/filter)\n- [New docs on filters (Premake5 Wiki)](https://premake.github.io/docs/Filters)\n\n## Examples\n\nDefinitions only used by certain systems:\n\n```json\n\"filters\": {\n\t\"system:windows\": { \"defines\": \"SYSTEM_IS_WINDOWS\" },\n\t\"system:linux\": { \"defines\": \"SYSTEM_IS_LINUX\" },\n\t\"system:macosx\": { \"defines\": \"SYSTEM_IS_MACOSX\" }\n}\n```\n\nDependencies used only when building with certain toolset:\n```json\n\"filters\": {\n\t\"action:gmake*\": {\n\t\t\"dependencies\": [ \"file:stdc++fs\" ]\n\t}\n}\n```\n\n> Note: `gmake*` means \"every toolchain that starts with gmake\"  \n> Toolset names are Premake5 generator names, check it [here](https://premake.github.io/docs/Using-Premake#using-premake-to-generate-project-files).",
 					"items": {
 						"type": "object",
 						"properties": {
