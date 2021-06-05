@@ -22,7 +22,7 @@ void PaccApp::listVersions()
 	{
 		throw PaccException("Missing argument: package name")
 			.withHelp(
-					"Use following syntax: \"pacc lsver [package_name]\", where \"package_name\" is \n{}\n",
+					"Use following syntax: \"pacc lsver [package_name]\", where \"package_name\" is \n{}",
 					help::DependencySyntax
 				);
 	}

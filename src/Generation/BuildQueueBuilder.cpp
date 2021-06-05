@@ -135,7 +135,11 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 									throw PaccException("Could not load package \"{}\". Version \"{}\" is incompatible with requirement \"{}\"",
 											pkgDep.packageName, pkg->version.toString(), pkgDep.version.toString()
 										)
-										.withHelp("Consider installing version of the package that meets requirements.\nYou can list available package versions with \"pacc lsver [package_name]\"\nTo install package at a specific version, use \"pacc install [package_name]@[version]\"\n");
+										.withHelp(
+											"Consider installing version of the package that meets requirements.\n"
+											"You can list available package versions with \"pacc lsver [package_name]\"\n"
+											"To install package at a specific version, use \"pacc install [package_name]@[version]\""
+										);
 								}
 								else
 									throw; // Rethrow exception

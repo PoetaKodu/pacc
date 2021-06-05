@@ -48,7 +48,7 @@ void PaccApp::run()
 	if (project->type != Project::Type::App)
 	{
 		throw PaccException("Cannot run project \"{}\", because it's not an application (type: \"{}\", expected: \"app\").", project->name, project->type)
-			.withHelp("If the package contains other application projects, use \"pacc run [project_name]\"\n");
+			.withHelp("If the package contains other application projects, use \"pacc run [project_name]\"");
 	}
 
 	fs::path outputFile = fsx::fwd(pkg->predictRealOutputFolder(*project, settings) / project->name);

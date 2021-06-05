@@ -43,7 +43,7 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 		if (slashPos == std::string::npos)
 		{
 			throw PaccException("Invalid package \"{}\". Unknown user name.", depTemplate_)
-				.withHelp("Use following syntax: \"{}:UserName/RepoName\"\n", platformName);
+				.withHelp("Use following syntax: \"{}:UserName/RepoName\"", platformName);
 		}
 
 		result.userName 	= rest.substr(0, slashPos);

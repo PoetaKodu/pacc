@@ -34,7 +34,7 @@ void PaccApp::install()
 		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
 		{
 			throw PaccException("Package \"{0}\" is already installed{1}.", loc.repository, global ? " globally" : "")
-				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"\n", loc.repository, global ? " --global" : "");
+				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"", loc.repository, global ? " --global" : "");
 		}
 
 		this->downloadPackage(targetPackagePath, loc);
@@ -102,7 +102,7 @@ void PaccApp::uninstall()
 			if (fs::exists(packagePath))
 			{
 				throw PaccException("Invalid type of package \"{}\".", packageName)
-					.withHelp("Directory or symlink required\n");
+					.withHelp("Directory or symlink required");
 			}
 			else
 			{
@@ -143,7 +143,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 		{
 			throw PaccException("Missing package \"{}\" with no download location specified, or the location is wrong.", dep.packageName)
 				.withHelp(
-						"Provide \"from\" for the package. Use following syntax:\n{}\n",
+						"Provide \"from\" for the package. Use following syntax:\n{}",
 						help::DependencySyntax
 					);
 		}
@@ -152,7 +152,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
 		{
 			throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
-				.withHelp("Remove the folder.\n");
+				.withHelp("Remove the folder.");
 		}
 
 

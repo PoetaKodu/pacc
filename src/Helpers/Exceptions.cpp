@@ -21,7 +21,7 @@ void dumpException(PaccException const& exc_)
 	if (!exc_.help().empty())
 	{
 		fmt::printErr("{Help}\n"
-						"    {}",
+						"    {}\n",
 						exc_.help(),
 
 						fmt_args::help());
