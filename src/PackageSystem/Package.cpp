@@ -220,8 +220,11 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 {
 	using fmt::fg, fmt::color;
 	using json_vt = json::value_t;
+	
+	JsonView jv{root_};
 
-	conf_.moduleDefinitionFile 	= JsonView{root_}.stringFieldOr("moduleDefinitionFile", "");
+	conf_.symbolVisibility 		= GNUSymbolVisibility::fromString(jv.stringFieldOr("symbolVisibility", "Default"));
+	conf_.moduleDefinitionFile 	= jv.stringFieldOr("moduleDefinitionFile", "");
 	
 	bool isInterface = (project_.type == Project::Type::Interface);
 

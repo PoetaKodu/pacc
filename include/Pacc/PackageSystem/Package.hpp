@@ -20,6 +20,47 @@ std::size_t getNumElements(VecOfStr const& v);
 /////////////////////////////////////////////////
 std::size_t getNumElements(VecOfStrAcc const& v);
 
+
+/// <summary>GNU visibility mode</summary>
+/// <remarks>Check https://gcc.gnu.org/wiki/Visibility</remarks>
+struct GNUSymbolVisibility
+{
+	enum Mode
+	{
+		Default,
+		Hidden,
+		Inline,
+		Unknown
+	} value = Mode::Default;
+
+	operator Mode() const {
+		return value;
+	}
+
+	static GNUSymbolVisibility fromString(std::string_view str_)
+	{
+		if (compareIgnoreCase(str_, "Default"))
+			return { Mode::Default };
+		else if (compareIgnoreCase(str_, "Hidden"))
+			return { Mode::Hidden };
+		else if (compareIgnoreCase(str_, "Inline"))
+			return { Mode::Inline };
+
+		return { Mode::Unknown };
+	}
+
+	std::string_view toString() const
+	{
+		if (value == Mode::Default)
+			return "Default";
+		else if (value == Mode::Hidden)
+			return "Hidden";
+
+		return "Inline";
+	}
+};
+
+
 struct Configuration
 {
 	template <typename T>
@@ -30,6 +71,9 @@ struct Configuration
 	template <typename T>
 	using SaC = SelfAndComputed<T>;
 
+
+	GNUSymbolVisibility 			symbolVisibility;
+
 	std::string 					moduleDefinitionFile;
 	VecOfStr					 	files;
 	SaC<AccessSplitVec<Dependency>> dependencies;
@@ -38,6 +82,7 @@ struct Configuration
 	SaC<VecOfStrAcc>			 	linkerFolders;
 	SaC<VecOfStrAcc>			 	linkedLibraries;
 };
+
 struct TargetBase : Configuration
 {
 	std::string 	name;

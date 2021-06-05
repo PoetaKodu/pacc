@@ -302,6 +302,12 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 		fmt_.write("end\n");
 	}
 
+	if (config_.symbolVisibility != GNUSymbolVisibility::Default)
+	{
+		fmt_.write("-- Symbol visibility (affects only GNU linker)");
+		fmt_.write("visibility(\"{}\")\n", config_.symbolVisibility.toString());
+	}
+
 	// Computed first:
 	appendPropWithAccess(fmt_, "defines", 		config_.defines.computed);
 	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed);

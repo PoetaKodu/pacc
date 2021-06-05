@@ -145,6 +145,21 @@
 			"linkerFolders": {
 				"$ref": "#/definitions/stringOrVecAcc",
 				"markdownDescription": "# Library directories\n\nFolders used by the linker to locate library binaries. \n\nEach path is relative to package directory (folder in which `cpackage.json` is located).\n\nThis field can be specified in several ways (see Examples)\n\nIt consists of three subfields:\n\n- `private` - values will be used only by the project itself\n- `public` - values will be used by the project and propagated to projects that use this one as a dependency\n- `interface` - values used only by projects that use this one as a dependency\n\n## Examples\n\nYou don't have to specify each subfield.\n\nSingle linker folder (goes to `private` section):\n```json\n\"linkerFolders\": \"/path/to/library/bin\"\n```\n\nMultiple `private` linker folders:\n```json\n\"linkerFolders\": [\n    \"bin\",\n    \"/path/to/library/lib\"\n    \"/path/to/other/library/bin\"\n]\n```\n\nExplicitly defined `public`, `private` and `interface` fields:\n```json\n\"linkerFolders\": {\n    \"public\": [ \"bin\", \"path/to/other/library/bin\" ],\n    \"private\": \"priv/bin\",\n    \"interface\": \"/path/to/some/library/bin\"\n}\n```"
+			},
+			"symbolVisibility": {
+				"type": "string",
+				"description": "GNU symbol visibility (default: \"Default\")",
+				"markdownDescription": "# GNU symbol visibility\nAffects only shared libraries.\n\nDefault value: `Default`.\n\n> **Note**: see GNU GCC [visibility documentation](https://gcc.gnu.org/wiki/Visibility)\n",
+				"oneOf": [
+					{"enum": ["Default"], 	"title": "Default visibility (visible if not marked with __attribute__ ((visibility (\"hidden\"))))"},
+					{"enum": ["Hidden"], 	"title": "Symbols will be hidden unless marked __attribute__ ((visibility (\"default\")))"},
+					{"enum": ["Inline"], 	"title": "Only inline class methods will be hidden"}
+				]
+			},
+			"moduleDefinitionFile": {
+				"type": "string",
+				"description": "Module Definition File\n\nUsed by Visual Studio to determine shared library settings (f.e. exported symbols)",
+				"markdownDescription": "# Module Definition File\n\nUsed by Visual Studio to determine shared library settings (f.e. exported symbols).\n\nSee: [MSDN Documentation](https://docs.microsoft.com/en-us/cpp/build/reference/module-definition-dot-def-files)"
 			}
 		},
 		"project": {
@@ -246,6 +261,12 @@
 							"files": {
 								"$ref": "#/definitions/configProps/files"
 							},
+							"symbolVisibility": {
+								"$ref": "#/definitions/configProps/symbolVisibility"
+							},
+							"moduleDefinitionFile": {
+								"$ref": "#/definitions/configProps/moduleDefinitionFile"
+							},
 							"defines": {
 								"$ref": "#/definitions/configProps/defines"
 							},
@@ -281,6 +302,12 @@
 				},
 				"files": {
 					"$ref": "#/definitions/configProps/files"
+				},
+				"symbolVisibility": {
+					"$ref": "#/definitions/configProps/symbolVisibility"
+				},
+				"moduleDefinitionFile": {
+					"$ref": "#/definitions/configProps/moduleDefinitionFile"
 				},
 				"defines": {
 					"$ref": "#/definitions/configProps/defines"
