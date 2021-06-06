@@ -1,5 +1,3 @@
-# pacc  
-
 <p align="center">
 	<img src="res/logo/PaccLogoColor.svg">
 	
