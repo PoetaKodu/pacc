@@ -110,7 +110,7 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.logs();	
 		}
-		else if (action == "i" || action == "install")
+		else if (action == "install" || action == "i")
 		{
 			app.install();	
 		}
@@ -118,11 +118,11 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.uninstall();	
 		}
-		else if (action == "lsver" || action == "list-versions" || action == "list-versions")
+		else if (action == "list-versions" || action == "list-version" || action == "lsver")
 		{
 			app.listVersions();	
 		}
-		else if (action == "toolchain" || action == "toolchain" || action == "tc")
+		else if (action == "toolchains" || action == "toolchain" || action == "tc")
 		{
 			app.loadPaccConfig();
 
