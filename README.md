@@ -1,15 +1,16 @@
-# pacc
+# pacc  
 
-An easy to use and powerful C++ package manager with integrated build tools, written in C++.
+An easy to use and powerful C++ 📦 package manager  with integrated 🛠 build tools, written in C++.
+
 
 <hr/>
 <table>
 	<tr>
-		<th><a href="docs/Installation.md">Installation</a>
-		<th><a href="https://github.com/PoetaKodu/pacc/releases">Download</a>
-		<th><a href="docs/GettingStarted.md">Getting started</a>
-		<th><a href="docs/Actions.md">Actions</a></th>
-		<th><a href="#-contributing">Contributing</a></th>
+		<th><a href="docs/Installation.md">🗃 Installation</a>
+		<th><a href="https://github.com/PoetaKodu/pacc/releases">💾 Download</a>
+		<th><a href="docs/GettingStarted.md">🚀 Getting started</a>
+		<th><a href="docs/Actions.md">🧱 Actions</a></th>
+		<th><a href="#-contributing">👨‍🔧 Contributing</a></th>
 	</tr>
 </table>
 <hr/>
