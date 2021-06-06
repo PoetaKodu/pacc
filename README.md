@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="res/logo/PaccLogoColor.svg">
+	<img src="res/logo/PaccLogoColor.svg" alt="Pacc Logo" title="pacc">
 	
 </p>
 
