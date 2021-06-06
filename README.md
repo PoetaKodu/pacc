@@ -70,7 +70,9 @@ to install specific package
 
 ### Automatic toolchain detection
 
-Installed toolchains are detected automatically (but [manual setup](res/docs/ManualToolchainSetup.md) is also supported):
+Installed toolchains are detected automatically.
+
+`// TODO: add manual toolchain setup support`
 
 ```
 pacc tc
