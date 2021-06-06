@@ -1,9 +1,18 @@
 # pacc  
 
-An easy to use and powerful C++ 📦 package manager  with integrated 🛠 build tools, written in C++.
-
+<p align="center">
+	<img src="res/logo/PaccLogoColor.svg">
+	
+</p>
 
 <hr/>
+
+<p align="center">
+	An easy to use and powerful C++ 📦 package manager  with integrated 🛠 build tools, written in C++.
+</p>
+
+<hr/>
+
 <table>
 	<tr>
 		<th><a href="docs/Installation.md">🗃 Installation</a>
