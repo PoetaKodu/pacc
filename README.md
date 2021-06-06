@@ -22,8 +22,7 @@
 </table>
 <hr/>
 
-## 👀 Quick overview (early 06.2021)
-
+## 👀 Overview
 
 ### Configure projects easily with [JSON](https://en.wikipedia.org/wiki/JSON)
 
@@ -97,7 +96,7 @@ Set up libraries and applications with few clicks or keystrokes.
 
 ### Insanely fast precompiled header setup
 
-Use `"pch"` field inside `cpackage.json` to set up Precompiled Headers easily:
+Use `pch` field inside `cpackage.json` to set up Precompiled Headers easily:
 
 <p align="center">
 	<img src="res/img/pch.gif" alt="Precompiled Headers"/>
@@ -142,7 +141,7 @@ Contributions are appreciated.
 
 pacc is hugely inspired by [**npm**](https://github.com/npm/cli) and rust's [**cargo**](https://github.com/rust-lang/cargo)
 
-The main goal is to create a very easy to use, powerful and extensible package manager for C++, something that should've been created a long time ago. I know that there are other package managers. Their main flaw is that they use `CMake` as a (meta)build system, which is a **horrible** tool. I won't rant on that here... man, I hate it, but this time I will pass.
+The main goal is to create a very easy to use, powerful and extensible package manager for C++, something that should've been created a long time ago. I know that there are other package managers. Their main flaw is that they use CMake as a meta-build system, which is a **horrible** tool. I won't rant on that here... man, I hate it, but this time I will pass.
 
 *\*Insert xkcd competing standards meme here\**
 
