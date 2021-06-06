@@ -6,7 +6,7 @@
 <hr/>
 
 <p align="center">
-	An easy to use and powerful C++ 📦 package manager  with integrated 🛠 build tools, written in C++.
+	An easy-to-use and powerful C++ 📦 package manager with integrated 🛠 build tools, written in C++.
 </p>
 
 <hr/>
