@@ -92,7 +92,19 @@
 					"description": "List of projects belonging to the workspace",
 					"$ref": "#/definitions/hasArrayOfProjects"
 				},
-				"type": false
+				"type": 				false,
+				"language": 			false,
+				"pch": 					false,
+				"filters": 				false,
+				"dependencies": 		false,
+				"files": 				false,
+				"symbolVisibility": 	false,
+				"moduleDefinitionFile":	false,
+				"defines": 				false,
+				"includeFolders": 		false,
+				"linkerFolders": 		false,
+				"compilerOptions": 		false,
+				"linkerOptions": 		false
 			},
 			"required": ["projects"],
 			"minItems": 1,
