@@ -13,12 +13,13 @@ void setupBuildQueue(Package & pkg, BuildQueueBuilder& depQueue)
 }
 
 ///////////////////////////////////////////////////
-void handleBuildResult(ChildProcess::ExitCode exitStatus_)
+void handleBuildResult(ChildProcess::ExitCode exitStatus_, bool isDependency_)
 {
 	using fmt::fg, fmt::color;
 
-	auto lastLogNotice = []{
-		fmt::print(fg(color::light_sky_blue) | fmt::emphasis::bold, "\nNote: you can print last log using \"pacc log --last\".\n");
+	auto lastLogNotice = [&]{
+		if (!isDependency_)
+			fmt::print(fg(color::light_sky_blue) | fmt::emphasis::bold, "\nNote: you can print last log using \"pacc log --last\".\n");
 	};
 
 	if (exitStatus_.has_value())
@@ -26,7 +27,10 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_)
 		if (exitStatus_.value() == 0)
 		{
 			fmt::print(fg(color::green), "success\n");
-			fmt::print(fmt::fg(fmt::color::lime_green), "Build succeeded.\n");
+			if (isDependency_)
+				fmt::print(fmt::fg(fmt::color::green), "Dependency build succeeded.\n");
+			else
+				fmt::print(fmt::fg(fmt::color::green), "Build succeeded.\n");
 			lastLogNotice();
 			return;
 		}
@@ -36,7 +40,11 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_)
 	else
 		fmt::printErr(fg(color::red), "timeout\n");
 
-	fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Build failed.\n");
+	if (isDependency_)
+		fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Dependency build failed.\n");
+	else 
+		fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Build failed.\n");
+
 	lastLogNotice();
 }
 
@@ -76,18 +84,23 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 
 
 		fs::path binaryPath = rootFolder / "bin" / settings_.platformName / settings_.configName;
-		#ifdef PACC_SYSTEM_WINDOWS
-			binaryPath /= (projName + ".lib");	
-		#else
-			binaryPath /= projName + ".a"; // TODO: determine it by used toolchain
-		#endif
+
+		auto tc = *cfg.currentToolchain();
+
+		if (tc.type() == Toolchain::GNUMake)
+			binaryPath /= "lib" + projName + ".a";
+		else if (tc.type() == Toolchain::MSVC)
+			binaryPath /= (projName + ".lib");
+		// else: error
+		
+
 		if (!fs::exists(binaryPath))
 		{
 			fmt::print("Building dependency project \"{}\" from package \"{}\".\n", projName, pkg_.name);
 
 			fs::current_path(rootFolder);
 			try {
-				this->buildSpecifiedPackage(pkg_, *cfg.currentToolchain(), settings_);
+				this->buildSpecifiedPackage(pkg_, *cfg.currentToolchain(), settings_, true);
 			}
 			catch(...)
 			{
@@ -159,7 +172,7 @@ void PaccApp::buildPackage()
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_)
+void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_)
 {
 	this->createPremake5Generator().generate(pkg_);
 
@@ -168,7 +181,7 @@ void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_,
 
 	// Run build toolchain
 	int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
-	handleBuildResult( toolchain_.run(pkg_, settings_, verbosityLevel) );
+	handleBuildResult( toolchain_.run(pkg_, settings_, verbosityLevel), isDependency_ );
 }
 
 ///////////////////////////////////////////////////

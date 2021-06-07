@@ -57,7 +57,7 @@ private:
 
 	BuildSettings 	determineBuildSettingsFromArgs() const;
 
-	void 			buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_);
+	void 			buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_ = false);
 
 	size_t 			installPackageDependencies(Package& pkg_, bool isRoot);
 
