@@ -13,7 +13,8 @@
 			"label": "Generate build files",
 			"group": "none",
 			"type": "shell",
-			"command": "pacc generate"
+			"command": "pacc",
+			"args": [ "generate" ]
 		},
 
 		/////////////////////////////////////////////
@@ -24,8 +25,9 @@
 		{
 			"label": "Build",
 			"type": "shell",
-			"command": "pacc build",
+			"command": "pacc",
 			"args": [
+				"build",
 				"-c=${input:buildConfig}",
 				"-p=${input:buildPlatform}",
 				"--verbose"
@@ -38,7 +40,12 @@
 				"reveal": "always"
 			},
 			// Use the standard MS compiler pattern to detect errors, warnings and infos
-			"problemMatcher": "$msCompile"
+			"windows": {
+				"problemMatcher": "$msCompile"
+			},
+			"linux": {
+				"problemMatcher": "$gcc"
+			}
 		},
 
 		// # Cleaning:

@@ -18,9 +18,11 @@
 		<th><a href="docs/GettingStarted.md">🚀 Getting started</a>
 		<th><a href="docs/Actions.md">🧱 Actions</a></th>
 		<th><a href="#-contributing">👨‍🔧 Contributing</a></th>
+		<th><a href="https://discord.gg/Zz2vjxNvvD">🟣 Join Discord</a></th>
 	</tr>
 </table>
 <hr/>
+
 
 ## 👀 Overview
 
@@ -132,6 +134,10 @@ int main() {
 
 
 ## 👨‍🔧 Contributing
+
+Join our Discord:
+
+<a href="https://discord.gg/Zz2vjxNvvD"><img src="res/img/DiscordHelpDev.png" width="220px"/></a>
 
 Contributions are appreciated.
 
