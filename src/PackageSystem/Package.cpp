@@ -231,9 +231,11 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 	AccessType defaultAccess = isInterface ? AccessType::Interface : AccessType::Private;
 
 	conf_.files		 			= loadVecOfStrField(root_, "files");
-	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines", 		defaultAccess);
-	conf_.includeFolders.self	= loadVecOfStrAccField(root_, "includeFolders",	defaultAccess);
-	conf_.linkerFolders.self	= loadVecOfStrAccField(root_, "linkerFolders", 	defaultAccess);
+	conf_.defines.self	 		= loadVecOfStrAccField(root_, "defines", 			defaultAccess);
+	conf_.includeFolders.self	= loadVecOfStrAccField(root_, "includeFolders",		defaultAccess);
+	conf_.linkerFolders.self	= loadVecOfStrAccField(root_, "linkerFolders", 		defaultAccess);
+	conf_.compilerOptions.self	= loadVecOfStrAccField(root_, "compilerOptions", 	defaultAccess);
+	conf_.linkerOptions.self	= loadVecOfStrAccField(root_, "linkerOptions", 		defaultAccess);
 
 	// Load dependencies:		
 	auto depsIt = root_.find("dependencies");
@@ -363,6 +365,8 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 	mergeAccesses(into_.includeFolders, 	from_.includeFolders,  		mode_, resolvePath);
 	mergeAccesses(into_.linkerFolders, 		from_.linkerFolders,  		mode_, resolvePath);
 	mergeAccesses(into_.linkedLibraries, 	from_.linkedLibraries, 		mode_);
+	mergeAccesses(into_.compilerOptions, 	from_.compilerOptions, 		mode_);
+	mergeAccesses(into_.linkerOptions, 		from_.linkerOptions, 		mode_);
 
 	// TODO: case, enums
 	if (fromProject_.type == Project::Type::StaticLib || fromProject_.type == Project::Type::SharedLib)

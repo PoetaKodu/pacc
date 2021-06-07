@@ -313,12 +313,16 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed);
 	appendPropWithAccess(fmt_, "includedirs", 	config_.includeFolders.computed);
 	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.computed);
+	appendPropWithAccess(fmt_, "buildoptions", 	config_.compilerOptions.computed);
+	appendPropWithAccess(fmt_, "linkoptions", 	config_.linkerOptions.computed);
 	
 	appendPropWithAccess(fmt_, "files", 		config_.files);
 	appendPropWithAccess(fmt_, "defines", 		config_.defines.self);
 	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.self);
 	appendPropWithAccess(fmt_, "includedirs", 	config_.includeFolders.self);
 	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.self);
+	appendPropWithAccess(fmt_, "buildoptions", 	config_.compilerOptions.self);
+	appendPropWithAccess(fmt_, "linkoptions", 	config_.linkerOptions.self);
 }
 
 /////////////////////////////////////////////////

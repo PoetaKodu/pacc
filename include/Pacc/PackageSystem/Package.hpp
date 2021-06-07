@@ -81,6 +81,8 @@ struct Configuration
 	SaC<VecOfStrAcc>			 	includeFolders;
 	SaC<VecOfStrAcc>			 	linkerFolders;
 	SaC<VecOfStrAcc>			 	linkedLibraries;
+	SaC<VecOfStrAcc>			 	compilerOptions;
+	SaC<VecOfStrAcc>			 	linkerOptions;
 };
 
 struct TargetBase : Configuration
