@@ -31,7 +31,12 @@ PaccConfig PaccConfig::load(fs::path const& jsonPath_)
 
 	json j = json::parse(readFileContents(jsonPath_));
 
-	result.readDetectedToolchains(j);
+	result.detectedToolchains = result.readToolchains(j, "detectedToolchains");
+	auto customTcs = result.readToolchains(j, "customToolchains");
+	result.toolchains = result.detectedToolchains; // copy the toolchains
+
+	result.toolchains.insert(result.toolchains.end(), customTcs.begin(), customTcs.end());
+
 	result.readSelectedToolchain(j);
 	
 	return result;
@@ -46,7 +51,7 @@ void PaccConfig::readSelectedToolchain(json const& input_)
 	if (it != input_.end() && it->type() == json::value_t::number_unsigned)
 	{
 		int idx = it->get<int>();
-		if (idx >= 0 && idx < detectedToolchains.size())
+		if (idx >= 0 && idx < toolchains.size())
 		{
 			this->selectedToolchain = idx;
 			invalid = false;
@@ -60,14 +65,16 @@ void PaccConfig::readSelectedToolchain(json const& input_)
 }
 
 /////////////////////////////////////////////////
-void PaccConfig::readDetectedToolchains(json const& input_)
+PaccConfig::VecOfTc PaccConfig::readToolchains(json const& input_, std::string const& field_)
 {
 	using JV = JsonView;
 
-	auto it = input_.find("detectedToolchains");
+	VecOfTc result;
+
+	auto it = input_.find(field_);
 
 	if (it == input_.end() || it->type() != json::value_t::array)
-		return;
+		return result;
 
 	for(auto jsonTcIt : it->items())
 	{
@@ -75,7 +82,6 @@ void PaccConfig::readDetectedToolchains(json const& input_)
 
 		if (jsonTc.type() != json::value_t::object)
 			continue;
-
 		
 		std::string tcType = JV{jsonTc}.stringFieldOr("type", "");
 
@@ -90,14 +96,16 @@ void PaccConfig::readDetectedToolchains(json const& input_)
 
 		if (tc && tc->deserialize(jsonTc))
 		{
-			detectedToolchains.emplace_back( std::move(tc) );
+			result.emplace_back( std::move(tc) );
 		}
 	}
+
+	return result;
 }
 
 
 /////////////////////////////////////////////////
-bool PaccConfig::ensureValidToolchains(Vec< UPtr<Toolchain> > & current_)
+bool PaccConfig::ensureValidToolchains(Vec< SPtr<Toolchain> > & current_)
 {
 	if (!this->validateDetectedToolchains(current_))
 	{
@@ -111,9 +119,13 @@ bool PaccConfig::ensureValidToolchains(Vec< UPtr<Toolchain> > & current_)
 }
 
 /////////////////////////////////////////////////
-void PaccConfig::updateToolchains(Vec< UPtr<Toolchain> > current_)
+void PaccConfig::updateToolchains(Vec< SPtr<Toolchain> > current_)
 {
+	if (!detectedToolchains.empty())
+		toolchains.erase(toolchains.begin(), toolchains.begin() + detectedToolchains.size());
+
 	detectedToolchains = std::move(current_);
+	toolchains.insert(toolchains.begin(), detectedToolchains.begin(), detectedToolchains.end());
 
 	json j = json::parse(readFileContents(path));
 
@@ -138,7 +150,7 @@ void PaccConfig::updateSelectedToolchain(int index_)
 }
 
 /////////////////////////////////////////////////
-bool PaccConfig::validateDetectedToolchains(Vec< UPtr<Toolchain> > const& current_) const
+bool PaccConfig::validateDetectedToolchains(Vec< SPtr<Toolchain> > const& current_) const
 {
 	if (detectedToolchains.size() != current_.size())
 		return false;

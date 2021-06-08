@@ -12,7 +12,7 @@
 ///////////////////////////////////////////
 
 template <typename ToolchainType>
-void detectToolchainsByType(Vec<UPtr<Toolchain>> &out_);
+void detectToolchainsByType(Vec<SPtr<Toolchain>> &out_);
 
 
 ///////////////////////////////////////////
@@ -21,9 +21,9 @@ void detectToolchainsByType(Vec<UPtr<Toolchain>> &out_);
 
 
 /////////////////////////////////
-Vec<UPtr<Toolchain>> detectAllToolchains()
+Vec<SPtr<Toolchain>> detectAllToolchains()
 {
-	Vec<UPtr<Toolchain>> result;
+	Vec<SPtr<Toolchain>> result;
 
 	#ifdef PACC_SYSTEM_WINDOWS
 		detectToolchainsByType<MSVCToolchain>(result);
@@ -37,9 +37,9 @@ Vec<UPtr<Toolchain>> detectAllToolchains()
 
 /////////////////////////////////
 template <typename ToolchainType>
-void detectToolchainsByType(Vec<UPtr<Toolchain>> &out_)
+void detectToolchainsByType(Vec<SPtr<Toolchain>> &out_)
 {
 	auto tcs = ToolchainType::detect();
 	for(auto& tc : tcs)
-		out_.push_back( std::make_unique<ToolchainType>( std::move(tc) ) );	
+		out_.push_back( std::make_shared<ToolchainType>( std::move(tc) ) );	
 }

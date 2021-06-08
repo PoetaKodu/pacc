@@ -7,16 +7,17 @@
 
 struct PaccConfig
 {
-	using VecOfTc = Vec< UPtr<Toolchain> >;
+	using VecOfTc = Vec< SPtr<Toolchain> >;
 
+	VecOfTc		toolchains;
 	VecOfTc 	detectedToolchains;
 	size_t 		selectedToolchain;
 	fs::path 	path;
 
 	Toolchain* currentToolchain() const
 	{
-		if (selectedToolchain < detectedToolchains.size())
-			return detectedToolchains[selectedToolchain].get();
+		if (selectedToolchain < toolchains.size())
+			return toolchains[selectedToolchain].get();
 		
 		return nullptr;
 	}
@@ -37,6 +38,6 @@ struct PaccConfig
 
 private:
 
-	void readDetectedToolchains(json const& input_);
+	VecOfTc readToolchains(json const& input_, std::string const &field_);
 	void readSelectedToolchain(json const& input_);
 };

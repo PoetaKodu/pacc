@@ -84,7 +84,9 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 			fmt::format("config={}_{}",
 					toLower(settings_.configName),
 					toLower(settings_.platformName)
-				)
+				),
+			fmt::format("CXX={}", cppCompilerName),
+			fmt::format("CC={}", cCompilerName)
 		};
 
 	std::string buildCommand = (mainPath / "make").string();
@@ -103,4 +105,42 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 	saveBuildOutputLog(pkg_.name, outputLog);
 
 	return proc.exitCode;
+}
+
+////////////////////////////////////////////
+bool GNUMakeToolchain::isEqual(Toolchain const& other_) const
+{
+	if (!Toolchain::isEqual(other_))
+		return false;
+
+	auto otherAsMake = dynamic_cast<GNUMakeToolchain const*>(&other_);
+	if (!otherAsMake)
+		return false;
+
+	return (otherAsMake->cppCompilerName == this->cppCompilerName
+		&& otherAsMake->cCompilerName == this->cCompilerName);
+}
+
+///////////////////////////////
+void GNUMakeToolchain::serialize(json& out_) const
+{
+	Toolchain::serialize(out_);
+	
+	out_["cppCompiler"] = this->cppCompilerName;
+	out_["cCompiler"] 	= this->cCompilerName;
+}
+
+///////////////////////////////
+bool GNUMakeToolchain::deserialize(json const& in_)
+{
+	if (!Toolchain::deserialize(in_))
+		return false;
+
+	using JV = JsonView;
+	JsonView view{in_};
+
+	cppCompilerName	= view.stringFieldOr("cppCompiler",	"g++");
+	cCompilerName	= view.stringFieldOr("cCompiler",	"gcc");
+
+	return true;
 }

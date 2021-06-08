@@ -6,4 +6,4 @@
 
 #include <Pacc/Helpers/HelperTypes.hpp>
 
-Vec<UPtr<Toolchain>> detectAllToolchains();
+Vec<SPtr<Toolchain>> detectAllToolchains();

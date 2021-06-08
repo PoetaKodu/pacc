@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////
 void PaccApp::toolchains()
 {
-	auto const &tcs = cfg.detectedToolchains;
+	auto const &tcs = cfg.toolchains;
 
 	if (args.size() >= 3)
 	{
@@ -55,19 +55,29 @@ void PaccApp::toolchains()
 					"NumDashes"_a 	= maxNameLen + 20 + 4
 				);
 
-			// TODO: add user configuration with specified default toolchain.
 			int idx = 0;
 			for (auto& tc : tcs)
 			{
-				bool selected = (idx == cfg.selectedToolchain);
-				auto style = selected ? fmt::emphasis::bold : fmt::text_style{};
-				fmt::print(style, "{:>6}    {:{NameLen}}    {:10}\n",
+				bool custom 	= (idx >= cfg.detectedToolchains.size());
+				bool selected 	= (idx == cfg.selectedToolchain);
+				auto style 		= selected ? fmt::emphasis::bold : fmt::text_style{};
+
+				if (custom)
+					style |= fg(fmt::color::yellow_green);
+
+				fmt::print(style, "{:>6}    {:{NameLen}}    {:10}",
 						fmt::format("{} #{}", selected ? '>' : ' ', idx),
 						tc->prettyName,
 						tc->version,
 
 						"NameLen"_a = maxNameLen
 					);
+
+				if (custom)
+					fmt::print(style, " | custom\n");
+				else
+					fmt::print("\n");
+
 				idx++;
 			}
 		}

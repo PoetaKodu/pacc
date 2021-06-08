@@ -4,7 +4,16 @@
 
 struct GNUMakeToolchain : Toolchain
 {
+	std::string cppCompilerName	= "g++";
+	std::string cCompilerName 	= "gcc";
+
 	virtual Type type() const { return GNUMake; }
+
+	virtual bool isEqual(Toolchain const& other_) const override;
+
+	virtual void serialize(json& out_) const override;
+
+	virtual bool deserialize(json const& in_) override;
 
 	// TODO: Choose between "gmake" and "gmake2"
 	virtual std::string premakeToolchainType() const { return "gmake2"; }
