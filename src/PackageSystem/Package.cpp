@@ -395,7 +395,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 	using json_vt = json::value_t;
 
 	if (deps_.type() != json_vt::array)
-		throw std::runtime_error("invalid type of dependencies subfield - array required");
+		throw PaccException("invalid type of dependencies subfield - array required");
 
 	target_.reserve(deps_.size());
 
@@ -489,7 +489,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 				);
 		}
 		else
-			throw std::runtime_error("Invalid dependency type");
+			throw PaccException("Invalid dependency type");
 	}
 
 	
@@ -515,7 +515,7 @@ json const& selfOrSubfieldReq(json const &self, std::string_view fieldName)
 {
 	json const* v = selfOrSubfieldOpt(self, fieldName);
 	if (!v)
-		throw std::runtime_error(fmt::format("field {0} not found", fieldName));
+		throw PaccException("field {0} not found", fieldName);
 	else
 		return *v;
 }
@@ -613,7 +613,7 @@ json const& require(json const &j)
 	if (j.type() == type)
 		return j;
 	else
-		throw std::runtime_error("invalid type");
+		throw PaccException("invalid type");
 }
 
 ///////////////////////////////////////////////////
@@ -626,5 +626,5 @@ json const& requireSub(json const &j, std::string_view subfieldName)
 		return (*it);
 	}
 
-	throw std::runtime_error("invalid subfield type");
+	throw PaccException("invalid subfield type");
 }

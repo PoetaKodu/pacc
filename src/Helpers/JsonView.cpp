@@ -1,6 +1,7 @@
 #include PACC_PCH
 
 #include <Pacc/Helpers/Json.hpp>
+#include <Pacc/Helpers/Exceptions.hpp>
 
 //////////////////////////////////////////////////
 std::string JsonView::stringFieldOr(std::string_view subfieldName_, std::string_view alt_) const
@@ -31,10 +32,10 @@ void JsonView::expect(std::string_view name, json::value_t type) const
 	if (it != root.end())
 	{
 		if (it->type() != type)
-			throw std::runtime_error(fmt::format(WrongTypeMsg, name, jsonTypeName(type), it->type_name()) );
+			throw PaccException(WrongTypeMsg, name, jsonTypeName(type), it->type_name());
 	}
 	else
-		throw std::runtime_error(fmt::format(NoFieldMsg, name, jsonTypeName(type)) );
+		throw PaccException(NoFieldMsg, name, jsonTypeName(type));
 }
 
 //////////////////////////////////////////////////
@@ -46,7 +47,7 @@ void JsonView::requireType(std::string_view name, json::value_t type) const
 		"field \"{}\" expected to be of type \"{}\", but \"{}\" given instead";
 
 	if (root.type() != type)
-		throw std::runtime_error(fmt::format(WrongTypeMsg, name, jsonTypeName(type), root.type_name()) );
+		throw PaccException(WrongTypeMsg, name, jsonTypeName(type), root.type_name());
 }
 
 //////////////////////////////////////////////////

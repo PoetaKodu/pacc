@@ -194,7 +194,7 @@ BuildQueueBuilder::DepQueue const& BuildQueueBuilder::setup()
 		
 		// Could not collect any?
 		if (step.empty())
-			throw std::runtime_error("cyclic dependency detected");
+			throw PaccException("cyclic dependency detected");
 
 		totalCollected += step.size();
 

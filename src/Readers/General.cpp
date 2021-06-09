@@ -1,6 +1,7 @@
 #include PACC_PCH
 
 #include <Pacc/Readers/General.hpp>
+#include <Pacc/Helpers/Exceptions.hpp>
 
 ///////////////////////////////////////////////////
 std::string readFileContents(fs::path const& path_)
@@ -8,7 +9,7 @@ std::string readFileContents(fs::path const& path_)
 	std::ifstream input(path_);
 
 	if (!input.is_open())
-		throw std::runtime_error(fmt::format("failed to open file {} for reading", path_.string()));
+		throw PaccException("failed to open file {} for reading", path_.string());
 	
 
 	std::string result;

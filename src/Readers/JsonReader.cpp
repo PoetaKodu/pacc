@@ -27,14 +27,14 @@ void PackageJsonReader::makeConformant()
 
 			// At least one project
 			if (it->size() < 1)
-				throw std::runtime_error(fmt::format("empty workspace not allowed"));
+				throw PaccException("empty workspace not allowed");
 			
 			// Validate projects: each of them has to be an object
 			for(auto projIt : it->items())
 			{
 				json &proj = projIt.value();
 				if (proj.type() != jtype::object)
-					throw std::runtime_error(fmt::format("each workspace project has to be an JSON object"));
+					throw PaccException("each workspace project has to be an JSON object");
 				
 				// Validate name and type
 				JV{proj}.expect("name", jtype::string);
