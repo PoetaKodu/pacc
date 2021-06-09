@@ -9,13 +9,19 @@ namespace env
 ///////////////////////////////////////////////////
 fs::path getPaccDataStorageFolder()
 {
+	// NOTE:
+	// - on Windows folder is named `pacc`
+	// - on Linux: `.pacc` -> with a preceding dot
+
 	fs::path appData;
 	#ifdef PACC_SYSTEM_WINDOWS
 		appData = std::getenv("APPDATA");
+		appData /= "pacc";
 	#else
 		appData = std::getenv("HOME");
+		appData /= ".pacc";
 	#endif
-	appData /= ".pacc";
+	
 	return appData;
 }
 
