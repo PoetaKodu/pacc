@@ -115,6 +115,10 @@ struct Project : TargetBase
 		Unknown
 	} type;
 
+	bool isLibrary() const {
+		return type == Type::StaticLib || type == Type::SharedLib;
+	}
+
 	static Type parseType(std::string_view type_);
 };
 

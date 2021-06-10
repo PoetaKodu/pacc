@@ -121,7 +121,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 {
 	using fmt::fg, fmt::color;
 
-	fs::path targetPath = isRoot ? "pacc_packages" : "../pacc_packages";
+	fs::path targetPath = isRoot ? "pacc_packages" : "..";
 
 	auto deps = this->collectMissingDependencies(pkg_);
 	

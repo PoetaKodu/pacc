@@ -131,7 +131,7 @@ UPtr<Package> Package::loadByName(std::string_view name_, VersionRequirement ver
 {
 	std::vector<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
-			fs::current_path() 					/ "../pacc_packages",
+			fs::current_path() 					/ "..",
 			env::getPaccDataStorageFolder() 	/ "packages"
 		};
 

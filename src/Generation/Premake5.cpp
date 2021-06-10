@@ -98,9 +98,9 @@ void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
 void appendProject			(OutputFormatter &fmt_, Package const& pkg_, Project const& project_);
 void appendConfiguration	(OutputFormatter &fmt_, Package const& pkg_, Project const& project_, Configuration const& config_);
 template <typename T>
-void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_);
+void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_, MultiAccess accesses_ = MultiAccess::NoInterface);
 template <typename T>
-void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_);
+void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_, MultiAccess accesses_ = MultiAccess::NoInterface);
 void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_);
 
 /////////////////////////////////////////////////
@@ -265,7 +265,9 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 
 			fmt_.write("pchheader(\"{}\")\n", pch.header);
 			fmt_.write("pchsource(\"{}\")\n", pch.source);
+			
 			fmt_.write("defines ( {{ \"{}=\\\"{}\\\"\" }} )\n", pch.definition, pch.header);
+
 			fmt_.write("includedirs( {{ \".\" }} )\n\n");
 		}
 
@@ -308,11 +310,16 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 		fmt_.write("visibility(\"{}\")\n", config_.symbolVisibility.toString());
 	}
 
+	MultiAccess computedLinkMode = MultiAccess::NoInterface;
+	
+	if (project_.isLibrary())
+		computedLinkMode = MultiAccess::Private; // append only private deps
+
 	// Computed first:
 	appendPropWithAccess(fmt_, "defines", 		config_.defines.computed);
-	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed);
+	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.computed, computedLinkMode);
 	appendPropWithAccess(fmt_, "includedirs", 	config_.includeFolders.computed);
-	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.computed);
+	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.computed, computedLinkMode);
 	appendPropWithAccess(fmt_, "buildoptions", 	config_.compilerOptions.computed);
 	appendPropWithAccess(fmt_, "linkoptions", 	config_.linkerOptions.computed);
 	
@@ -327,14 +334,14 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 
 /////////////////////////////////////////////////
 template <typename T>
-void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T const& values_)
+void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T const& values_, MultiAccess accesses_)
 {
 	if (getNumElements(values_) > 0)
 	{
 		fmt_.write("{} ({{\n", propName);
 		{
 			IndentScope indent{fmt_};
-			appendStringsWithAccess(fmt_, values_);
+			appendStringsWithAccess(fmt_, values_, accesses_);
 		}
 		fmt_.write("}})\n");
 	}
@@ -343,9 +350,9 @@ void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T co
 
 /////////////////////////////////////////////////
 template <typename T>
-void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_)
+void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_, MultiAccess accesses_)
 {
-	for(auto const* acc : getAccesses(acc_))
+	for(auto const* acc : getAccesses(acc_, accesses_))
 	{
 		if (acc->size() > 0)
 		{

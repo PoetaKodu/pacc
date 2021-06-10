@@ -15,6 +15,16 @@ enum class AccessType
 	Interface
 };
 
+enum MultiAccess
+{
+	Private 	= 1 << 0,	
+	Public		= 1 << 1,	
+	Interface 	= 1 << 2,
+
+	All 		= Private | Public | Interface,
+	NoInterface	= Private | Public,
+};
+
 template <typename T>
 struct AccessSplit
 {
@@ -152,30 +162,54 @@ private:
 
 // TODO: add C++20 support to use concepts
 template <typename T>
-auto getAccesses(std::vector<T> & v)
+auto getAccesses(std::vector<T> & v, MultiAccess mode_ = MultiAccess::All)
 {
 	return std::vector{ &v };
 }
 
 /////////////////////////////////////////////////
 template <typename T>
-auto getAccesses(AccessSplitVec<T> & v)
+auto getAccesses(AccessSplitVec<T> & v, MultiAccess mode_ = MultiAccess::All)
 {
-	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+	using ValType = std::vector<T> *;
+	
+	auto result = std::vector<ValType>{};
+	result.reserve(3);
+
+	if (mode_ & MultiAccess::Private)
+		result.push_back(&v.private_);
+	if (mode_ & MultiAccess::Public)
+		result.push_back(&v.public_);
+	if (mode_ & MultiAccess::Interface)
+		result.push_back(&v.interface_);
+
+	return result;
 }
 
 /////////////////////////////////////////////////
 template <typename T>
-auto getAccesses(std::vector<T> const & v)
+auto getAccesses(std::vector<T> const & v, MultiAccess mode_ = MultiAccess::All)
 {
 	return std::vector{ &v };
 }
 
 /////////////////////////////////////////////////
 template <typename T>
-auto getAccesses(AccessSplitVec<T> const & v)
+auto getAccesses(AccessSplitVec<T> const & v, MultiAccess mode_ = MultiAccess::All)
 {
-	return std::vector{ &v.private_, &v.public_, &v.interface_ };
+	using ValType = std::vector<T> const*;
+	
+	auto result = std::vector<ValType>{};
+	result.reserve(3);
+
+	if (mode_ & MultiAccess::Private)
+		result.push_back(&v.private_);
+	if (mode_ & MultiAccess::Public)
+		result.push_back(&v.public_);
+	if (mode_ & MultiAccess::Interface)
+		result.push_back(&v.interface_);
+
+	return result;
 }
 
 
