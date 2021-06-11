@@ -78,7 +78,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 
 	fmt::print(fg(color::gray), "Running GNU Make... {}", verbose ? "\n" : "");
 
-	std::string params[] =
+	std::vector<std::string> params =
 		{
 			// Note: this probably won't work on configurations with spaces in names
 			fmt::format("config={}_{}",
@@ -88,6 +88,9 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 			fmt::format("CXX={}", cppCompilerName),
 			fmt::format("CC={}", cCompilerName)
 		};
+		
+	if (settings_.cores.has_value())
+		params.push_back(fmt::format("-j{}", settings_.cores.value()));
 
 	std::string buildCommand = (mainPath / "make").string();
 	for(auto p : params)

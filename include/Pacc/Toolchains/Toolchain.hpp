@@ -13,6 +13,8 @@ struct BuildSettings
 	std::string platformName 	= "x64";
 
 	std::string targetName 		= "";
+
+	std::optional<int> cores;
 };
 
 struct Toolchain

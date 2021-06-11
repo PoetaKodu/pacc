@@ -21,6 +21,9 @@ bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string
 /////////////////////////////////////////////////
 bool compareIgnoreCase(std::string_view l, std::string_view r);
 
+/////////////////////////////////////////////////
+std::string replaceAll(std::string_view source_, std::string_view from_, std::string_view to_);
+
 struct IgnoreCaseLess
 {
 	// case-independent (ci) compare_less binary function

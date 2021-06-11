@@ -188,6 +188,7 @@ void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_,
 BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 {
 	using SwitchNames = std::vector<std::string>;
+	static const SwitchNames cores 			= { "--cores" };
 	static const SwitchNames target 		= { "--target", "-t" };
 	static const SwitchNames platforms 		= { "--platform", "--plat", "-p" };
 	static const SwitchNames configurations = { "--configuration", "--config", "--cfg", "-c" };
@@ -210,7 +211,11 @@ BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 	for(size_t i = 2; i < args.size(); ++i)
 	{
 		std::string switchVal;
-		if (parseSwitch(args[i], platforms, switchVal))
+		if (parseSwitch(args[i], cores, switchVal))
+		{
+			result.cores = convertTo<int>(switchVal);
+		}
+		else if (parseSwitch(args[i], platforms, switchVal))
 		{
 			result.platformName = std::move(switchVal);
 		}

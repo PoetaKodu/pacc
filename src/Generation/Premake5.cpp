@@ -366,7 +366,7 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_, MultiAccess a
 void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
 {
 	for(auto const & str : vec_)
-		fmt_.write("\"{}\",\n", str);
+		fmt_.write("\"{}\",\n", replaceAll(str, "\"", "\\\""));
 }
 
 

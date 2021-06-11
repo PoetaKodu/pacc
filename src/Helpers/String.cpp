@@ -75,3 +75,25 @@ bool compareIgnoreCase(std::string_view l, std::string_view r)
 
 	return true;
 }
+
+/////////////////////////////////////////////////
+std::string replaceAll(std::string_view source_, std::string_view from_, std::string_view to_)
+{
+    std::string newString;
+    newString.reserve(source_.length());  // avoids a few memory allocations
+
+    std::string::size_type lastPos = 0;
+    std::string::size_type findPos;
+
+    while(std::string::npos != (findPos = source_.find(from_, lastPos)))
+    {
+        newString.append(source_, lastPos, findPos - lastPos);
+        newString += to_;
+        lastPos = findPos + from_.length();
+    }
+
+    // Care for the rest after last occurrence
+    newString += source_.substr(lastPos);
+
+    return newString;
+}
