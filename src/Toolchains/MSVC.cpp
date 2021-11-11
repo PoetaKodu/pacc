@@ -62,6 +62,7 @@ MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lv
 	return lv;
 }
 
+
 ///////////////////////////////
 std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_, int verbosityLevel_)
 {
@@ -88,6 +89,9 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 		params.push_back("/t:" + settings_.targetName);
 		params.push_back("/p:BuildProjectReferences=false");
 	}
+
+	if (settings_.cores.has_value())
+		params.push_back(fmt::format("/p:CL_MPCount={}", settings_.cores.value()));
 
 	fs::path const msbuildPath = mainPath / "MSBuild/Current/Bin/msbuild.exe";
 
@@ -137,6 +141,7 @@ std::string MSVCToolchain::premakeToolchainType() const
 {
 	switch(lineVersion)
 	{
+	case LineVersion::VS2022: return "vs2022";
 	case LineVersion::VS2019: return "vs2019";
 	case LineVersion::VS2017: return "vs2017";
 	case LineVersion::VS2015: return "vs2015";

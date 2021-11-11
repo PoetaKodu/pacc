@@ -1,16 +1,16 @@
 #pragma once
 
 #include <Pacc/Toolchains/Toolchain.hpp>
-
 struct MSVCToolchain : Toolchain
 {
 	virtual Type type() const
 	{
 		return MSVC;
 	}
-
+	
 	enum class LineVersion
 	{
+		VS2022 	= 2022,
 		VS2019 	= 2019,
 		VS2017 	= 2017,
 		VS2015 	= 2015,
@@ -19,7 +19,7 @@ struct MSVCToolchain : Toolchain
 	};
 	LineVersion lineVersion;
 
-
+	// say something polish
 	virtual std::optional<int> run(struct Package const& pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
 
 	virtual void serialize(json& out_) const override;
