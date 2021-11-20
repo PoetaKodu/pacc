@@ -32,9 +32,9 @@
 
 ```json
 {
-	"name": "HelloWorldProject",
+	"name": "HelloWorld",
 	"type": "app",
-	"files": "src/Main.hpp"
+	"files": "src/*.cpp"
 }
 ```
 ### Build with ease
