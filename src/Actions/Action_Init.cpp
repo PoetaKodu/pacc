@@ -29,12 +29,12 @@ void PaccApp::initPackage()
 
 	if (!ensureUserApproval())
 		return;
-	
+
 	fs::create_directories(target);
 
 	writeStringToFile(target / "cpackage.json",
-			fmt::format(app_tmpl::cpackage_json, 
-				"PackageName"_a = target.stem().u8string()
+			fmt::format(app_tmpl::cpackage_json,
+				"PackageName"_a = target.stem().string()
 			)
 		);
 
