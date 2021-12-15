@@ -14,7 +14,7 @@ fs::path requireBuildLogsFolder()
 ////////////////////////////////////////////
 fs::path saveBuildOutputLog(std::string_view packageName_, std::string const& outputLog_)
 {
-	
+
 	fs::path p = requireBuildLogsFolder();
 
 	p /= fmt::format(FMT_COMPILE("{}_{}.log"), currentTimeForLog(), packageName_);
@@ -43,12 +43,7 @@ std::vector<fs::path> getSortedBuildLogs(size_t limit)
 	}
 
 	// Sort:
-	std::sort(logs.begin(), logs.end(),
-			[](auto const& lhs, auto const& rhs)
-			{
-				return lhs.filename() > rhs.filename();
-			}
-		);
+	rg::sort(logs, {}, &fs::path::filename);
 
 	if (limit != 0 && logs.size() > 0)
 		logs.resize( std::min(limit, logs.size()) );

@@ -8,7 +8,7 @@ std::string toLower(std::string_view str_)
 	std::string lower(str_);
 	// TODO: this won't work on unicode characters.
 	// Use ICU later.
-	std::transform(lower.begin(), lower.end(), lower.begin(),
+	rg::transform(lower, lower.begin(),
 			[](unsigned char c) {
 				return std::tolower(c);
 			}
@@ -39,7 +39,7 @@ bool startsWith(std::string_view str_, std::string_view prefixTest_)
 		if (str_[i] != prefixTest_[i])
 			return false;
 	}
-	
+
 	return true;
 }
 
@@ -54,7 +54,7 @@ bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string
 
 	if (!startsWith(arg_, switch_))
 		return false;
-	
+
 	if (arg_[switch_.length()] != '=')
 		return false;
 

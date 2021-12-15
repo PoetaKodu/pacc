@@ -45,7 +45,7 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 
 	// Inherit all premake filters:
 	for(auto it : fromProject_.premakeFilters)
-	{	
+	{
 		// Ensure configuration exists:
 		if (premakeFilters.find(it.first) == premakeFilters.end())
 			premakeFilters[it.first] = {};
@@ -66,7 +66,7 @@ Project::Type Project::parseType(std::string_view type_)
 		return Project::Type::SharedLib;
 	else if (compareIgnoreCase(type_, "interface"))
 		return Project::Type::Interface;
-	
+
 	return Project::Type::Unknown;
 }
 
@@ -84,7 +84,7 @@ UPtr<Package> Package::load(fs::path dir_)
 	};
 
 	PackageFileSource pkgSrcFile;
-	
+
 	UPtr<Package> pkg;
 
 	// Detect package file
@@ -99,7 +99,7 @@ UPtr<Package> Package::load(fs::path dir_)
 	else
 		throw PaccException(errors::NoPackageSourceFile[0])
 			.withHelp(errors::NoPackageSourceFile[1]);
-	
+
 
 	// Decide what to do:
 	switch(pkgSrcFile)
@@ -166,10 +166,7 @@ UPtr<Package> Package::loadByName(std::string_view name_, VersionRequirement ver
 ///////////////////////////////////////////////////
 Project const* Package::findProject(std::string_view name_) const
 {
-	auto it = std::find_if(projects.begin(), projects.end(),
-		[&](auto const& e) {
-			return e.name == name_;
-		});
+	auto it = rg::find(projects, name_, &Project::name);
 
 	if (it != projects.end())
 		return &(*it);
@@ -211,7 +208,7 @@ fs::path Package::resolvePath( fs::path const& path_) const
 {
 	if (path_.is_relative())
 		return fsx::fwd(root.parent_path() / path_).string();
-	else 
+	else
 		return path_;
 }
 
@@ -220,12 +217,12 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 {
 	using fmt::fg, fmt::color;
 	using json_vt = json::value_t;
-	
+
 	JsonView jv{root_};
 
 	conf_.symbolVisibility 		= GNUSymbolVisibility::fromString(jv.stringFieldOr("symbolVisibility", "Default"));
 	conf_.moduleDefinitionFile 	= jv.stringFieldOr("moduleDefinitionFile", "");
-	
+
 	bool isInterface = (project_.type == Project::Type::Interface);
 
 	AccessType defaultAccess = isInterface ? AccessType::Interface : AccessType::Private;
@@ -237,7 +234,7 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 	conf_.compilerOptions.self	= loadVecOfStrAccField(root_, "compilerOptions", 	defaultAccess);
 	conf_.linkerOptions.self	= loadVecOfStrAccField(root_, "linkerOptions", 		defaultAccess);
 
-	// Load dependencies:		
+	// Load dependencies:
 	auto depsIt = root_.find("dependencies");
 	if (depsIt != root_.end())
 	{
@@ -281,7 +278,7 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 
 	j = json::parse(packageContent_);
 	view.makeConformant();
-	
+
 	// std::ofstream("package.dump.json") << j.dump(1, '\t');
 
 	// Load JSON:
@@ -292,7 +289,7 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 	auto projects = j.find("projects");
 
 	result.projects.reserve(projects->size());
-	
+
 	// Read projects:
 	for(auto it : projects->items())
 	{
@@ -333,7 +330,7 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 				}
 			}
 		}
-		
+
 		result.projects.push_back(std::move(project));
 	}
 
@@ -358,7 +355,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 {
 	auto resolvePath = [&](auto const& pathLikeElem)
 		{
-			return fromPkg_.resolvePath(fs::u8path(pathLikeElem)).string();
+			return fromPkg_.resolvePath(fs::path(pathLikeElem)).string();
 		};
 
 	mergeAccesses(into_.defines, 			from_.defines, 		 		mode_);
@@ -376,7 +373,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 			auto& target = targetByAccessType(into_.linkerFolders.computed, mode_);
 			target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
 		}
-		
+
 		// Add dependency file to linker:
 		{
 			auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
@@ -416,7 +413,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			else
 			{
 				DownloadLocation loc = DownloadLocation::parse(depPattern);
-				
+
 				PackageDependency pd;
 				pd.packageName 		= loc.repository;
 
@@ -450,7 +447,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			// Parse download location:
 			pd.downloadLocation = JsonView{*pkgDep}.stringFieldOr("from", "");
 			auto loc = DownloadLocation::parse(pd.downloadLocation);
-		
+
 			if (projects)
 			{
 				pd.projects.reserve(projects->size());
@@ -492,7 +489,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			throw PaccException("Invalid dependency type");
 	}
 
-	
+
 }
 
 
@@ -551,7 +548,7 @@ VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direc
 	else
 	{
 		JV(*val).requireType(fieldName, json::value_t::array);
-		
+
 		// Read the array:
 		result.reserve(val->size());
 
@@ -579,7 +576,7 @@ VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName, Acce
 			result.public_ 		= loadVecOfStrField(*it, "public");
 			result.interface_ 	= loadVecOfStrField(*it, "interface");
 		}
-	}	
+	}
 	return result;
 }
 

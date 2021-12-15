@@ -31,12 +31,12 @@ struct IgnoreCaseLess
 	{
 		bool operator() (unsigned char c1_, unsigned char c2_) const
 		{
-			return tolower(c1_) < tolower(c2_); 
+			return tolower(c1_) < tolower(c2_);
 		}
 	};
 	bool operator() (std::string_view const& s1_, std::string_view const& s2_) const
 	{
-		return std::lexicographical_compare(s1_.begin(), s1_.end(), s2_.begin(), s2_.end(), CompareIgnoreCase{});
+		return rg::lexicographical_compare(s1_, s2_, CompareIgnoreCase{});
 	}
 };
 
@@ -82,7 +82,7 @@ struct StringTokenIterator
 		if (nextToken == std::string_view::npos)
 			return view.substr(startPos);
 
-		return view.substr(startPos, nextToken - startPos);		
+		return view.substr(startPos, nextToken - startPos);
 	}
 
 	/////////////////////////////////

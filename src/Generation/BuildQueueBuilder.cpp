@@ -36,9 +36,9 @@ void BuildQueueBuilder::performConfigurationMerging()
 			// fmt::print("\"{}\"", dep.project->name);
 
 			Project& mergeTarget = *(depInfo.project);
-			
+
 			AccessType mergeMode = depInfo.dep->accessType;
-			
+
 			if (depInfo.dep->isSelf())
 			{
 				auto &selfDependency = depInfo.dep->self();
@@ -126,7 +126,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 							UPtr<Package> pkg;
 							try {
 								pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
-							} 
+							}
 							catch(PaccException &)
 							{
 								// This means that the package was loaded, but does not meet version requirements.
@@ -152,7 +152,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 							// 	fmt::print("Loaded dependency \"{}\"\n", pkgDep.packageName);
 							// else
 							// 	fmt::print("Loaded dependency \"{}\"@\"{}\"\n", pkgDep.packageName, pkgDep.version);
-					
+
 							pkgPtr = std::move(pkg);
 						}
 
@@ -161,21 +161,23 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 						// Insert in sorted order:
 						{
-							auto it = std::upper_bound(
-									loadedPackages.begin(), loadedPackages.end(),
-									pkgPtr->root,
-									[](fs::path const& inserted, auto const& e) { return e->root < inserted; }
+							auto it = rg::upper_bound(
+									loadedPackages, pkgPtr->root, {},
+									[](auto& elem) -> fs::path const&
+									{
+										return elem->root;
+									}
 								);
 
 							loadedPackages.insert(it, pkgPtr);
 						}
 						this->recursiveLoad(*pkgPtr);
-						
+
 						break;
 					}
 					}
 				}
-				
+
 				methodIdx++;
 			}
 		}
@@ -191,7 +193,7 @@ BuildQueueBuilder::DepQueue const& BuildQueueBuilder::setup()
 	while(totalCollected < totalDeps)
 	{
 		DepQueueStep step = this->collectReadyDependencies(queue, pendingDeps);
-		
+
 		// Could not collect any?
 		if (step.empty())
 			throw PaccException("cyclic dependency detected");
@@ -212,10 +214,8 @@ BuildQueueBuilder::DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQ
 
 	DepQueueStep nextStep;
 
-	for(auto depIt = pending_.begin(); depIt != pending_.end(); ++depIt)
+	for(auto& dep : pending_)
 	{
-		auto& dep = *depIt;
-
 		bool ready = false;
 		if (dep.dep->isPackage())
 		{
@@ -239,10 +239,9 @@ BuildQueueBuilder::DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQ
 /////////////////////////////////////////////////
 PackagePtr BuildQueueBuilder::findPackageByRoot(fs::path root_) const
 {
-	auto it = std::lower_bound(
-			loadedPackages.begin(), loadedPackages.end(),
-			root_,
-			[](auto const& e, fs::path const& inserted) { return e->root < inserted; }
+	auto it = rg::lower_bound(
+			loadedPackages, root_, {},
+			[](auto& elem) { return elem->root; }
 		);
 
 	if (it != loadedPackages.end() && (*it)->root == root_)
@@ -255,16 +254,10 @@ PackagePtr BuildQueueBuilder::findPackageByRoot(fs::path root_) const
 /////////////////////////////////////////////////
 bool BuildQueueBuilder::isPackageLoaded(fs::path root_) const
 {
-	auto it = std::lower_bound(
-			loadedPackages.begin(), loadedPackages.end(),
-			root_,
-			[](auto const& e, fs::path const& inserted) { return e->root < inserted; }
+	return rg::binary_search(
+			loadedPackages, root_, {},
+			[](auto& elem) { return elem->root; }
 		);
-
-	if (it != loadedPackages.end() && (*it)->root == root_)
-		return true;
-
-	return false;
 }
 
 
@@ -276,17 +269,11 @@ bool BuildQueueBuilder::isPackageLoaded(fs::path root_) const
 /////////////////////////////////////////////////
 bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue const& readyQueue_)
 {
-	auto compareQueuedDep =
-		[&](BuildQueueBuilder::ProjectDep const& readyDep)
-		{
-			return readyDep.dep == &dep;
-		};
-
 	for (auto const& step : readyQueue_)
 	{
 		// TODO: Can be done better (binary search on sorted range)
-		auto it = std::find_if(step.cbegin(), step.cend(), compareQueuedDep);
-		
+		auto it = rg::find(step, &dep, &BuildQueueBuilder::ProjectDep::dep);
+
 		if (it != step.end())
 		{
 			return true;
@@ -300,7 +287,7 @@ bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue cons
 bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::DepQueue const& readyQueue_)
 {
 	auto selfDepsAcc = getAccesses(project.dependencies.self);
-	
+
 	for (auto access : selfDepsAcc)
 	{
 		for(auto& selfDep : *access)
@@ -326,7 +313,7 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 		auto& project = packagePtr->requireProject(projectName);
 
 		if (projectHasPendingDependencies(project, readyQueue_))
-			return true;	
+			return true;
 	}
 
 	return false;
@@ -341,7 +328,7 @@ bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::
 	auto& project = packagePtr->requireProject(dep.depProjName);
 
 	if (projectHasPendingDependencies(project, readyQueue_))
-		return true;	
+		return true;
 
 	return false;
 }

@@ -7,7 +7,7 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 {
 	if (depTemplate_.empty())
 		return {};
-		
+
 	DownloadLocation result;
 
 	std::size_t colonPos = depTemplate_.find(':');
@@ -60,7 +60,7 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 		result.exactBranch = result.branch[0] == '!';
 
 		if (result.exactBranch) // exact branch
-			result.branch = result.branch.substr(1);		
+			result.branch = result.branch.substr(1);
 	}
 
 	return result;
@@ -105,20 +105,15 @@ std::string DownloadLocation::getBranch() const
 
 	if (exactBranch)
 		return branch;
-	
+
 	return "pacc-" + branch;
 }
 
 ///////////////////////////////////////
 PackageVersions& PackageVersions::sort()
 {
-	auto greaterFirst = [](auto const& l, auto const& r)
-		{
-			return r.second < l.second;
-		};
-
-	std::sort(confirmed.begin(), confirmed.end(), greaterFirst);
-	std::sort(rest.begin(), rest.end(), greaterFirst);
+	rg::sort(confirmed, rg::greater{}, &StringVersionPair::second);
+	rg::sort(rest, rg::greater{}, &StringVersionPair::second);
 
 	return *this;
 }
@@ -135,8 +130,8 @@ PackageVersions PackageVersions::filter(VersionReq const& req_)
 			return req_.test(elem.second);
 		};
 
-	std::copy_if(confirmed.begin(), confirmed.end(), std::back_inserter(c), meetsReq);
-	std::copy_if(rest.begin(), rest.end(), std::back_inserter(r), meetsReq);
+	rg::copy_if(confirmed, std::back_inserter(c), meetsReq);
+	rg::copy_if(rest, std::back_inserter(r), meetsReq);
 
 	return PackageVersions{ std::move(c), std::move(r) };
 }
@@ -147,10 +142,10 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 {
 	PackageVersions result;
 
-	std::size_t numLines = std::count(lsRemoteOutput_.begin(), lsRemoteOutput_.end(), '\n') + 1;
+	std::size_t numLines = rg::count(lsRemoteOutput_, '\n') + 1;
 	result.confirmed.reserve(numLines / 2);
 	result.rest.reserve(numLines / 2);
-	
+
 	auto tryParseVersion = [](Version & ver, std::string const& str)
 		{
 			try {
@@ -191,7 +186,7 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 		{
 			if (!tryParseVersion(ver, tagName))
 				continue;
-			
+
 			result.rest.push_back( { std::move(tagName), std::move(ver) } );
 		}
 	}
