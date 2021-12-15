@@ -19,6 +19,7 @@
 #include <chrono>
 #include <memory>
 #include <filesystem>
+#include <algorithm>
 #include <cctype>
 
 #include <nlohmann/json.hpp>
@@ -30,6 +31,7 @@
 #include <TinyProcessLib/Process.hpp>
 
 namespace fs 	= std::filesystem;
+namespace rg	= std::ranges;
 namespace ch 	= std::chrono;
 namespace tt 	= std::this_thread;
 namespace proc 	= TinyProcessLib;
