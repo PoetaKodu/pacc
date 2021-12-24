@@ -9,8 +9,9 @@
 struct Package;
 struct Project;
 
-constexpr std::string_view PackageJSON 	= "cpackage.json";
-constexpr std::string_view PackageLUA 	= "cpackage.lua";
+constexpr std::string_view PackageJSON		= "cpackage.json";
+constexpr std::string_view PackageLUA		= "cpackage.lua";
+constexpr std::string_view PackageLUAScript	= "cpackage.script.lua";
 
 using PackagePtr 	= std::shared_ptr<Package>;
 
@@ -58,6 +59,20 @@ struct GNUSymbolVisibility
 
 		return "Inline";
 	}
+};
+
+struct Command
+{
+	Command(std::string content_, bool req_ = true)
+		:
+		content(std::move(content_)),
+		required(req_)
+	{
+
+	}
+
+	std::string content;
+	bool required = true;
 };
 
 
@@ -122,16 +137,41 @@ struct Project : TargetBase
 	static Type parseType(std::string_view type_);
 };
 
-struct Package : TargetBase
+struct PackagePreloadInfo
 {
-	
+	fs::path root;
+	fs::path scriptFile;
 
-	fs::path 				root;
+	bool usesJsonConfig() const {
+		return root.filename() == PackageJSON;
+	}
+
+	bool usesLuaConfig() const {
+		return root.filename() == PackageLUA;
+	}
+
+	bool usesScriptFile() const {
+		return !scriptFile.empty();
+	}
+};
+
+struct Package
+	:
+	TargetBase,
+	PackagePreloadInfo
+{
 	std::vector<Project> 	projects;
 	Version					version;
 	std::string 			startupProject;
 
-	static UPtr<Package> load(fs::path dir_ = "");
+	static PackagePreloadInfo preload(fs::path dir_ = "");
+
+	static UPtr<Package> load(fs::path dir_ = "")
+	{
+		return load( preload(dir_) );
+	}
+
+	static UPtr<Package> load(PackagePreloadInfo info_);
 
 	static UPtr<Package> loadByName(std::string_view name_, VersionRequirement verReq_ = {}, UPtr<Package>* invalidVersion_ = nullptr);
 
@@ -148,7 +188,7 @@ struct Package : TargetBase
 
 
 private:
-	static UPtr<Package> loadFromJSON(std::string const& packageContent_);
+	static bool loadFromJSON(Package& package_, std::string const& packageContent_);
 };
 
 
@@ -159,7 +199,7 @@ void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn
 	for(auto const & elem : from_)
 	{
 		into_.push_back( mapValueFn_(elem));
-	}	
+	}
 }
 
 template <typename T, typename TMapValueFn = ReturnIdentity>

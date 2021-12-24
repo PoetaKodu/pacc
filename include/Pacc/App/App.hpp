@@ -46,13 +46,19 @@ public:
 
 	void 			loadPaccConfig();
 
+	PaccApp();
+
 	ProgramArgs		args;
 	PaccConfig 		cfg;
+
+	sol::state		lua;
 
 	// TODO: use date instead of amount
 	void 			cleanupLogs(size_t maxLogs_) const;
 
 private:
+	void			setupLua();
+
 	gen::Premake5 	createPremake5Generator();
 
 	BuildSettings 	determineBuildSettingsFromArgs() const;

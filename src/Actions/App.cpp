@@ -72,7 +72,7 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 	}
 
 	std::string cloneLink = loc_.getGitLink();
-	
+
 	// Ensure repository exists and is available:
 	{
 		auto command 		= fmt::format(ListRemoteCommand, cloneLink);
@@ -88,7 +88,7 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 	// Clone the repository
 	{
 		std::string branchParam;
-		
+
 		std::string branch = loc_.getBranch();
 		if (!branch.empty())
 			branchParam = fmt::format(BranchParam, branch);
@@ -103,7 +103,7 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 				throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1))
 					.withHelp("Make sure that the version/branch \"{}\" is correct.\nUse \"pacc lsver {}\" to check available versions.", loc_.branch, loc_.repository);
 			}
-			else 
+			else
 				throw PaccException(CouldNotClone, cloneLink, cloneExitStatus.value_or(-1));
 		}
 	}
@@ -116,6 +116,21 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 
 		fs::remove_all(gitFolderPath);
 	}
+}
+
+///////////////////////////////////////////////////
+PaccApp::PaccApp()
+{
+	using namespace sol;
+
+	lua.open_libraries(
+			lib::base,
+			lib::package,
+			lib::table,
+			lib::string
+		);
+
+	this->setupLua();
 }
 
 ///////////////////////////////////////////////////

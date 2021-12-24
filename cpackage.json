@@ -15,7 +15,8 @@
 	"dependencies": [
 		"tiny-process-lib@2.0.4",
 		"fmt@8.0.1",
-		"json@3.9.1"
+		"json@3.9.1",
+		"sol3@3.2.2"
 	],
 	"filters": {
 		"system:windows": 	{ "defines": [ "PACC_SYSTEM_WINDOWS" ] },

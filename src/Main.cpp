@@ -104,23 +104,23 @@ void handleArgs(ProgramArgs args_)
 		}
 		else if (action == "unlink")
 		{
-			app.unlinkPackage();	
+			app.unlinkPackage();
 		}
 		else if (action == "logs" || action == "log")
 		{
-			app.logs();	
+			app.logs();
 		}
 		else if (action == "install" || action == "i")
 		{
-			app.install();	
+			app.install();
 		}
 		else if (action == "uninstall")
 		{
-			app.uninstall();	
+			app.uninstall();
 		}
 		else if (action == "list-versions" || action == "list-version" || action == "lsver")
 		{
-			app.listVersions();	
+			app.listVersions();
 		}
 		else if (action == "toolchains" || action == "toolchain" || action == "tc")
 		{

@@ -23,10 +23,7 @@ struct Version
 	/// <param name="rhs_">The other Version object.</param>
 	bool operator==(Version const& rhs_) const;
 
-	std::strong_ordering operator<=>(Version const& rhs_) const
-	{
-		return std::tie(major, minor, patch) <=> std::tie(rhs_.major, rhs_.minor, rhs_.patch);
-	}
+	auto operator<=>(Version const& rhs_) const = default;
 
 	static Version fromString(std::string const& str_);
 };

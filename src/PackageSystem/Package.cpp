@@ -71,57 +71,55 @@ Project::Type Project::parseType(std::string_view type_)
 }
 
 ///////////////////////////////////////////////////
-UPtr<Package> Package::load(fs::path dir_)
+PackagePreloadInfo Package::preload(fs::path dir_)
 {
+	PackagePreloadInfo result;
+
 	if (dir_.empty()) {
 		dir_ = fs::current_path();
 	}
 
-	enum class PackageFileSource
+	auto tryUseFile = [&dir_](fs::path& out_, std::string_view name_)
+		{
+			fs::path conf = dir_ / name_;
+			if (fs::exists(conf)) {
+				out_ = std::move(conf);
+				return true;
+			}
+			return false;
+		};
+
+	if (!tryUseFile(result.root, PackageLUA) &&
+		!tryUseFile(result.root, PackageJSON))
 	{
-		JSON,
-		LuaScript
-	};
+		throw PaccException(errors::NoPackageSourceFile[0])
+				.withHelp(errors::NoPackageSourceFile[1]);
+	}
 
-	PackageFileSource pkgSrcFile;
+	tryUseFile(result.scriptFile, PackageLUAScript);
 
+	return result;
+}
+
+
+///////////////////////////////////////////////////
+UPtr<Package> Package::load(PackagePreloadInfo preloadInfo_)
+{
 	UPtr<Package> pkg;
 
-	// Detect package file
-	if (fs::exists(dir_ / PackageLUA)) // LuaScript has higher priority
-	{
-		pkgSrcFile = PackageFileSource::LuaScript;
-	}
-	else if (fs::exists(dir_ / PackageJSON))
-	{
-		pkgSrcFile = PackageFileSource::JSON;
-	}
-	else
-		throw PaccException(errors::NoPackageSourceFile[0])
-			.withHelp(errors::NoPackageSourceFile[1]);
-
-
 	// Decide what to do:
-	switch(pkgSrcFile)
+	if (preloadInfo_.usesJsonConfig())
 	{
-	case PackageFileSource::JSON:
-	{
-		// std::cout << "Loading \"" << PackageJSON << "\" file\n";\
+		pkg = std::make_unique<Package>();
+		pkg->root		= std::move(preloadInfo_.root);
+		pkg->scriptFile	= std::move(preloadInfo_.scriptFile);
 
-		pkg = Package::loadFromJSON(readFileContents(dir_ / PackageJSON));
-		pkg->root = dir_ / PackageJSON;
-		break;
+		Package::loadFromJSON(*pkg, readFileContents(pkg->root));
 	}
-	case PackageFileSource::LuaScript:
+	else // Lua config
 	{
-		// std::cout << "Loading \"" << PackageLUA << "\" file\n";
-
-
 		// TODO: implement this.
 		std::cout << "This function is not implemented yet." << std::endl;
-		pkg->root = dir_ / PackageLUA;
-		break;
-	}
 	}
 	return pkg;
 }
@@ -265,12 +263,9 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 }
 
 ///////////////////////////////////////////////////
-UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
+bool Package::loadFromJSON(Package& package_, std::string const& packageContent_)
 {
 	using json_vt = json::value_t;
-
-	auto resultPtr = std::make_unique<Package>();
-	auto& result = *resultPtr;
 
 	// Parse and make conformant:
 	json j;
@@ -282,13 +277,13 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 	// std::ofstream("package.dump.json") << j.dump(1, '\t');
 
 	// Load JSON:
-	result.name 			= j["name"].get<std::string>();
-	result.startupProject 	= JsonView{j}.stringFieldOr("startupProject", "");
-	result.version 			= Version::fromString( JsonView{j}.stringFieldOr("version", "0") );
+	package_.name 			= j["name"].get<std::string>();
+	package_.startupProject = JsonView{j}.stringFieldOr("startupProject", "");
+	package_.version 		= Version::fromString( JsonView{j}.stringFieldOr("version", "0") );
 
 	auto projects = j.find("projects");
 
-	result.projects.reserve(projects->size());
+	package_.projects.reserve(projects->size());
 
 	// Read projects:
 	for(auto it : projects->items())
@@ -314,7 +309,7 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
 			project.language = it->get<std::string>();
 
-		loadConfigurationFromJSON(result, project, project, jsonProject);
+		loadConfigurationFromJSON(package_, project, project, jsonProject);
 
 		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
 		if (filters)
@@ -326,15 +321,15 @@ UPtr<Package> Package::loadFromJSON(std::string const& packageContent_)
 				{
 					// Create and reference the configuration:
 					Configuration& cfg = project.premakeFilters[filterIt.key()];
-					loadConfigurationFromJSON(result, project, cfg, val);
+					loadConfigurationFromJSON(package_, project, cfg, val);
 				}
 			}
 		}
 
-		result.projects.push_back(std::move(project));
+		package_.projects.push_back(std::move(project));
 	}
 
-	return resultPtr;
+	return true;
 }
 
 /////////////////////////////////////////////////

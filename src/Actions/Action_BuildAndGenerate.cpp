@@ -2,6 +2,7 @@
 
 #include <Pacc/App/App.hpp>
 
+#include <Pacc/Readers/General.hpp>
 #include <Pacc/System/Process.hpp>
 
 ///////////////////////////////////////////////////
@@ -32,6 +33,8 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_, bool isDependency_)
 			else
 				fmt::print(fmt::fg(fmt::color::green), "Build succeeded.\n");
 			lastLogNotice();
+
+
 			return;
 		}
 		else
@@ -42,7 +45,7 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_, bool isDependency_)
 
 	if (isDependency_)
 		fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Dependency build failed.\n");
-	else 
+	else
 		fmt::printErr(fg(color::red) | fmt::emphasis::bold, "Build failed.\n");
 
 	lastLogNotice();
@@ -53,6 +56,7 @@ void handleBuildResult(ChildProcess::ExitCode exitStatus_, bool isDependency_)
 void PaccApp::generate()
 {
 	auto pkg = Package::load();
+
 	BuildQueueBuilder depQueue;
 	setupBuildQueue(*pkg, depQueue);
 	this->createPremake5Generator().generate(*pkg);
@@ -92,7 +96,7 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 		else if (tc.type() == Toolchain::MSVC)
 			binaryPath /= (projName + ".lib");
 		// else: error
-		
+
 
 		if (!fs::exists(binaryPath))
 		{
@@ -109,7 +113,7 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 				throw;
 			}
 			fs::current_path(prevWorkingDir);
-				
+
 		}
 	}
 }
@@ -148,15 +152,45 @@ void PaccApp::ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder con
 	}
 }
 
-
 ///////////////////////////////////////////////////
 void PaccApp::buildPackage()
 {
 	if (auto tc = cfg.currentToolchain())
 	{
-		auto settings = this->determineBuildSettingsFromArgs();
-		
-		auto pkg = Package::load(fs::current_path());
+		auto settings	= this->determineBuildSettingsFromArgs();
+		auto preloaded	= Package::preload(fs::current_path());
+		bool usesScript	= preloaded.usesScriptFile();
+		auto disp		= lua["pacc"]["dispatch"];
+
+		if (usesScript)
+		{
+			auto script = lua.load_file(preloaded.scriptFile.string());
+			if (!script.valid())
+			{
+				sol::error err = script;
+				throw PaccException("{}", err.what());
+			}
+
+			auto result = script();
+
+			if (!result.valid())
+			{
+				sol::error err = result;
+				throw PaccException("{}", err.what());
+			}
+
+			disp(lua["pacc"], "init");
+		}
+
+		auto pkg = Package::load( std::move(preloaded) );
+
+		if (usesScript)
+		{
+			lua["cpackage"] = std::ref(*pkg);
+
+			disp(lua["pacc"], "pre:generate");
+			disp(lua["pacc"], "project.setup", std::ref(pkg->projects[0]));
+		}
 
 		BuildQueueBuilder depQueue;
 		setupBuildQueue(*pkg, depQueue);
@@ -192,7 +226,7 @@ BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 	static const SwitchNames target 		= { "--target", "-t" };
 	static const SwitchNames platforms 		= { "--platform", "--plat", "-p" };
 	static const SwitchNames configurations = { "--configuration", "--config", "--cfg", "-c" };
-	
+
 	auto parseSwitch = [](std::string_view arg, SwitchNames const& switches, std::string& val)
 		{
 			for(auto sw : switches)

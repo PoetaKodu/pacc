@@ -27,8 +27,13 @@
 #include <fmt/color.h>
 #include <fmt/chrono.h>
 #include <fmt/compile.h>
+#include <fmt/args.h>
 
 #include <TinyProcessLib/Process.hpp>
+
+#define SOL_ALL_SAFETIES_ON 1
+
+#include <sol/sol.hpp>
 
 namespace fs 	= std::filesystem;
 namespace rg	= std::ranges;

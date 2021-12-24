@@ -11,6 +11,7 @@ deps/*
 *.user.*
 premake5.lua
 pacc_packages
+compile_commands.json
 
 # Prerequisites
 *.d
