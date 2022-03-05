@@ -67,5 +67,5 @@ void PaccApp::run()
 
 	auto dur = ch::duration_cast< ch::duration<double> >(ch::steady_clock::now() - before);
 
-	fmt::print("\nProgram ended after {:.2f}s with {} exit status.", dur.count(), exitStatus.value_or(1));
+	fmt::print("\nProgram ended after {:.2f}s with {} exit status.\n", dur.count(), exitStatus.value_or(1));
 }
