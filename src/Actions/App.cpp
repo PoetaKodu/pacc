@@ -158,11 +158,30 @@ bool PaccApp::containsSwitch(std::string_view switch_) const
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
 	// Start at 2
+	std::string unused;
 	for(size_t i = 2; i < args.size(); ++i)
 	{
-		if (startsWith(args[i], switch_))
+		if (args[i] == switch_ || parseArgSwitch(args[i], switch_, unused))
 			return true;
 	}
 
 	return false;
+}
+
+///////////////////////////////////////////////////
+std::string PaccApp::argValue(std::string_view name_) const
+{
+	// Arg 0 -> program name with path
+	// Arg 1 -> action name
+	// Start at 2
+	std::string result;
+	for(size_t i = 2; i < args.size(); ++i)
+	{
+		if (parseArgSwitch(args[i], name_, result))
+			return result;
+		else if (args[i] == name_ && i + 1 < args.size())
+			return std::string(args[i + 1]);
+	}
+
+	return result;
 }

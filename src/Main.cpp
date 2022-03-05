@@ -134,6 +134,14 @@ void handleArgs(ProgramArgs args_)
 
 			app.run();
 		}
+		else if (action == "graph")
+		{
+			app.visualizeGraph();
+		}
+		else if (action == "query")
+		{
+			app.query();
+		}
 		else
 		{
 			auto programName = fs::u8path(app.args[0]).stem();

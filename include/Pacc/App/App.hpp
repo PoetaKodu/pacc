@@ -39,6 +39,10 @@ public:
 	void 			uninstall();
 	// list-versions
 	void 			listVersions();
+	// graph
+	void			visualizeGraph();
+	// query
+	void			query();
 
 	///////////////////////
 	// Other functions:
@@ -74,6 +78,8 @@ private:
 	/// <param name="switch_">Tested switch, for example "--test"</param>
 	/// <returns><c>true</c> if found otherwise <c>false</c></returns>
 	bool containsSwitch(std::string_view switch_) const;
+
+	std::string argValue(std::string_view name_) const;
 
 	void downloadPackage(fs::path const &target_, DownloadLocation const& loc_);
 
