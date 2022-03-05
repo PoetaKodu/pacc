@@ -56,7 +56,25 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 }
 
 ///////////////////////////////////////////////////
-Project::Type Project::parseType(std::string_view type_)
+std::string toString(ProjectType type_)
+{
+	switch (type_)
+	{
+		case ProjectType::App:
+			return "app";
+		case ProjectType::StaticLib:
+			return "static lib";
+		case ProjectType::SharedLib:
+			return "shared lib";
+		case ProjectType::Interface:
+			return "interface";
+		default:
+			return "unknown";
+	}
+}
+
+///////////////////////////////////////////////////
+ProjectType parseProjectType(std::string_view type_)
 {
 	if (compareIgnoreCase(type_, "app"))
 		return Project::Type::App;
@@ -67,7 +85,7 @@ Project::Type Project::parseType(std::string_view type_)
 	else if (compareIgnoreCase(type_, "interface"))
 		return Project::Type::Interface;
 
-	return Project::Type::Unknown;
+	return ProjectType::Unknown;
 }
 
 ///////////////////////////////////////////////////
@@ -292,8 +310,8 @@ bool Package::loadFromJSON(Package& package_, std::string const& packageContent_
 
 		Project project;
 
-		project.name 					= jsonProject["name"].get<std::string>();
-		project.type 					= Project::parseType(jsonProject["type"].get<std::string>());
+		project.name = jsonProject["name"].get<std::string>();
+		project.type = parseProjectType(jsonProject["type"].get<std::string>());
 
 		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
 		{

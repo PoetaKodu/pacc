@@ -116,27 +116,31 @@ struct PrecompiledHeader
 	std::string 		definition;
 };
 
+enum class ProjectType
+{
+	App,
+	StaticLib,
+	SharedLib,
+	Interface,
+	Unknown
+};
+
+std::string toString(ProjectType type_);
+ProjectType parseProjectType(std::string_view type_);
+
 struct Project : TargetBase
 {
+	using Type = ProjectType;
+
 	std::string language;
 	std::optional<PrecompiledHeader> pch;
 
-	enum class Type
-	{
-		App,
-		StaticLib,
-		SharedLib,
-		Interface,
-		Unknown
-	} type;
+	Type type;
 
 	bool isLibrary() const {
 		return type == Type::StaticLib || type == Type::SharedLib;
 	}
-
-	static Type parseType(std::string_view type_);
 };
-
 struct PackagePreloadInfo
 {
 	fs::path root;
