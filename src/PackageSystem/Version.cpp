@@ -87,7 +87,10 @@ VersionRequirement VersionRequirement::fromString(std::string_view str_)
 ////////////////////////////////////////
 std::string VersionRequirement::toString() const
 {
-	constexpr std::string_view ReqChar[3] = { "", "~", "^" };
+	constexpr static std::string_view ReqChar[3] = { "", "~", "^" };
+
+	if (type == Any)
+		return "*";
 
 	return std::string(ReqChar[static_cast<int>(type)]) + version.toString();
 }
