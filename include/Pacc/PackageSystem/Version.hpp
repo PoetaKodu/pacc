@@ -6,7 +6,8 @@
 #include <Pacc/Helpers/Exceptions.hpp>
 
 /// <summary>
-/// 	A version compatible with semantic versioning:
+///		A version compatible with semantic versioning:
+///		TODO: support metadata
 ///		https://semver.org/
 /// </summary>
 struct Version
@@ -18,10 +19,6 @@ struct Version
 	int patch = 0;
 
 	std::string toString() const;
-
-	/// <summary>Determines whether two Version objects are exactly the same</summary>
-	/// <param name="rhs_">The other Version object.</param>
-	bool operator==(Version const& rhs_) const;
 
 	auto operator<=>(Version const& rhs_) const = default;
 

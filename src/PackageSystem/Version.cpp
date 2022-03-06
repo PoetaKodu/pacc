@@ -3,13 +3,6 @@
 
 #include <Pacc/PackageSystem/Version.hpp>
 
-////////////////////////////////////////
-bool Version::operator==(Version const& rhs_) const
-{
-	return (major == rhs_.major &&
-			minor == rhs_.minor &&
-			patch == rhs_.patch);
-}
 
 ////////////////////////////////////////
 Version Version::fromString(std::string const& str_)
@@ -67,10 +60,10 @@ bool VersionRequirement::test(Version const& version_) const
 
 ////////////////////////////////////////
 VersionRequirement VersionRequirement::fromString(std::string const& str_)
-{	
+{
 	if (str_.empty())
 		throw PaccException("could not parse version requirement (empty string)");
-	
+
 	VersionRequirement result;
 
 	if (str_[0] == '~')
