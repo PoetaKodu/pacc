@@ -18,11 +18,10 @@ struct Version
 	int minor = 0;
 	int patch = 0;
 
+	static Version fromString(std::string const& str_);
 	std::string toString() const;
 
 	auto operator<=>(Version const& rhs_) const = default;
-
-	static Version fromString(std::string const& str_);
 };
 
 /// <summary>
