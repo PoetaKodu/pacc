@@ -49,7 +49,7 @@ struct VersionRequirement
 
 	}
 
-	VersionRequirement(std::string const& str_)
+	VersionRequirement(std::string_view str_)
 	{
 		*this = fromString(str_);
 	}
