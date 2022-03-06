@@ -5,7 +5,7 @@
 
 
 ////////////////////////////////////////
-Version Version::fromString(std::string const& str_)
+Version Version::fromString(std::string_view str_)
 {
 	if (str_.empty())
 		throw PaccException("could not parse version (empty string)");
@@ -17,12 +17,12 @@ Version Version::fromString(std::string const& str_)
 	for (int i = 0; i < 3; ++i)
 	{
 		size_t dotPos = str_.find('.', searchStart);
-		bool dotFound = (dotPos != std::string::npos);
+		bool dotFound = (dotPos != std::string_view::npos);
 
 		auto optField = convertTo<int>(
 				dotFound ?
-				str_.substr(searchStart, dotPos - searchStart) :
-				str_.substr(searchStart)
+				std::string(str_.substr(searchStart, dotPos - searchStart)) :
+				std::string(str_.substr(searchStart))
 			);
 
 		if (!optField.has_value())
@@ -59,7 +59,7 @@ bool VersionRequirement::test(Version const& version_) const
 }
 
 ////////////////////////////////////////
-VersionRequirement VersionRequirement::fromString(std::string const& str_)
+VersionRequirement VersionRequirement::fromString(std::string_view str_)
 {
 	if (str_.empty())
 		throw PaccException("could not parse version requirement (empty string)");

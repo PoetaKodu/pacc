@@ -18,7 +18,7 @@ struct Version
 	int minor = 0;
 	int patch = 0;
 
-	static Version fromString(std::string const& str_);
+	static Version fromString(std::string_view str_);
 	std::string toString() const;
 
 	auto operator<=>(Version const& rhs_) const = default;
@@ -49,7 +49,7 @@ struct VersionRequirement
 
 	}
 
-	VersionRequirement(std::string const str_)
+	VersionRequirement(std::string const& str_)
 	{
 		*this = fromString(str_);
 	}
@@ -58,7 +58,7 @@ struct VersionRequirement
 
 	bool test(Version const& version_) const;
 
-	static VersionRequirement fromString(std::string const& str_);
+	static VersionRequirement fromString(std::string_view str_);
 };
 // A shorthand for VersionRequirement
 using VersionReq = VersionRequirement;
