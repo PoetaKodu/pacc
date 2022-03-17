@@ -8,8 +8,8 @@ ChildProcess::ExitCode ChildProcess::runSync()
 {
 	auto prevWorkingDirectory = fs::current_path();
 	if (workingDirectory != "")
-		fs::current_path(workingDirectory); 
-		
+		fs::current_path(workingDirectory);
+
 	// TODO: remove this hack, use UNICODE!!!
 	#ifdef PACC_SYSTEM_WINDOWS
 		std::wstring 	theCommand(command.begin(), command.end());
@@ -76,7 +76,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 	}
 
 	if (workingDirectory != "")
-		fs::current_path(prevWorkingDirectory); 
+		fs::current_path(prevWorkingDirectory);
 
 	if (killed)
 	{

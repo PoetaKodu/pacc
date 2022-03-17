@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <cctype>
+#include <queue>
 
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>

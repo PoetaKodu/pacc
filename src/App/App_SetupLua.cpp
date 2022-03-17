@@ -25,6 +25,15 @@ auto loadFmtArgs(sol::variadic_args va)
 //////////////////////////////////////////////////
 void PaccApp::setupLua()
 {
+	using namespace sol;
+
+	lua.open_libraries(
+			lib::base,
+			lib::package,
+			lib::table,
+			lib::string
+		);
+
 	lua["fmt"] = lua.create_table_with(
 		"string",
 		[](std::string fmt_, sol::variadic_args va) -> std::string
@@ -45,15 +54,62 @@ void PaccApp::setupLua()
 			"toString",	&Version::toString
 		);
 
+	struct AccessWrapperGetter {
+		AccessSplitVec<std::string> const* ptr;
+		auto public_() const { return std::ref(ptr->public_); }
+		auto private_() const { return std::ref(ptr->private_); }
+		auto protected_() const { return std::ref(ptr->interface_); }
+	};
+	struct AccessWrapperSetter {
+		AccessSplitVec<std::string>* ptr;
+		auto public_() const { return std::ref(ptr->public_); }
+		auto private_() const { return std::ref(ptr->private_); }
+		auto protected_() const { return std::ref(ptr->interface_); }
+		auto public_() { return std::ref(ptr->public_); }
+		auto private_() { return std::ref(ptr->private_); }
+		auto protected_() { return std::ref(ptr->interface_); }
+	};
+
+	lua.new_usertype<AccessWrapperGetter>("AccessWrapperGetter",
+			"public", [] (AccessWrapperGetter const& w) { return w.public_(); },
+			"private", [] (AccessWrapperGetter const& w) { return w.private_(); },
+			"protected", [] (AccessWrapperGetter const& w) { return w.protected_(); }
+		);
+
+	lua.new_usertype<AccessWrapperSetter>("AccessWrapperSetter",
+			"public", sol::property([] (AccessWrapperSetter const& w) { return w.public_(); }, [] (AccessWrapperSetter const& w) { return w.public_(); } ),
+			"private", sol::property([] (AccessWrapperSetter const& w) { return w.private_(); }, [] (AccessWrapperSetter const& w) { return w.private_(); } ),
+			"protected", sol::property([] (AccessWrapperSetter const& w) { return w.protected_(); }, [] (AccessWrapperSetter const& w) { return w.protected_(); } )
+		);
+
 	lua.new_usertype<Project>("Project",
-			"name",		&Project::name
+			"name",		&Project::name,
+			"kind",		sol::property(
+				[](Project const& proj) { return toString(proj.type); },
+				[](Project& proj, std::string const& val_) { proj.type = parseProjectType(val_); }
+			),
+			"includeFolders", sol::property(
+				[](Project const& proj) { return AccessWrapperGetter{&proj.includeFolders.self}; },
+				[](Project& proj) { return AccessWrapperSetter{&proj.includeFolders.self}; }
+			),
+			"files", sol::property(
+				[](Project const& proj) { return std::ref(proj.files); },
+				[](Project& proj) { return std::ref(proj.files); }
+			)
 		);
 
 	lua.new_usertype<Package>("CPackage",
 			"name",		&Package::name,
 			"root",		[] (Package const& pkg) { return pkg.root.string(); },
 			"version",	&Package::version,
-			"projects",	&Package::projects
+			"projects",	&Package::projects,
+			"addProject", [](Package& pkg, std::string name)
+			{
+				Project p;
+				p.name = std::move(name);
+				pkg.projects.emplace_back(std::move(p));
+				return std::ref(pkg.projects.back());
+			}
 		);
 
 	lua.script("require(\"pacc-std/app\")");

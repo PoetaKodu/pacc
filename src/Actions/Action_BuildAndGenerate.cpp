@@ -57,7 +57,7 @@ void PaccApp::generate()
 {
 	auto pkg = Package::load();
 
-	BuildQueueBuilder depQueue;
+	BuildQueueBuilder depQueue{*this};
 	setupBuildQueue(*pkg, depQueue);
 	this->createPremake5Generator().generate(*pkg);
 }
@@ -72,7 +72,7 @@ gen::Premake5 PaccApp::createPremake5Generator()
 
 
 ///////////////////////////////////////////////////
-void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::string> const& projectNames_, BuildSettings const& settings_)
+void PaccApp::ensureProjectsAreBuilt(Package& pkg_, std::vector<std::string> const& projectNames_, BuildSettings const& settings_)
 {
 	fs::path rootFolder = pkg_.root.parent_path();
 
@@ -83,7 +83,7 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 	{
 		Project const* p = pkg_.findProject(projName);
 		// Build only static and shared libs
-		if (p->type != Project::Type::StaticLib && p->type != Project::Type::SharedLib)
+		if (p->type != Project::StaticLib && p->type != Project::SharedLib)
 			continue;
 
 
@@ -119,7 +119,7 @@ void PaccApp::ensureProjectsAreBuilt(Package const& pkg_, std::vector<std::strin
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::ensureDependenciesBuilt(Package const& pkg_, BuildQueueBuilder const &depQueue_, BuildSettings const& settings_)
+void PaccApp::ensureDependenciesBuilt(Package& pkg_, BuildQueueBuilder const &depQueue_, BuildSettings const& settings_)
 {
 	using fmt::fg, fmt::color;
 
@@ -158,41 +158,9 @@ void PaccApp::buildPackage()
 	if (auto tc = cfg.currentToolchain())
 	{
 		auto settings	= this->determineBuildSettingsFromArgs();
-		auto preloaded	= Package::preload(fs::current_path());
-		bool usesScript	= preloaded.usesScriptFile();
-		auto disp		= lua["pacc"]["dispatch"];
+		auto pkg		= this->loadPackage(fs::current_path(), "auto");
 
-		if (usesScript)
-		{
-			auto script = lua.load_file(preloaded.scriptFile.string());
-			if (!script.valid())
-			{
-				sol::error err = script;
-				throw PaccException("{}", err.what());
-			}
-
-			auto result = script();
-
-			if (!result.valid())
-			{
-				sol::error err = result;
-				throw PaccException("{}", err.what());
-			}
-
-			disp(lua["pacc"], "init");
-		}
-
-		auto pkg = Package::load( std::move(preloaded) );
-
-		if (usesScript)
-		{
-			lua["cpackage"] = std::ref(*pkg);
-
-			disp(lua["pacc"], "pre:generate");
-			disp(lua["pacc"], "project.setup", std::ref(pkg->projects[0]));
-		}
-
-		BuildQueueBuilder depQueue;
+		BuildQueueBuilder depQueue{*this};
 		setupBuildQueue(*pkg, depQueue);
 		ensureDependenciesBuilt(*pkg, depQueue, settings);
 
@@ -206,8 +174,9 @@ void PaccApp::buildPackage()
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::buildSpecifiedPackage(Package const & pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_)
+void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_)
 {
+	this->execLuaEvent(pkg_, "onPackageBuildStart");
 	this->createPremake5Generator().generate(pkg_);
 
 	// Run premake:

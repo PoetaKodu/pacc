@@ -19,13 +19,18 @@ std::string toLower(std::string_view str_)
 
 
 ///////////////////////////////////////////////////
-StringPair splitBy(std::string_view s, char c)
+StringPair splitBy(std::string_view str_, char delim_, bool leftAsFallback_)
 {
-	auto pos = s.find(c);
+	auto pos = str_.find(delim_);
 	if (pos != std::string_view::npos)
-		return StringPair{ s.substr(0, pos), s.substr(pos + 1) };
+		return StringPair{ str_.substr(0, pos), str_.substr(pos + 1) };
 	else
-		return StringPair{ s, std::string{} };
+	{
+		if (leftAsFallback_)
+			return StringPair{ str_, "" };
+		else
+			return StringPair{ "", str_ };
+	}
 }
 
 /////////////////////////////////////////////

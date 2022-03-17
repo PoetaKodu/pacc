@@ -100,11 +100,45 @@ struct Configuration
 	SaC<VecOfStrAcc>			 	linkerOptions;
 };
 
-struct TargetBase : Configuration
+struct ScriptableAction
+{
+	std::string moduleName; // either a file or a plugin
+	std::string functionName;
+};
+
+using OptScriptableAction	= std::optional<ScriptableAction>;
+using ScriptableActionsMap	= std::unordered_map<std::string, OptScriptableAction>;
+
+struct ScriptableTarget {
+	ScriptableActionsMap scripts;
+};
+
+enum class Artifact {
+	Executable,				// typically "*.exe", "*.out" or without extension
+	Library,				// typically "*.dll", "*.so" or "*.a"
+	LibraryInterface,		// typically "*.lib"
+	DebugSymbols,			// typically "*.pdb"
+
+	MAX
+};
+
+inline constexpr int ArtifactTypesCount = static_cast<int>(Artifact::MAX);
+
+
+struct ArtifactProducer {
+	using ArtifactsType = std::array<Vec<fs::path>, ArtifactTypesCount>;
+
+	ArtifactsType artifacts;
+};
+
+struct TargetBase
+	:
+	Configuration,
+	ArtifactProducer
 {
 	std::string 	name;
 
-	Map<std::string, Configuration> premakeFilters;
+	Map<std::string, Configuration>	premakeFilters;
 
 	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
 };
@@ -122,25 +156,37 @@ enum class ProjectType
 	StaticLib,
 	SharedLib,
 	Interface,
+	HandledByPlugin,
 	Unknown
 };
 
-std::string toString(ProjectType type_);
+std::string toString(ProjectType type_, std::string_view pluginName_ = "");
 ProjectType parseProjectType(std::string_view type_);
 
-struct Project : TargetBase
+struct Project
+	: TargetBase, ScriptableTarget
 {
 	using Type = ProjectType;
+	using enum ProjectType;
 
 	std::string language;
 	std::optional<PrecompiledHeader> pch;
 
 	Type type;
 
+	fs::path getPrimaryArtifact(Artifact artType_ = Artifact::Executable) const
+	{
+		auto& outputs = artifacts[(size_t)artType_];
+		if (outputs.empty())
+			return {};
+		return outputs[0];
+	}
+
 	bool isLibrary() const {
 		return type == Type::StaticLib || type == Type::SharedLib;
 	}
 };
+
 struct PackagePreloadInfo
 {
 	fs::path root;
@@ -162,13 +208,18 @@ struct PackagePreloadInfo
 struct Package
 	:
 	TargetBase,
+	ScriptableTarget,
 	PackagePreloadInfo
 {
 	std::vector<Project> 	projects;
 	Version					version;
+	bool					isCMake = false;
 	std::string 			startupProject;
 
 	static PackagePreloadInfo preload(fs::path dir_ = "");
+
+	void loadPackageSpecificInfo(json const& json_);
+	void loadWorkspaceInfo(json const& json_);
 
 	static UPtr<Package> load(fs::path dir_ = "")
 	{
@@ -176,8 +227,6 @@ struct Package
 	}
 
 	static UPtr<Package> load(PackagePreloadInfo info_);
-
-	static UPtr<Package> loadByName(std::string_view name_, VersionRequirement verReq_ = {}, UPtr<Package>* invalidVersion_ = nullptr);
 
 	Project const* findProject(std::string_view name_) const;
 

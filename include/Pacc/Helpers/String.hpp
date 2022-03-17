@@ -10,7 +10,7 @@ std::string toLower(std::string_view str_);
 using StringPair = std::pair<std::string, std::string>;
 
 ///////////////////////////////////////////////////
-StringPair splitBy(std::string_view s, char c);
+StringPair splitBy(std::string_view str_, char delim_, bool leftAsFallback_ = true);
 
 /////////////////////////////////////////////
 bool startsWith(std::string_view str_, std::string_view prefixTest_);

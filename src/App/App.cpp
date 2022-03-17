@@ -7,6 +7,7 @@
 #include <Pacc/App/Errors.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/PackageSystem/Version.hpp>
+#include <Pacc/PackageSystem/MainPackageLoader.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
@@ -16,13 +17,43 @@
 #include <Pacc/Helpers/Formatting.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/String.hpp>
+#include <Pacc/Plugins/CMake.hpp>
 
 
 #include <Pacc/Toolchains/General.hpp>
 
 
 ///////////////////////////////////////////////////
-std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const & pkg_)
+PaccApp::PaccApp()
+{
+	this->setupPackageLoaders();
+	this->setupLua();
+}
+
+
+///////////////////////////////////////////////////
+IPackageLoader* PaccApp::registerPackageLoader(std::string const& name_, UPtr<IPackageLoader> loader_)
+{
+	auto ptr = loader_.get();
+	packageLoaders[name_] = std::move(loader_);
+	autodetectPackageLoaders.push(ptr);
+	return ptr;
+}
+
+///////////////////////////////////////////////////
+auto PaccApp::setupPackageLoaders()
+	-> void
+{
+	this->packageLoaders["pacc"] = std::make_unique<MainPackageLoader>(*this);
+	defaultPackageLoader = this->packageLoaders["pacc"].get();
+
+	// TODO: move to a plugin
+	this->registerPackageLoader("cmake", std::make_unique<plugins::cmake::PackageLoader>(*this));
+}
+
+///////////////////////////////////////////////////
+auto PaccApp::collectMissingDependencies(Package const & pkg_)
+	-> std::vector<PackageDependency>
 {
 	std::vector<PackageDependency> result;
 
@@ -37,7 +68,7 @@ std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const
 					auto pkgDep = dep.package();
 
 					try {
-						Package::loadByName(pkgDep.packageName); // just try to load
+						this->loadPackageByName(pkgDep.packageName); // just try to load
 					}
 					catch (...) {
 						result.push_back(std::move(pkgDep));
@@ -52,7 +83,8 @@ std::vector<PackageDependency> PaccApp::collectMissingDependencies(Package const
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& loc_)
+auto PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& loc_)
+	-> void
 {
 	constexpr int GitListInvalidUrl = 128;
 	constexpr auto CouldNotLoad 		= "Could not load package \"{0}\"";
@@ -118,23 +150,10 @@ void PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 	}
 }
 
-///////////////////////////////////////////////////
-PaccApp::PaccApp()
-{
-	using namespace sol;
-
-	lua.open_libraries(
-			lib::base,
-			lib::package,
-			lib::table,
-			lib::string
-		);
-
-	this->setupLua();
-}
 
 ///////////////////////////////////////////////////
-void PaccApp::loadPaccConfig()
+auto PaccApp::loadPaccConfig()
+	-> void
 {
 	using fmt::fg, fmt::color;
 
@@ -153,7 +172,8 @@ void PaccApp::loadPaccConfig()
 }
 
 ///////////////////////////////////////////////////
-bool PaccApp::containsSwitch(std::string_view switch_) const
+auto PaccApp::containsSwitch(std::string_view switch_) const
+	-> bool
 {
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
@@ -169,7 +189,8 @@ bool PaccApp::containsSwitch(std::string_view switch_) const
 }
 
 ///////////////////////////////////////////////////
-std::string PaccApp::argValue(std::string_view name_) const
+auto PaccApp::argValue(std::string_view name_) const
+	-> std::string
 {
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name

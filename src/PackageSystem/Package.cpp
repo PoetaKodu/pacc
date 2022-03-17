@@ -8,6 +8,8 @@
 #include <Pacc/Readers/JsonReader.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
 
+#include <Pacc/Plugins/CMake.hpp>
+
 
 ///////////////////////////////////////////////////
 // Private functions (forward declaration)
@@ -33,6 +35,23 @@ void 			readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, 
 VecOfStr 		loadVecOfStrField(json const& j, std::string_view fieldName, bool direct = false, bool required = false);
 VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName, AccessType defaultAccess_ = AccessType::Private);
 
+void			loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration& conf_, json const& root_);
+
+// TODO: refactor
+void readScriptableActions(json const& scriptsContainer, ScriptableTarget &target_)
+{
+	if (!scriptsContainer.contains("scripts"))
+		return;
+	auto scripts = scriptsContainer["scripts"];
+
+	for (auto [key, value] : scripts.items())
+	{
+		auto content = value.get<std::string>(); // TODO: ensure is a string
+		auto[md, fn] = splitBy(content, ':', false);
+
+		target_.scripts[key] = ScriptableAction{ std::move(md), std::move(fn) };
+	}
+}
 
 ///////////////////////////////////////////////////
 // Public functions
@@ -56,7 +75,7 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 }
 
 ///////////////////////////////////////////////////
-std::string toString(ProjectType type_)
+std::string toString(ProjectType type_, std::string_view pluginName_)
 {
 	switch (type_)
 	{
@@ -68,6 +87,8 @@ std::string toString(ProjectType type_)
 			return "shared lib";
 		case ProjectType::Interface:
 			return "interface";
+		case ProjectType::HandledByPlugin:
+			return fmt::format("plugin:{}", pluginName_);
 		default:
 			return "unknown";
 	}
@@ -84,8 +105,83 @@ ProjectType parseProjectType(std::string_view type_)
 		return Project::Type::SharedLib;
 	else if (compareIgnoreCase(type_, "interface"))
 		return Project::Type::Interface;
+	else if (compareIgnoreCase(type_.substr(0, 7), "plugin:"))
+		return Project::Type::HandledByPlugin;
+	else
+		return Project::Type::Unknown;
 
 	return ProjectType::Unknown;
+}
+
+///////////////////////////////////////////////////
+void Package::loadPackageSpecificInfo(json const& json_)
+{
+	name 			= json_["name"].get<std::string>();
+	startupProject	= json_.value("startupProject", "");
+	version 		= Version::fromString( json_.value("version", "0") );
+	isCMake 		= json_.value("cmake", false);
+
+	readScriptableActions(json_, *this);
+}
+
+///////////////////////////////////////////////////
+void Package::loadWorkspaceInfo(json const& json_)
+{
+	using json_vt = json::value_t;
+
+	auto projectsNode = json_.find("projects");
+
+	projects.reserve(projectsNode->size());
+
+	// Read projects:
+	for(auto it : projectsNode->items())
+	{
+		auto& jsonProject = it.value();
+
+		Project project;
+
+		project.name = jsonProject["name"].get<std::string>();
+		project.type = parseProjectType(jsonProject["type"].get<std::string>());
+
+		readScriptableActions(json_, project);
+
+		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
+		{
+			PrecompiledHeader pch;
+			// TODO: add validation
+			pch.header		= jsonProject["pch"]["header"];
+			pch.source		= jsonProject["pch"]["source"];
+			pch.definition 	= jsonProject["pch"]["definition"];
+			project.pch = std::move(pch);
+		}
+
+		// TODO: type and value validation
+		if (auto it = jsonProject.find("language"); it != jsonProject.end())
+			project.language = it->get<std::string>();
+
+		loadConfigurationFromJSON(*this, project, project, jsonProject);
+
+		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
+		if (filters)
+		{
+			for(auto filterIt : filters->items())
+			{
+				auto const& val = filterIt.value();
+				if (val.type() == json_vt::object)
+				{
+					// Create and reference the configuration:
+					Configuration& cfg = project.premakeFilters[filterIt.key()];
+					loadConfigurationFromJSON(*this, project, cfg, val);
+				}
+			}
+		}
+
+		projects.push_back(std::move(project));
+	}
+
+	if (isCMake) {
+		plugins::cmake::runBuildInfoQuery(root.parent_path());
+	}
 }
 
 ///////////////////////////////////////////////////
@@ -140,42 +236,6 @@ UPtr<Package> Package::load(PackagePreloadInfo preloadInfo_)
 		std::cout << "This function is not implemented yet." << std::endl;
 	}
 	return pkg;
-}
-
-/////////////////////////////////////////////////
-UPtr<Package> Package::loadByName(std::string_view name_, VersionRequirement verReq_, UPtr<Package>* invalidVersion_)
-{
-	std::vector<fs::path> candidates = {
-			fs::current_path() 					/ "pacc_packages",
-			fs::current_path() 					/ "..",
-			env::getPaccDataStorageFolder() 	/ "packages"
-		};
-
-	// Get first matching candidate:
-	for(auto const& c : candidates)
-	{
-		auto pkgFolder = c / name_;
-		UPtr<Package> pkg;
-		try {
-			pkg = Package::load(pkgFolder);
-		}
-		catch(...) {
-			// Could not load, ignore
-			continue;
-		}
-
-		if (verReq_.test(pkg->version))
-			return pkg;
-		else
-		{
-			if (invalidVersion_)
-				*invalidVersion_ = std::move(pkg);
-		}
-	}
-
-	// (TODO: help here)
-	// Found none.
-	throw PaccException("Could not find package \"{}\".", name_);
 }
 
 
@@ -236,8 +296,8 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 
 	JsonView jv{root_};
 
-	conf_.symbolVisibility 		= GNUSymbolVisibility::fromString(jv.stringFieldOr("symbolVisibility", "Default"));
-	conf_.moduleDefinitionFile 	= jv.stringFieldOr("moduleDefinitionFile", "");
+	conf_.symbolVisibility 		= GNUSymbolVisibility::fromString(root_.value("symbolVisibility", "Default"));
+	conf_.moduleDefinitionFile 	= root_.value("moduleDefinitionFile", "");
 
 	bool isInterface = (project_.type == Project::Type::Interface);
 
@@ -292,60 +352,9 @@ bool Package::loadFromJSON(Package& package_, std::string const& packageContent_
 	j = json::parse(packageContent_);
 	view.makeConformant();
 
-	// std::ofstream("package.dump.json") << j.dump(1, '\t');
-
 	// Load JSON:
-	package_.name 			= j["name"].get<std::string>();
-	package_.startupProject = JsonView{j}.stringFieldOr("startupProject", "");
-	package_.version 		= Version::fromString( JsonView{j}.stringFieldOr("version", "0") );
-
-	auto projects = j.find("projects");
-
-	package_.projects.reserve(projects->size());
-
-	// Read projects:
-	for(auto it : projects->items())
-	{
-		auto& jsonProject = it.value();
-
-		Project project;
-
-		project.name = jsonProject["name"].get<std::string>();
-		project.type = parseProjectType(jsonProject["type"].get<std::string>());
-
-		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
-		{
-			PrecompiledHeader pch;
-			// TODO: add validation
-			pch.header		= jsonProject["pch"]["header"];
-			pch.source		= jsonProject["pch"]["source"];
-			pch.definition 	= jsonProject["pch"]["definition"];
-			project.pch = std::move(pch);
-		}
-
-		// TODO: type and value validation
-		if (auto it = jsonProject.find("language"); it != jsonProject.end())
-			project.language = it->get<std::string>();
-
-		loadConfigurationFromJSON(package_, project, project, jsonProject);
-
-		json const* filters = expectSub<json_vt::object>(jsonProject, "filters");
-		if (filters)
-		{
-			for(auto filterIt : filters->items())
-			{
-				auto const& val = filterIt.value();
-				if (val.type() == json_vt::object)
-				{
-					// Create and reference the configuration:
-					Configuration& cfg = project.premakeFilters[filterIt.key()];
-					loadConfigurationFromJSON(package_, project, cfg, val);
-				}
-			}
-		}
-
-		package_.projects.push_back(std::move(project));
-	}
+	package_.loadPackageSpecificInfo(j);
+	package_.loadWorkspaceInfo(j);
 
 	return true;
 }
@@ -446,10 +455,10 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 		else if (json const* pkgDep = expect<json_vt::object>(item.value()))
 		{
 			// Required fields:
-			json const& name 		= requireSub<json_vt::string>(*pkgDep, "name");
-			json const* projects 	= expectSub<json_vt::array>(*pkgDep, "projects");
+			json const& name		= requireSub<json_vt::string>(*pkgDep, "name");
+			json const* projects	= expectSub<json_vt::array>(*pkgDep, "projects");
 			// Optional fields:
-			json const* version 	= expectSub<json_vt::string>(*pkgDep, "version");
+			json const* version		= expectSub<json_vt::string>(*pkgDep, "version");
 
 			// Configure dependency:
 			PackageDependency pd;
@@ -458,7 +467,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			pd.packageName = name;
 
 			// Parse download location:
-			pd.downloadLocation = JsonView{*pkgDep}.stringFieldOr("from", "");
+			pd.downloadLocation = pkgDep->value("from", "");
 			auto loc = DownloadLocation::parse(pd.downloadLocation);
 
 			if (projects)

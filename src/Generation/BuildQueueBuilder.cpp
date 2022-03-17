@@ -4,6 +4,7 @@
 #include <Pacc/Generation/OutputFormatter.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Environment.hpp>
+#include <Pacc/App/App.hpp>
 
 
 ///////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 							UPtr<Package> pkg;
 							try {
-								pkg = Package::loadByName(pkgDep.packageName, pkgDep.version, &pkg);
+								pkg = app.loadPackageByName(pkgDep.packageName, pkgDep.version, &pkg, "auto");
 							}
 							catch(PaccException &)
 							{

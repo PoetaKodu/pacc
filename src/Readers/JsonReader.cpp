@@ -28,14 +28,14 @@ void PackageJsonReader::makeConformant()
 			// At least one project
 			if (it->size() < 1)
 				throw PaccException("empty workspace not allowed");
-			
+
 			// Validate projects: each of them has to be an object
 			for(auto projIt : it->items())
 			{
 				json &proj = projIt.value();
 				if (proj.type() != jtype::object)
 					throw PaccException("each workspace project has to be an JSON object");
-				
+
 				// Validate name and type
 				JV{proj}.expect("name", jtype::string);
 				JV{proj}.expect("type", jtype::string);
@@ -63,6 +63,7 @@ void PackageJsonReader::makeConformant()
 
 			root = json::object();
 			root["name"] 		= singleProject["name"];
+			root["cmake"] 		= singleProject["cmake"];
 			root["version"]		= JV{singleProject}.stringFieldOr("version", "0.0.0");
 			root["projects"] 	= json::array();
 			root["projects"].push_back(std::move(singleProject));
@@ -74,6 +75,6 @@ void PackageJsonReader::makeConformant()
 			throw PaccException("Invalid cpackage.json format.")
 				.withHelp("Insert either \"projects\" (workspace) or \"type\" (single project) field.");
 	}
-	else 
-		throw PaccException("Empty workspace not allowed, your cpackage.json is invalid.");		
+	else
+		throw PaccException("Empty workspace not allowed, your cpackage.json is invalid.");
 }

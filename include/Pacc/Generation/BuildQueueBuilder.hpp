@@ -4,9 +4,17 @@
 
 #include <Pacc/PackageSystem/Package.hpp>
 
+class PaccApp;
+
 class BuildQueueBuilder
 {
 public:
+	PaccApp& app;
+
+	explicit BuildQueueBuilder(PaccApp& app_)
+		: app(app_)
+	{
+	}
 
 	/// <summary>
 	///		Project with it's dependency packed into struct with 2 fields.
@@ -16,7 +24,7 @@ public:
 	{
 		Project* 		project;
 		Dependency* 	dep;
-		
+
 		bool operator==(ProjectDep const& rhs_) const
 		{
 			return project == rhs_.project
