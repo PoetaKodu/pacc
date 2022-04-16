@@ -17,6 +17,7 @@ constexpr ActionInfo actions[] = {
 	{ "run", 			"runs packages's startup project" },
 	{ "log", 			"list latest build logs or print last log's content (--last)" },
 	{ "list-versions",	"lists available versions of remote package" },
+	{ "list-packages",	"lists installed global packages" },
 	{ "version", 		"displays pacc version" },
 	{ "help", 			"displays this help message" },
 	{ "install",		"installs package artifacts" },
