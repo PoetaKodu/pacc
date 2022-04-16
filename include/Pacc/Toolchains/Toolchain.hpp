@@ -3,25 +3,14 @@
 #include PACC_PCH
 
 #include <Pacc/Helpers/Json.hpp>
-
 #include <Pacc/Helpers/Exceptions.hpp>
-
-// TODO: move this to other file to avoid circular include
-struct BuildSettings
-{
-	std::string configName 		= "Debug";
-	std::string platformName 	= "x64";
-
-	std::string targetName 		= "";
-
-	std::optional<int> cores;
-};
+#include <Pacc/Build/IPackageBuilder.hpp>
 
 struct Toolchain
 {
 	std::string 	prettyName;
 	std::string 	version;
-	
+
 	fs::path 		mainPath;
 
 	enum Type

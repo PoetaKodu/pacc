@@ -57,6 +57,23 @@ void readScriptableActions(json const& scriptsContainer, ScriptableTarget &targe
 // Public functions
 ///////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////
+auto detectArtifactTypeFromPath(std::string_view path_)
+	-> Artifact
+{
+	if (path_.ends_with(".lib"))
+		return Artifact::LibraryInterface;
+	else if (path_.ends_with(".dll") || path_.ends_with(".so") || path_.ends_with(".a"))
+		return Artifact::Library;
+	else if (path_.ends_with(".exe"))
+		return Artifact::Executable;
+	else if (path_.ends_with(".pdb"))
+		return Artifact::DebugSymbols;
+
+	return Artifact::Unknown;
+}
+
 ///////////////////////////////////////////////////
 void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_)
 {
@@ -75,7 +92,28 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 }
 
 ///////////////////////////////////////////////////
-std::string toString(ProjectType type_, std::string_view pluginName_)
+auto TargetBase::outputArtifact() const
+	-> fs::path
+{
+	if (!artifacts[(size_t)Artifact::Executable].empty())
+	{
+		return artifacts[(size_t)Artifact::Executable].front().filename();
+	}
+	if (!artifacts[(size_t)Artifact::Library].empty())
+	{
+		return artifacts[(size_t)Artifact::Library].front().filename();
+	}
+	if (!artifacts[(size_t)Artifact::LibraryInterface].empty())
+	{
+		return artifacts[(size_t)Artifact::LibraryInterface].front().filename();
+	}
+
+	return name;
+}
+
+///////////////////////////////////////////////////
+auto toString(ProjectType type_, std::string_view pluginName_)
+	-> std::string
 {
 	switch (type_)
 	{
@@ -95,7 +133,8 @@ std::string toString(ProjectType type_, std::string_view pluginName_)
 }
 
 ///////////////////////////////////////////////////
-ProjectType parseProjectType(std::string_view type_)
+auto parseProjectType(std::string_view type_)
+	-> ProjectType
 {
 	if (compareIgnoreCase(type_, "app"))
 		return Project::Type::App;
@@ -114,12 +153,63 @@ ProjectType parseProjectType(std::string_view type_)
 }
 
 ///////////////////////////////////////////////////
+auto Project::isLibrary() const -> bool
+{
+	return type == Type::StaticLib || type == Type::SharedLib;
+}
+
+///////////////////////////////////////////////////
+auto Project::getPrimaryArtifactOfType(Artifact artType_) const
+	-> fs::path
+{
+	auto& outputs = artifacts[(size_t)artType_];
+	if (outputs.empty())
+		return {};
+	return outputs[0];
+}
+
+///////////////////////////////////////////////////
+auto Project::getLinkTargetArtifact() const
+	-> fs::path
+{
+	if (type == ProjectType::SharedLib || type == ProjectType::StaticLib)
+	{
+		auto art = getPrimaryArtifactOfType(Artifact::LibraryInterface);
+		if (art.empty())
+			art = getPrimaryArtifactOfType(Artifact::Library);
+		return art;
+	}
+	else
+		return {};
+}
+
+///////////////////////////////////////////////////
+auto Project::getPrimaryArtifact() const
+	-> fs::path
+{
+	switch (type)
+	{
+	case ProjectType::App:
+		return getPrimaryArtifactOfType(Artifact::Executable);
+	case ProjectType::StaticLib:
+	case ProjectType::SharedLib:
+		return getLinkTargetArtifact();
+	default:
+		return {};
+	}
+}
+
+///////////////////////////////////////////////////
 void Package::loadPackageSpecificInfo(json const& json_)
 {
 	name 			= json_["name"].get<std::string>();
 	startupProject	= json_.value("startupProject", "");
 	version 		= Version::fromString( json_.value("version", "0") );
-	isCMake 		= json_.value("cmake", false);
+
+	if (json_.contains("cmake"))
+		isCMake = json_.value("cmake", false);
+	else
+		isCMake = false;
 
 	readScriptableActions(json_, *this);
 }
@@ -185,7 +275,8 @@ void Package::loadWorkspaceInfo(json const& json_)
 }
 
 ///////////////////////////////////////////////////
-PackagePreloadInfo Package::preload(fs::path dir_)
+auto Package::preload(fs::path dir_)
+	-> PackagePreloadInfo
 {
 	PackagePreloadInfo result;
 
@@ -217,7 +308,8 @@ PackagePreloadInfo Package::preload(fs::path dir_)
 
 
 ///////////////////////////////////////////////////
-UPtr<Package> Package::load(PackagePreloadInfo preloadInfo_)
+auto Package::load(PackagePreloadInfo preloadInfo_)
+	-> UPtr<Package>
 {
 	UPtr<Package> pkg;
 
@@ -240,7 +332,8 @@ UPtr<Package> Package::load(PackagePreloadInfo preloadInfo_)
 
 
 ///////////////////////////////////////////////////
-Project const* Package::findProject(std::string_view name_) const
+auto Package::findProject(std::string_view name_) const
+	-> Project const*
 {
 	auto it = rg::find(projects, name_, &Project::name);
 
@@ -251,7 +344,8 @@ Project const* Package::findProject(std::string_view name_) const
 }
 
 ///////////////////////////////////////////////////
-Project const& Package::requireProject(std::string_view name_) const
+auto Package::requireProject(std::string_view name_) const
+	-> Project const&
 {
 	Project const *proj = this->findProject(name_);
 	if (!proj)
@@ -262,25 +356,52 @@ Project const& Package::requireProject(std::string_view name_) const
 
 
 ///////////////////////////////////////////////////
-fs::path Package::predictOutputFolder(Project const& project_) const
+auto Package::predictOutputFolder(Project const& project_) const
+	-> fs::path
 {
+	auto artifact = project_.getLinkTargetArtifact();
+
+	if (!artifact.empty())
+	{
+		return (this->outputRoot.is_absolute() ? this->outputRoot : this->rootFolder() / this->outputRoot) / artifact.parent_path();
+	}
+
+
 	// TODO: make it configurable:
 	return this->root.parent_path() / "bin/%{cfg.platform}/%{cfg.buildcfg}";
 }
 
 ///////////////////////////////////////////////////
-fs::path Package::predictRealOutputFolder(Project const& project_, BuildSettings settings_) const
+auto Package::predictRealOutputFolder(Project const& project_, BuildSettings settings_) const
+	-> fs::path
 {
-	std::string folder =  fmt::format("bin/{}/{}",
+	fs::path folder;
+
+	auto artifact = project_.getLinkTargetArtifact();
+	if (!artifact.empty())
+	{
+		folder = artifact.parent_path();
+	}
+	else {
+		folder = fmt::format("bin/{}/{}",
 			settings_.platformName,
 			settings_.configName
 		);
+	}
 
-	return this->root.parent_path() / folder;
+	return (this->outputRoot.is_absolute() ? this->outputRoot : this->rootFolder() / this->outputRoot) / folder;
 }
 
 ///////////////////////////////////////////////////
-fs::path Package::resolvePath( fs::path const& path_) const
+auto Package::getAbsoluteArtifactFilePath(Project const& project_) const
+	-> fs::path
+{
+	return this->predictRealOutputFolder(project_) / project_.getPrimaryArtifact().filename();
+}
+
+///////////////////////////////////////////////////
+auto Package::resolvePath( fs::path const& path_) const
+	-> fs::path
 {
 	if (path_.is_relative())
 		return fsx::fwd(root.parent_path() / path_).string();
@@ -341,7 +462,8 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 }
 
 ///////////////////////////////////////////////////
-bool Package::loadFromJSON(Package& package_, std::string const& packageContent_)
+auto Package::loadFromJSON(Package& package_, std::string const& packageContent_)
+	-> bool
 {
 	using json_vt = json::value_t;
 
@@ -360,13 +482,15 @@ bool Package::loadFromJSON(Package& package_, std::string const& packageContent_
 }
 
 /////////////////////////////////////////////////
-std::size_t getNumElements(VecOfStr const& v)
+auto getNumElements(VecOfStr const& v)
+	-> std::size_t
 {
 	return v.size();
 }
 
 /////////////////////////////////////////////////
-std::size_t getNumElements(VecOfStrAcc const& v)
+auto getNumElements(VecOfStrAcc const& v)
+	-> std::size_t
 {
 	return v.public_.size() + v.private_.size() + v.interface_.size();
 }
@@ -399,7 +523,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 		// Add dependency file to linker:
 		{
 			auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
-			target.push_back(fromProject_.name);
+			target.push_back(fromProject_.outputArtifact().string());
 		}
 	}
 }
@@ -516,7 +640,8 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 
 
 ///////////////////////////////////////////////////
-json const* selfOrSubfieldOpt(json const &self, std::string_view fieldName)
+auto selfOrSubfieldOpt(json const &self, std::string_view fieldName)
+	-> json const*
 {
 	if (fieldName == "")
 		return &self;
@@ -530,7 +655,8 @@ json const* selfOrSubfieldOpt(json const &self, std::string_view fieldName)
 }
 
 ///////////////////////////////////////////////////
-json const& selfOrSubfieldReq(json const &self, std::string_view fieldName)
+auto selfOrSubfieldReq(json const &self, std::string_view fieldName)
+	-> json const&
 {
 	json const* v = selfOrSubfieldOpt(self, fieldName);
 	if (!v)
@@ -540,7 +666,8 @@ json const& selfOrSubfieldReq(json const &self, std::string_view fieldName)
 }
 
 ///////////////////////////////////////////////////
-json const* selfOrSubfield(json const &self, std::string_view fieldName, bool required)
+auto selfOrSubfield(json const &self, std::string_view fieldName, bool required)
+	-> json const*
 {
 	if (required)
 		return &selfOrSubfieldReq(self, fieldName);
@@ -549,7 +676,8 @@ json const* selfOrSubfield(json const &self, std::string_view fieldName, bool re
 }
 
 ///////////////////////////////////////////////////
-VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
+auto loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
+	-> VecOfStr
 {
 	using JV = JsonView;
 
@@ -584,7 +712,8 @@ VecOfStr loadVecOfStrField(json const &j, std::string_view fieldName, bool direc
 }
 
 ///////////////////////////////////////////////////
-VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName, AccessType defaultAccess_)
+auto loadVecOfStrAccField(json const &j, std::string_view fieldName, AccessType defaultAccess_)
+	-> VecOfStrAcc
 {
 	VecOfStrAcc result;
 	if (auto it = j.find(fieldName); it != j.end())
@@ -604,7 +733,8 @@ VecOfStrAcc loadVecOfStrAccField(json const &j, std::string_view fieldName, Acce
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json const* expect(json const &j)
+auto expect(json const &j)
+	-> json const*
 {
 	if (j.type() == type)
 		return &j;
@@ -614,7 +744,8 @@ json const* expect(json const &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json const* expectSub(json const &j, std::string_view subfieldName)
+auto expectSub(json const &j, std::string_view subfieldName)
+	-> json const*
 {
 	auto it = j.find(subfieldName);
 	if (it != j.end() && it->type() == type)
@@ -627,7 +758,8 @@ json const* expectSub(json const &j, std::string_view subfieldName)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json const& require(json const &j)
+auto require(json const &j)
+	-> json const&
 {
 	if (j.type() == type)
 		return j;
@@ -637,7 +769,8 @@ json const& require(json const &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-json const& requireSub(json const &j, std::string_view subfieldName)
+auto requireSub(json const &j, std::string_view subfieldName)
+	-> json const&
 {
 	auto it = j.find(subfieldName);
 	if (it != j.end() && it->type() == type)

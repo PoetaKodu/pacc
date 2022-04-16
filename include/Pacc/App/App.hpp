@@ -15,35 +15,37 @@ class PaccApp
 public:
 	constexpr static std::string_view PaccVersion = "0.3.2-prealpha";
 
-	// Actions:
+	///////////////////////////////////
+	// Actions:4
+	///////////////////////////////////
 	// help
-	void 			displayHelp(bool full_);
+	void displayHelp(bool full_);
 	// link
-	void 			linkPackage();
+	void linkPackage();
 	// unlink
-	void 			unlinkPackage();
+	void unlinkPackage();
 	// generate
-	void 			generate();
+	void generate();
 	// toolchains
-	void 			toolchains();
+	void toolchains();
 	// build
-	void 			buildPackage();
+	void buildPackage();
 	// run
-	void 			run();
+	void run();
 	// init
-	void 			initPackage();
+	void initPackage();
 	// logs
-	void 			logs();
+	void logs();
 	// install
-	void 			install();
+	void install();
 	// uninstall
-	void 			uninstall();
+	void uninstall();
 	// list-versions
-	void 			listVersions();
+	void listVersions();
 	// graph
-	void			visualizeGraph();
+	void visualizeGraph();
 	// query
-	void			query();
+	void query();
 
 
 
@@ -66,14 +68,20 @@ public:
 	sol::state		lua;
 
 	UMap<std::string, UPtr<IPackageLoader> > packageLoaders;
+	UMap<std::string, UPtr<IPackageBuilder> > packageBuilders;
+
 	using AutodetectPackageLoaderQueue = std::priority_queue<
 			IPackageLoader*,
 			std::vector<IPackageLoader*>,
 			decltype(PackageLoaderAutodetectPriorityComp)
 		>;
 
-	IPackageLoader* defaultPackageLoader;
-	AutodetectPackageLoaderQueue autodetectPackageLoaders;
+	// Package loading
+	IPackageLoader*					defaultPackageLoader;
+	AutodetectPackageLoaderQueue	autodetectPackageLoaders;
+
+	// Package building
+	IPackageBuilder*				defaultPackageBuilder;
 
 	IPackageLoader* registerPackageLoader(std::string const& name_, UPtr<IPackageLoader> loader_);
 
@@ -82,10 +90,11 @@ public:
 
 	auto execLuaEvent(Package& pkg, std::string const& funcName_) -> sol::protected_function_result;
 
+	auto createPremake5Generator() -> gen::Premake5;
 private:
 	auto setupPackageLoaders() -> void;
+	auto setupPackageBuilders() -> void;
 	auto setupLua() -> void;
-	auto createPremake5Generator() -> gen::Premake5;
 	auto determineBuildSettingsFromArgs() const -> BuildSettings;
 	auto buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_ = false) -> void;
 	auto installPackageDependencies(Package& pkg_, bool isRoot) -> size_t;

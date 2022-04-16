@@ -18,6 +18,7 @@
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/String.hpp>
 #include <Pacc/Plugins/CMake.hpp>
+#include <Pacc/Build/PaccPackageBuilder.hpp>
 
 
 #include <Pacc/Toolchains/General.hpp>
@@ -27,6 +28,7 @@
 PaccApp::PaccApp()
 {
 	this->setupPackageLoaders();
+	this->setupPackageBuilders();
 	this->setupLua();
 }
 
@@ -49,6 +51,17 @@ auto PaccApp::setupPackageLoaders()
 
 	// TODO: move to a plugin
 	this->registerPackageLoader("cmake", std::make_unique<plugins::cmake::PackageLoader>(*this));
+}
+
+///////////////////////////////////////////////////
+auto PaccApp::setupPackageBuilders()
+	-> void
+{
+	auto paccBuilder = std::make_unique<PaccPackageBuilder>(*this);
+	defaultPackageBuilder = paccBuilder.get();
+	this->packageBuilders["pacc"] = std::move(paccBuilder);
+
+	this->packageBuilders["cmake"] = std::make_unique<plugins::cmake::PackageBuilder>(*this);
 }
 
 ///////////////////////////////////////////////////

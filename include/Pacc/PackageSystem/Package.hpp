@@ -119,11 +119,12 @@ enum class Artifact {
 	LibraryInterface,		// typically "*.lib"
 	DebugSymbols,			// typically "*.pdb"
 
+	Unknown,
 	MAX
 };
-
 inline constexpr int ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 
+Artifact detectArtifactTypeFromPath(std::string_view path_);
 
 struct ArtifactProducer {
 	using ArtifactsType = std::array<Vec<fs::path>, ArtifactTypesCount>;
@@ -141,6 +142,8 @@ struct TargetBase
 	Map<std::string, Configuration>	premakeFilters;
 
 	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
+
+	fs::path outputArtifact() const;
 };
 
 struct PrecompiledHeader
@@ -174,17 +177,11 @@ struct Project
 
 	Type type;
 
-	fs::path getPrimaryArtifact(Artifact artType_ = Artifact::Executable) const
-	{
-		auto& outputs = artifacts[(size_t)artType_];
-		if (outputs.empty())
-			return {};
-		return outputs[0];
-	}
+	auto getPrimaryArtifactOfType(Artifact artType_) const -> fs::path;
+	auto getLinkTargetArtifact() const -> fs::path;
+	auto getPrimaryArtifact() const -> fs::path;
 
-	bool isLibrary() const {
-		return type == Type::StaticLib || type == Type::SharedLib;
-	}
+	auto isLibrary() const -> bool;
 };
 
 struct PackagePreloadInfo
@@ -235,10 +232,18 @@ struct Package
 	fs::path predictOutputFolder(Project const& project_) const;
 	fs::path predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const;
 
+	fs::path getAbsoluteArtifactFilePath(Project const& project_) const;
+
 	/////////////////////////////////////////////////
 	fs::path resolvePath( fs::path const& path_) const;
 
+	fs::path outputRoot;
 
+	IPackageBuilder* builder = nullptr; // nullptr - use default builder
+
+	auto rootFolder() const {
+		return this->root.has_extension() ? this->root.parent_path() : this->root;
+	}
 
 private:
 	static bool loadFromJSON(Package& package_, std::string const& packageContent_);

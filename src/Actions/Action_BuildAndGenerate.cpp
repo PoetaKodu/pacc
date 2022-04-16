@@ -97,8 +97,9 @@ void PaccApp::ensureProjectsAreBuilt(Package& pkg_, std::vector<std::string> con
 			binaryPath /= (projName + ".lib");
 		// else: error
 
+		fmt::print("Binaries for project {} are located at {}\n", p->name, pkg_.getAbsoluteArtifactFilePath(*p).string());
 
-		if (!fs::exists(binaryPath))
+		if (!fs::exists(binaryPath) && !fs::exists(pkg_.getAbsoluteArtifactFilePath(*p)))
 		{
 			fmt::print("Building dependency project \"{}\" from package \"{}\".\n", projName, pkg_.name);
 
@@ -177,14 +178,12 @@ void PaccApp::buildPackage()
 void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_)
 {
 	this->execLuaEvent(pkg_, "onPackageBuildStart");
-	this->createPremake5Generator().generate(pkg_);
 
-	// Run premake:
-	gen::runPremakeGeneration(toolchain_.premakeToolchainType());
+	auto builder = pkg_.builder ? pkg_.builder : defaultPackageBuilder;
 
 	// Run build toolchain
 	int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
-	handleBuildResult( toolchain_.run(pkg_, settings_, verbosityLevel), isDependency_ );
+	handleBuildResult( builder->run(pkg_, toolchain_, settings_, verbosityLevel), isDependency_ );
 }
 
 ///////////////////////////////////////////////////

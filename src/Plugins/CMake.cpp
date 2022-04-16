@@ -5,21 +5,45 @@
 #include <Pacc/System/Process.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Readers/General.hpp>
-
+#include <Pacc/App/App.hpp>
 
 namespace plugins::cmake
 {
 
+constexpr std::string_view TargetHashSeparator		= "::@";
+constexpr std::string_view CacheProjectVersionKey	= "CMAKE_PROJECT_VERSION:STATIC=";
+
+///////////////////////////////////////
+static inline ProjectType projectTypeFromString(std::string const& str_)
+{
+	if(str_ == "EXECUTABLE")
+		return ProjectType::App;
+	else if(str_ == "STATIC_LIBRARY")
+		return ProjectType::StaticLib;
+	else if(str_ == "SHARED_LIBRARY")
+		return ProjectType::SharedLib;
+	else if(str_ == "UTILITY")
+		return ProjectType::Unknown;
+	else
+		throw PaccException("Unknown/unsupported CMake project type: {}", str_);
+}
+
+///////////////////////////////////////
+static inline auto buildFolderOf(fs::path const& path_)
+{
+	return path_ / "build";
+}
+
 ///////////////////////////////////////
 static inline auto queryFolderOf(fs::path const& packagePath_)
 {
-	return packagePath_ / "build" / ".cmake" / "api" / "v1" / "query";
+	return buildFolderOf(packagePath_) / ".cmake" / "api" / "v1" / "query";
 }
 
 ///////////////////////////////////////
 static inline auto replyFolderOf(fs::path const& packagePath_)
 {
-	return packagePath_ / "build" / ".cmake" / "api" / "v1" / "reply";
+	return buildFolderOf(packagePath_) / ".cmake" / "api" / "v1" / "reply";
 }
 
 ///////////////////////////////////////
@@ -62,14 +86,28 @@ auto runCMakeCommand(fs::path const& packagePath_, std::string_view command_)
 {
 	std::string generator = "Visual Studio 17 2022";
 	auto command = fmt::format("cmake -G=\"{}\" {} ..", generator, command_);
-	ChildProcess makeVer{
+	ChildProcess proc{
 			command,
 			packagePath_ / "build", ch::seconds{2 * 60}
 		};
 
 	fmt::print("Running command: {}\n", command);
-	makeVer.printRealTime = true;
-	return makeVer.runSync();
+	proc.printRealTime = true;
+	return proc.runSync();
+}
+
+///////////////////////////////////////
+auto runCMakeBuildCommand(fs::path const& packagePath_, std::string_view commandOpt_ = "")
+{
+	auto command = fmt::format("cmake --build .", commandOpt_);
+	ChildProcess proc{
+			command,
+			packagePath_ / "build", ch::seconds{15 * 60}
+		};
+
+	fmt::print("Running build command: {}\n", command);
+	proc.printRealTime = true;
+	return proc.runSync();
 }
 
 ///////////////////////////////////////
@@ -83,33 +121,6 @@ BuildInfo runBuildInfoQuery(fs::path const& packagePath_)
 	if (!cmakeResult.has_value() || cmakeResult.value() != 0)
 		throw PaccException("CMake build info query failed");
 
-	auto replyFolder = replyFolderOf(packagePath_);
-
-	for (auto entry : fs::directory_iterator(replyFolder))
-	{
-		if (entry.is_regular_file()) {
-			auto path = entry.path().filename().wstring();
-			if (path.starts_with(L"target-")) {
-				auto json = json::parse(readFileContents(entry.path()));
-				auto name = json["name"];
-				if (!name.is_null()) {
-					fmt::print("Target: {}\n", name.get<std::string>());
-				}
-				auto artifacts = json["artifacts"];
-
-				for (auto art : artifacts) {
-					auto artPath = art["path"];
-					if (artPath != nullptr) {
-						fmt::print("{:4}- {}\n", ' ', artPath.get<std::string>());
-					}
-				}
-			}
-			// else {
-			// 	std::wcout << path << L'\n';
-			// }
-		}
-	}
-
 	return result;
 }
 
@@ -117,22 +128,42 @@ BuildInfo runBuildInfoQuery(fs::path const& packagePath_)
 UPtr<Package> PackageLoader::load(fs::path const& root_)
 {
 	runBuildInfoQuery(root_);
-	TargetBase unused;
-	this->loadTarget(root_, "sfml-system", unused);
-	this->loadTarget(root_, "sfml-audio", unused);
-	this->loadTarget(root_, "sfml-window", unused);
-	this->loadTarget(root_, "sfml-graphics", unused);
 
-	return Package::load(root_); // TODO: move loading logic from Package class
+	auto reply		= readReplyFile(root_);
+	auto targets	= this->discoverTargets(reply);
+
+	auto package = std::make_unique<Package>();
+	package->root = root_;
+	package->outputRoot = "build";
+	package->builder = app.packageBuilders["cmake"].get();
+	package->version = this->loadVersion(root_);
+
+	fmt::print("Package version: {}\n", package->version.toString());
+
+	for (auto const&[name, path] : targets)
+	{
+		Project p;
+		this->loadProjectFromFile(replyFolderOf(root_) / path, p);
+		package->projects.push_back(std::move(p));
+	}
+
+	return package; // TODO: move loading logic from Package class
 }
 
 ///////////////////////////////////////
 bool PackageLoader::loadTarget(fs::path const& root_, std::string const& name_, TargetBase& target_)
 {
-	auto json = readReplyFile(root_);
+	// TODO: implement this
+	return false;
+}
 
-	// read targets
-	auto confs = json["configurations"];
+///////////////////////////////////////
+Vec< StringPair > PackageLoader::discoverTargets(json const& json_) const
+{
+	Vec< StringPair > result;
+	result.reserve(16);
+
+	auto confs = json_["configurations"];
 
 	for (auto conf : confs)
 	{
@@ -140,16 +171,68 @@ bool PackageLoader::loadTarget(fs::path const& root_, std::string const& name_, 
 		{
 			for (auto target : conf["targets"])
 			{
-				if (target.value("id", "").starts_with(name_ + "::@"))
+				auto id = target.value("id", "");
+				if (id.contains(TargetHashSeparator))
 				{
-					fmt::print("Target {} found in file {}\n", name_, target.value("jsonFile", ""));
-					return true;
+					result.push_back( { std::move(id), target.value("jsonFile", "") } );
 				}
 			}
 		}
 	}
 
-	return false;
+	return result;
+}
+
+
+///////////////////////////////////////
+bool PackageLoader::loadProjectFromFile(fs::path const& file_, Project& project_)
+{
+	auto json = json::parse(readFileContents(file_));
+
+	project_.name = json.value("name", "");
+	project_.type = projectTypeFromString(json.value("type", "STATIC_LIBRARY"));
+
+	if (json.contains("artifacts"))
+	{
+		for (auto artifact : json["artifacts"].items())
+		{
+			auto path = artifact.value().value("path", "");
+			if (!path.empty())
+			{
+				// TODO: detect artifact type from path
+				Artifact artType = detectArtifactTypeFromPath(path);
+
+				project_.artifacts[(size_t)artType].push_back(path);
+				fmt::print("Project {} (type: {}) -> {}\n", project_.name, toString(project_.type), path);
+			}
+		}
+	}
+
+	return true;
+}
+
+///////////////////////////////////////
+Version PackageLoader::loadVersion(fs::path const& root_)
+{
+	// read cmake cache
+	auto cacheFile = buildFolderOf(root_) / "CMakeCache.txt";
+	if (!fs::exists(cacheFile))
+		return {};
+
+	auto cache = readFileContents(cacheFile);
+	auto pos = cache.find(CacheProjectVersionKey);
+	if (pos == std::string::npos)
+		return {};
+
+	auto endOfLine = cache.find('\n', pos);
+	auto view = std::string_view(cache);
+	return Version::fromString(view.substr(pos + CacheProjectVersionKey.size(), endOfLine - pos - CacheProjectVersionKey.size()));
+}
+
+///////////////////////////////////////
+BuildProcessResult PackageBuilder::run(Package const& pkg_, Toolchain& tc_, BuildSettings const& settings_, int verbosityLevel_)
+{
+	return runCMakeBuildCommand(pkg_.root, "--config Debug");
 }
 
 }
