@@ -5,37 +5,89 @@
 #include <Pacc/Generation/Logs.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 
+#include <ranges>
+
+
 ///////////////////////////////////////////////
-std::vector<MSVCToolchain> MSVCToolchain::detect()
+static auto detectVSProperty(std::string propertyName)
 {
 	// TODO: find better way to find this program
 	// TODO: this won't support older visual studios
-	const std::string vswherePath 	= "C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere";
-	const std::string params 		= " -prerelease -sort -format json -utf8";
+	const std::string vswherePath 		= "C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere";
+	const std::string params 			= "-prerelease -sort -utf8 -property ";
 
-	std::vector<MSVCToolchain> tcs;
+	auto result = std::vector<std::string>();
 
-	ChildProcess vswhere{vswherePath + params, "", ch::milliseconds{2500}};
+	ChildProcess vswhere{ fmt::format("\"{}\" {} {}", vswherePath, params, propertyName), "", ch::milliseconds{2500} };
 	auto exitCode = vswhere.runSync();
+	if (exitCode.value_or(1) != 0)
+		return std::optional( result );
 
-	if (exitCode.value_or(1) == 0)
+	std::erase(vswhere.out.stdOut, '\r');
+	for (auto strRange : std::views::split(vswhere.out.stdOut, '\n'))
 	{
-		using jt = json::value_t;
-		json j = json::parse(vswhere.out.stdOut);
+		auto str = std::string(strRange.begin(), strRange.end());
+		if (str.empty())
+			continue;
 
-		if (j.type() == jt::array)
+		result.push_back( std::string(str.begin(), str.end()) );
+	}
+
+	return std::optional( result );
+}
+
+///////////////////////////////////////////////
+std::vector<MSVCToolchain> MSVCToolchain::detect()
+{
+	auto tcs = std::vector<MSVCToolchain>();
+
+	// Read pretty names
+	{
+		auto displayNames = detectVSProperty("displayName");
+
+		if (!displayNames.has_value())
+			return tcs;
+
+		tcs.reserve(displayNames->size());
+
+		for (auto& elem : *displayNames)
 		{
-			for(auto tcDescIt : j.items())
-			{
-				auto const& tcDesc = tcDescIt.value();
+			MSVCToolchain tc;
+			tc.prettyName = std::move(elem);
+			tcs.emplace_back(std::move(tc));
+		}
+	}
 
-				MSVCToolchain tc;
-				tc.prettyName 	= tcDesc["displayName"].get<std::string>();
-				tc.version 		= tcDesc["catalog"]["productDisplayVersion"].get<std::string>();
-				tc.lineVersion 	= parseLineVersion(tcDesc["catalog"]["productLineVersion"].get<std::string>());
-				tc.mainPath 	= tcDesc["installationPath"].get<std::string>();
-				tcs.push_back(std::move(tc));
-			}
+	// Read versions
+	{
+		auto versions = detectVSProperty("catalog.productDisplayVersion");
+
+		if (versions.has_value())
+		{
+			for (size_t i = 0; i < versions->size(); ++i)
+				tcs[i].version = std::move( (*versions)[i] );
+		}
+	}
+
+	// Read line versions
+	{
+		auto lineVersions = detectVSProperty("catalog.productLineVersion");
+
+		if (lineVersions.has_value())
+		{
+			for (size_t i = 0; i < lineVersions->size(); ++i)
+				tcs[i].lineVersion = parseLineVersion((*lineVersions)[i]);
+		}
+	}
+
+	// Read installation paths
+	{
+		auto paths = detectVSProperty("installationPath");
+
+		if (paths.has_value())
+		{
+			for (size_t i = 0; i < paths->size(); ++i)
+				tcs[i].mainPath = std::move( (*paths)[i] );
 		}
 	}
 
@@ -107,7 +159,7 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 			proc.out.stdOut,
 			proc.out.stdErr
 		);
-		
+
 	saveBuildOutputLog(pkg_.name, outputLog);
 
 	return proc.exitCode;
