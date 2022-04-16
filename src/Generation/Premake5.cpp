@@ -21,7 +21,7 @@ platforms { "x86", "x64" }
 
 	location ("build")
 	targetdir(path.join(os.getcwd(), "bin/%{cfg.platform}/%{cfg.buildcfg}"))
-	
+
 	if os.host() == "macosx" then
 		removeplatforms { "x86" }
 	end
@@ -104,15 +104,18 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_, MultiAccess a
 void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_);
 
 /////////////////////////////////////////////////
-void runPremakeGeneration(std::string_view toolchainName_)
+void runPremakeGeneration(fs::path appRoot_, std::string_view toolchainName_)
 {
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Running Premake5... ");
 
-	std::string command = "premake5 ";
-	command += toolchainName_;
-	
+	auto command = std::string("premake5");
+	if (appRoot_.has_parent_path())
+		command = (appRoot_.parent_path() / command).string();
+
+	command = fmt::format("\"{}\" {}", command, toolchainName_);
+
 	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
 	if (exitStatus.has_value())
@@ -164,9 +167,9 @@ bool Premake5::exportCompileCommands()
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Exporting compile commands... ");
-	
+
 	std::string command = fmt::format("premake5 \"--scripts={}\" export-compile-commands", premake5ScriptPath.string());
-	
+
 	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
 	if (exitStatus.has_value())
@@ -195,7 +198,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 
 		// TODO: manual configuration
 		fmt_.writeRaw(constants::DefaultPremakeCfg);
-		
+
 		for(auto const& project : pkg_.projects)
 		{
 			if (project.type != Project::Type::Interface)
@@ -215,7 +218,7 @@ std::string_view mapToPremake5Kind(Project::Type projectType_)
 	auto it = AppTypeMapping.find(projectType_);
 	if (it != AppTypeMapping.end())
 		return it->second;
-	
+
 	return "";
 }
 
@@ -228,7 +231,7 @@ void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
 	if (it != LangMapping.end())
 	{
 		auto const& premakeVal = it->second;
-		
+
 		fmt_.write("language (\"{}\")\n", premakeVal.first);
 		if (!premakeVal.second.empty())
 			fmt_.write("cppdialect (\"{}\")\n", premakeVal.second);
@@ -265,7 +268,7 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 
 			fmt_.write("pchheader(\"{}\")\n", pch.header);
 			fmt_.write("pchsource(\"{}\")\n", pch.source);
-			
+
 			fmt_.write("defines ( {{ \"{}=\\\"{}\\\"\" }} )\n", pch.definition, pch.header);
 
 			fmt_.write("includedirs( {{ \".\" }} )\n\n");
@@ -311,7 +314,7 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 	}
 
 	MultiAccess computedLinkMode = MultiAccess::NoInterface;
-	
+
 	if (project_.isLibrary())
 		computedLinkMode = MultiAccess::Private; // append only private deps
 
@@ -322,7 +325,7 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 	appendPropWithAccess(fmt_, "libdirs", 		config_.linkerFolders.computed, computedLinkMode);
 	appendPropWithAccess(fmt_, "buildoptions", 	config_.compilerOptions.computed);
 	appendPropWithAccess(fmt_, "linkoptions", 	config_.linkerOptions.computed);
-	
+
 	appendPropWithAccess(fmt_, "files", 		config_.files);
 	appendPropWithAccess(fmt_, "defines", 		config_.defines.self);
 	appendPropWithAccess(fmt_, "links", 		config_.linkedLibraries.self);
