@@ -10,7 +10,7 @@ void enableColors();
 template <typename TFormat, typename... TArgs>
 void printToStream(std::ostream& stream_, TFormat && fmt_, TArgs &&... args)
 {
-	stream_ << format(
+	stream_ << fmt::format(
 			std::forward<TFormat>(fmt_),
 			std::forward<TArgs>(args)...
 		);
