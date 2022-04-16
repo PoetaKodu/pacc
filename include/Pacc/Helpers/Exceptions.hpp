@@ -14,11 +14,8 @@ struct PaccException
 public:
 	using Super = std::runtime_error;
 
-	// Add super-class constructors
-	using Super::Super;
-
 	template <typename TFormat, typename... TArgs>
-	PaccException(TFormat && fmt_, TArgs &&... args)
+	explicit PaccException(TFormat && fmt_, TArgs &&... args)
 		:
 		// TODO: Format may cause exception
 		Super(fmt::format(
