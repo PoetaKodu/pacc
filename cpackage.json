@@ -27,13 +27,5 @@
 			"dependencies": [ "file:stdc++fs", "file:pthread" ]
 		}
 	},
-	"description": "Main pacc app project",
-	"scripts": {
-		"build": {
-			"handler": "cmake:build",
-			"settings": {
-				"args": ["-DCMAKE_BUILD_TYPE=Release"]
-			}
-		}
-	}
+	"description": "Main pacc app project"
 }
