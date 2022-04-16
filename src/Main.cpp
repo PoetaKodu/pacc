@@ -122,6 +122,10 @@ void handleArgs(ProgramArgs args_)
 		{
 			app.listVersions();
 		}
+		else if (action == "list-packages" || action == "list" || action == "ls")
+		{
+			app.listPackages();
+		}
 		else if (action == "toolchains" || action == "toolchain" || action == "tc")
 		{
 			app.loadPaccConfig();
