@@ -7,13 +7,16 @@
 #include <Pacc/App/App.hpp>
 
 
+using DepQueue		= BuildQueueBuilder::DepQueue;
+using DepQueueStep	= BuildQueueBuilder::DepQueueStep;
+
 ///////////////////////////////////////////////////////////////
 // Private functions (forward declaration)
 ///////////////////////////////////////////////////////////////
-bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue const& readyQueue_);
-bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::DepQueue const& readyQueue_);
-bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_);
-bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_);
+bool wasDependencyQueued(Dependency const& dep, DepQueue const& readyQueue_);
+bool projectHasPendingDependencies(Project const& project, DepQueue const& readyQueue_);
+bool packageHasPendingDependencies(PackageDependency & dep, DepQueue const& readyQueue_);
+bool selfPackageHasPendingDependencies(SelfDependency & dep, DepQueue const& readyQueue_);
 
 
 ///////////////////////////////////////////////////////////////
@@ -162,13 +165,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 						// Insert in sorted order:
 						{
-							auto it = rg::upper_bound(
-									loadedPackages, pkgPtr->root, {},
-									[](auto& elem) -> fs::path const&
-									{
-										return elem->root;
-									}
-								);
+							auto it = rg::upper_bound( loadedPackages, pkgPtr->root, {}, &Package::root );
 
 							loadedPackages.insert(it, pkgPtr);
 						}
@@ -186,7 +183,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 }
 
 /////////////////////////////////////////////////
-BuildQueueBuilder::DepQueue const& BuildQueueBuilder::setup()
+DepQueue const& BuildQueueBuilder::setup()
 {
 	std::size_t totalDeps 		= pendingDeps.size();
 	std::size_t totalCollected 	= 0;
@@ -208,7 +205,7 @@ BuildQueueBuilder::DepQueue const& BuildQueueBuilder::setup()
 }
 
 /////////////////////////////////////////////////
-BuildQueueBuilder::DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQueue const& ready_, PendingDeps & pending_)
+DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQueue const& ready_, PendingDeps & pending_)
 {
 	PendingDeps newPending;
 	newPending.reserve(pending_.size());
@@ -240,10 +237,7 @@ BuildQueueBuilder::DepQueueStep BuildQueueBuilder::collectReadyDependencies(DepQ
 /////////////////////////////////////////////////
 PackagePtr BuildQueueBuilder::findPackageByRoot(fs::path root_) const
 {
-	auto it = rg::lower_bound(
-			loadedPackages, root_, {},
-			[](auto& elem) { return elem->root; }
-		);
+	auto it = rg::lower_bound( loadedPackages, root_, {}, &Package::root );
 
 	if (it != loadedPackages.end() && (*it)->root == root_)
 		return *it;
@@ -255,10 +249,7 @@ PackagePtr BuildQueueBuilder::findPackageByRoot(fs::path root_) const
 /////////////////////////////////////////////////
 bool BuildQueueBuilder::isPackageLoaded(fs::path root_) const
 {
-	return rg::binary_search(
-			loadedPackages, root_, {},
-			[](auto& elem) { return elem->root; }
-		);
+	return rg::binary_search( loadedPackages, root_, {}, &Package::root );
 }
 
 
@@ -268,24 +259,22 @@ bool BuildQueueBuilder::isPackageLoaded(fs::path root_) const
 
 
 /////////////////////////////////////////////////
-bool wasDependencyQueued(Dependency const& dep, BuildQueueBuilder::DepQueue const& readyQueue_)
+bool wasDependencyQueued(Dependency const& dep, DepQueue const& readyQueue_)
 {
 	for (auto const& step : readyQueue_)
 	{
 		// TODO: Can be done better (binary search on sorted range)
-		auto it = rg::find(step, &dep, &BuildQueueBuilder::ProjectDep::dep);
+		auto it = rg::find(step, &dep, &BuildQueueBuilder::ProjectDep::dep );
 
 		if (it != step.end())
-		{
 			return true;
-		}
 	}
 
 	return false;
 }
 
 /////////////////////////////////////////////////
-bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::DepQueue const& readyQueue_)
+bool projectHasPendingDependencies(Project const& project, DepQueue const& readyQueue_)
 {
 	auto selfDepsAcc = getAccesses(project.dependencies.self);
 
@@ -304,7 +293,7 @@ bool projectHasPendingDependencies(Project const& project, BuildQueueBuilder::De
 }
 
 /////////////////////////////////////////////////
-bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_)
+bool packageHasPendingDependencies(PackageDependency & dep, DepQueue const& readyQueue_)
 {
 	auto& packagePtr = dep.package;
 
@@ -321,7 +310,7 @@ bool packageHasPendingDependencies(PackageDependency & dep, BuildQueueBuilder::D
 }
 
 /////////////////////////////////////////////////
-bool selfPackageHasPendingDependencies(SelfDependency & dep, BuildQueueBuilder::DepQueue const& readyQueue_)
+bool selfPackageHasPendingDependencies(SelfDependency & dep, DepQueue const& readyQueue_)
 {
 	auto& packagePtr = dep.package;
 
