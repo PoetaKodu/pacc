@@ -56,7 +56,12 @@ void Toolchain::serialize(json& out_) const
 {
 	out_["prettyName"] 	= prettyName;
 	out_["version"] 	= version;
-	out_["mainPath"] 	= mainPath.u8string();
+
+	{
+		// Note: this is a workaround, because std::u8string is detected as an array of numbers by json
+		auto mp = mainPath.u8string();
+		out_["mainPath"] = std::string(mp.begin(), mp.end());
+	}
 	out_["type"] 		= Toolchain::typeName(this->type());
 }
 
