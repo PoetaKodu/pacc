@@ -33,10 +33,10 @@ struct VersionRequirement
 
 	enum Type
 	{
-		Exact,		/// Major, Minor and Patch must be exactly the same
-		SameMinor,	/// Major and Minor must be exactly the same
-		SameMajor,	/// Major must be exactly the same
-		Any			/// Can be any version
+		Exact,		/// Major, Minor and Patch must be exactly the same. Example: 1.2.3
+		SameMinor,	/// Major and Minor must be exactly the same. Example: ~1.2.3
+		SameMajor,	/// Major must be exactly the same. Example: ^1.2.3
+		Any			/// Can be any version. Example: *
 	} type = Any;
 
 	VersionRequirement() = default;
@@ -60,5 +60,6 @@ struct VersionRequirement
 
 	static VersionRequirement fromString(std::string_view str_);
 };
+
 // A shorthand for VersionRequirement
 using VersionReq = VersionRequirement;
