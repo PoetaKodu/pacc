@@ -1,16 +1,16 @@
 # Custom:
-build/
-bin/
+/build
+/bin
 .xmake/
 .vscode/
-res/installer
-testbed/
-deps/*
-!deps/cpackage.json
-!deps/README.md
+/res/installer
+/testbed/
+/deps/*
+!/deps/cpackage.json
+!/deps/README.md
 *.user.*
 premake5.lua
-pacc_packages
+/pacc_packages
 compile_commands.json
 
 # Prerequisites
