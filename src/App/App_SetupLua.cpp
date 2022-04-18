@@ -2,6 +2,7 @@
 
 #include <Pacc/App/App.hpp>
 #include <Pacc/PackageSystem/Version.hpp>
+#include <Pacc/System/Environment.hpp>
 
 //////////////////////////////////////////////////
 auto loadFmtArgs(sol::variadic_args va)
@@ -112,7 +113,12 @@ void PaccApp::setupLua()
 			}
 		);
 
+
+	auto currentPackagesPath	= lua["package"]["path"].get<std::string>();
+	auto paccLuaScriptsPattern	= env::getPaccAppPath().parent_path() / "../lua/?.lua";
+
+	lua["package"]["path"].set(currentPackagesPath + ";" + paccLuaScriptsPattern.string());
 	lua.script("require(\"pacc-std/app\")");
 
-	lua["pacc"]["version"] = Version::fromString("0.3.2");
+	lua["pacc"]["version"] = Version::fromString("0.4.0");
 }

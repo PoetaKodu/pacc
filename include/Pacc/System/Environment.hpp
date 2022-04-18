@@ -25,4 +25,9 @@ fs::path requirePaccDataStorageFolder();
 /// <returns>fs::path</returns>
 fs::path findExecutable(std::string_view execName_);
 
+/// <summary>
+/// Gets the directory of the Pacc executable.
+/// </summary>
+fs::path getPaccAppPath();
+
 }

@@ -3,6 +3,13 @@
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/System/Process.hpp>
 
+#ifdef PACC_SYSTEM_WINDOWS
+#define NOMINMAX
+	#include <Windows.h>
+#elif defined(PACC_SYSTEM_LINUX)
+	#include <unistd.h>
+#endif
+
 namespace env
 {
 
@@ -21,7 +28,7 @@ fs::path getPaccDataStorageFolder()
 		appData = std::getenv("HOME");
 		appData /= ".pacc";
 	#endif
-	
+
 	return appData;
 }
 
@@ -60,8 +67,30 @@ fs::path findExecutable(std::string_view execName_)
 		else
 			return stdOut;
 	}
-	
+
 	return {};
 }
+
+///////////////////////////////////////////////////
+fs::path getPaccAppPath()
+{
+	fs::path path;
+
+	std::array<char, 4 * 1024> buf;
+	std::size_t bytes;
+
+	// Obtain the path in `buf` and length in `bytes`
+	#ifdef PACC_SYSTEM_WINDOWS
+		bytes = static_cast<std::size_t>( GetModuleFileNameA(nullptr, buf.data(), static_cast<DWORD>(buf.size()) ) );
+	#elif defined(PACC_SYSTEM_LINUX)
+		bytes = std::min(readlink("/proc/self/exe", buf.data(), buf.size()), buf.size() - 1);
+	#endif
+
+	path = std::string(buf.data(), bytes);
+
+	return path;
+}
+
+
 
 }

@@ -29,7 +29,6 @@ PaccApp::PaccApp()
 {
 	this->setupPackageLoaders();
 	this->setupPackageBuilders();
-	this->setupLua();
 }
 
 

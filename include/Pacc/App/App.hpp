@@ -92,11 +92,11 @@ public:
 
 	auto execLuaEvent(Package& pkg, std::string const& funcName_) -> sol::protected_function_result;
 
+	auto setupLua() -> void;
 	auto createPremake5Generator() -> gen::Premake5;
 private:
 	auto setupPackageLoaders() -> void;
 	auto setupPackageBuilders() -> void;
-	auto setupLua() -> void;
 	auto determineBuildSettingsFromArgs() const -> BuildSettings;
 	auto buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_ = false) -> void;
 	auto installPackageDependencies(Package& pkg_, bool isRoot) -> size_t;

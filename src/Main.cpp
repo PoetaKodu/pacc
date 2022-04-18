@@ -61,6 +61,8 @@ void handleArgs(ProgramArgs args_)
 	PaccApp app;
 	app.args = std::move(args_);
 
+	app.setupLua();
+
 	// TODO: make configurable
 	app.cleanupLogs(200);
 
