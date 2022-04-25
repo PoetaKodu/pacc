@@ -26,11 +26,12 @@ static auto detectVSProperty(std::string propertyName)
 	std::erase(vswhere.out.stdOut, '\r');
 	for (auto strRange : std::views::split(vswhere.out.stdOut, '\n'))
 	{
-		auto str = std::string(strRange.begin(), strRange.end());
+		auto common = strRange | std::views::common;
+		auto str = std::string(common.begin(), common.end());
 		if (str.empty())
 			continue;
 
-		result.push_back( std::string(str.begin(), str.end()) );
+		result.emplace_back( std::move(str) );
 	}
 
 	return std::optional( result );
