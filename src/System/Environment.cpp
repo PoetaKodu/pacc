@@ -77,7 +77,12 @@ fs::path getPaccAppPath()
 	fs::path path;
 
 	std::array<char, 4 * 1024> buf;
-	ssize_t bytes;
+
+	#ifdef PACC_SYSTEM_WINDOWS
+		size_t bytes;
+	#elif defined(PACC_SYSTEM_LINUX)
+		ssize_t bytes;
+	#endif
 
 	// Obtain the path in `buf` and length in `bytes`
 	#ifdef PACC_SYSTEM_WINDOWS
