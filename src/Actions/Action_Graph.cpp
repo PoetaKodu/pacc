@@ -1,5 +1,3 @@
-#pragma once
-
 #include PACC_PCH
 
 #include <Pacc/App/App.hpp>
