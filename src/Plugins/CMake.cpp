@@ -172,7 +172,7 @@ Vec< StringPair > PackageLoader::discoverTargets(json const& json_) const
 			for (auto target : conf["targets"])
 			{
 				auto id = target.value("id", "");
-				if (id.contains(TargetHashSeparator))
+				if (id.find(TargetHashSeparator) != std::string::npos)
 				{
 					result.push_back( { std::move(id), target.value("jsonFile", "") } );
 				}
