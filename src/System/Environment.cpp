@@ -77,13 +77,13 @@ fs::path getPaccAppPath()
 	fs::path path;
 
 	std::array<char, 4 * 1024> buf;
-	std::size_t bytes;
+	ssize_t bytes;
 
 	// Obtain the path in `buf` and length in `bytes`
 	#ifdef PACC_SYSTEM_WINDOWS
 		bytes = static_cast<std::size_t>( GetModuleFileNameA(nullptr, buf.data(), static_cast<DWORD>(buf.size()) ) );
 	#elif defined(PACC_SYSTEM_LINUX)
-		bytes = std::min(readlink("/proc/self/exe", buf.data(), buf.size()), buf.size() - 1);
+		bytes = std::min(readlink("/proc/self/exe", buf.data(), buf.size()), ssize_t(buf.size() - 1));
 	#endif
 
 	path = std::string(buf.data(), bytes);
