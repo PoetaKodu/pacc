@@ -19,7 +19,7 @@ public:
 		:
 		// TODO: Format may cause exception
 		Super(fmt::format(
-				std::forward<TFormat>(fmt_),
+				fmt::runtime(std::forward<TFormat>(fmt_)),
 				std::forward<TArgs>(args)...
 			).c_str())
 	{
@@ -30,7 +30,7 @@ public:
 	{
 		// TODO: Format may cause exception
 		helpMessage = fmt::format(
-				std::forward<TFormat>(fmt_),
+				fmt::runtime(std::forward<TFormat>(fmt_)),
 				std::forward<TArgs>(args)...
 			);
 		return *this;

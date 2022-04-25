@@ -19,7 +19,7 @@ struct OutputFormatter
 		if constexpr (Indent) {
 			this->writeIndent();
 		}
-		output += fmt::format( std::forward<FirstArg>(firstArg_), std::forward<Args>(args_)... );
+		output += fmt::format( fmt::runtime(std::forward<FirstArg>(firstArg_)), std::forward<Args>(args_)... );
 	}
 
 	void writeRaw(std::string_view s)

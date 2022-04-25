@@ -34,7 +34,7 @@ Toolchain::Type Toolchain::type() const
 ////////////////////////////////////////////
 bool Toolchain::generateProjectFiles()
 {
-	fmt::printErr("Not implemented.");
+	fmt::printErr(fmt::runtime("Not implemented."));
 	return false;
 }
 

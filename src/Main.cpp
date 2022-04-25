@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
 	}
 	catch(...)
 	{
-		fmt::printErr(	"{Error}\n"
+		fmt::printErr(	fmt::runtime("{Error}\n"
 						"    An unknown error occurred.\n"
 						"    No details available\n"
-						"    Please refer to https://github.com/PoetaKodu/pacc/issues\n",
+						"    Please refer to https://github.com/PoetaKodu/pacc/issues\n"),
 
 						fmt_args::error());
 
