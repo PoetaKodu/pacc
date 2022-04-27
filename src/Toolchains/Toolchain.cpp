@@ -69,7 +69,7 @@ void Toolchain::serialize(json& out_) const
 bool Toolchain::deserialize(json const& in_)
 {
 	using JV = JsonView;
-	JsonView view{in_};
+	auto view = JsonView{in_};
 
 	prettyName 	= view.stringFieldOr("prettyName", 	"Unknown");
 	version 	= view.stringFieldOr("version", 	"?.?.?");

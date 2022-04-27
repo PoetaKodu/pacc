@@ -142,8 +142,7 @@ void Premake5::generate(Package const & pkg_)
 	std::string out;
 	out.reserve(4 * 1024 * 1024);
 
-	OutputFormatter fmt{out};
-
+	auto fmt = OutputFormatter{out};
 
 	appendWorkspace(fmt, pkg_);
 
@@ -165,14 +164,13 @@ void Premake5::generate(Package const & pkg_)
 bool Premake5::exportCompileCommands()
 {
 	auto premake5Path = getPremake5Path();
-	fs::path premake5ScriptPath = premake5Path.parent_path().parent_path() / "premake";
+	auto premake5ScriptPath = premake5Path.parent_path().parent_path() / "premake";
 
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Exporting compile commands... ");
 
-	std::string command = fmt::format("\"{}\" \"--scripts={}\" export-compile-commands", premake5Path.string(), premake5ScriptPath.string());
-
+	auto command = fmt::format("\"{}\" \"--scripts={}\" export-compile-commands", premake5Path.string(), premake5ScriptPath.string());
 	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
 	if (exitStatus.has_value())
@@ -197,7 +195,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 	fmt_.write("workspace(\"{}\")\n", pkg_.name);
 
 	{
-		IndentScope indent{fmt_};
+		auto indent = IndentScope{fmt_};
 
 		// TODO: manual configuration
 		fmt_.writeRaw(constants::DefaultPremakeCfg);
@@ -249,7 +247,7 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 
 	// Format project settings:
 	{
-		IndentScope indent{fmt_};
+		auto indent = IndentScope{fmt_};
 
 		// TODO: value mapping (enums, etc)
 		fmt_.write("kind(\"{}\")\n", mapToPremake5Kind(project_.type));
@@ -266,7 +264,7 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 
 		if (project_.pch.has_value())
 		{
-			PrecompiledHeader const& pch = project_.pch.value();
+			auto const& pch = project_.pch.value();
 			fmt_.write("-- Precompiled header:\n");
 
 			fmt_.write("pchheader(\"{}\")\n", pch.header);
@@ -285,7 +283,7 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 			fmt_.write("\n");
 			fmt_.write("filter(\"{}\")\n", filterIt.first);
 			{
-				IndentScope indent{fmt_};
+				auto indent = IndentScope{fmt_};
 				appendConfiguration(fmt_, pkg_, project_, filterIt.second);
 				fmt_.write("filter(\"\")\n");
 			}
@@ -304,7 +302,7 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 		fmt_.write("-- Use .def file with Visual Studio compiler.\n");
 		fmt_.write("if string.match(_ACTION, \"vs%d%d%d%d\") ~= nil then\n");
 		{
-			IndentScope indent{fmt_};
+			auto indent = IndentScope{fmt_};
 			fmt_.write("linkoptions ({{ \"/DEF:\\\"{}\\\"\" }})\n", fsx::fwd(pkg_.root.parent_path() / config_.moduleDefinitionFile).string());
 		}
 		fmt_.write("end\n");
@@ -316,7 +314,7 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 		fmt_.write("visibility(\"{}\")\n", config_.symbolVisibility.toString());
 	}
 
-	MultiAccess computedLinkMode = MultiAccess::NoInterface;
+	auto computedLinkMode = MultiAccess::NoInterface;
 
 	if (project_.isLibrary())
 		computedLinkMode = MultiAccess::Private; // append only private deps
@@ -346,7 +344,7 @@ void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T co
 	{
 		fmt_.write("{} ({{\n", propName);
 		{
-			IndentScope indent{fmt_};
+			auto indent = IndentScope{fmt_};
 			appendStringsWithAccess(fmt_, values_, accesses_);
 		}
 		fmt_.write("}})\n");

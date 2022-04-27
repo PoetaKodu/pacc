@@ -27,11 +27,11 @@ void PaccApp::listVersions()
 				);
 	}
 
-	std::string dependencyTemplate(args[2]);
+	auto dependencyTemplate = std::string(args[2]);
 
 	auto loc = DownloadLocation::parse(dependencyTemplate);
 
-	std::string repoLink = loc.getGitLink();
+	auto repoLink = loc.getGitLink();
 
 	std::string output;
 	// List versions

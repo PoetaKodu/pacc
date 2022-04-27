@@ -26,7 +26,7 @@ void PaccApp::install()
 	 // TODO: improve this
 	if (args.size() >= (global ? 4 : 3))
 	{
-		std::string packageTemplate(args[2]);
+		auto packageTemplate = std::string(args[2]);
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
@@ -81,7 +81,7 @@ void PaccApp::uninstall()
 	 // TODO: improve this
 	if (args.size() >= (global ? 4 : 3))
 	{
-		std::string packageName(args[2]);
+		auto packageName = std::string(args[2]);
 
 		fs::path packagePath = targetPath / packageName;
 
@@ -124,7 +124,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 	fs::path targetPath = isRoot ? "pacc_packages" : "..";
 
 	auto deps = this->collectMissingDependencies(pkg_);
-	
+
 	if (deps.empty())
 	{
 		if (isRoot)
@@ -159,7 +159,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 		this->downloadPackage(targetPackagePath, loc);
 
 		installed.emplace_back(std::move(targetPackagePath));
-		
+
 		// TODO: run install script on package.
 
 

@@ -20,7 +20,7 @@ fs::path getPaccDataStorageFolder()
 	// - on Windows folder is named `pacc`
 	// - on Linux: `.pacc` -> with a preceding dot
 
-	fs::path appData;
+	auto appData = fs::path();
 	#ifdef PACC_SYSTEM_WINDOWS
 		appData = std::getenv("APPDATA");
 		appData /= "pacc";
@@ -35,7 +35,7 @@ fs::path getPaccDataStorageFolder()
 ///////////////////////////////////////////////////
 fs::path requirePaccDataStorageFolder()
 {
-	fs::path const storage = getPaccDataStorageFolder();
+	auto storage = getPaccDataStorageFolder();
 	fs::create_directories(storage);
 	return storage;
 }
@@ -43,7 +43,7 @@ fs::path requirePaccDataStorageFolder()
 ///////////////////////////////////////////////////
 fs::path findExecutable(std::string_view execName_)
 {
-	const std::string command = fmt::format(
+	const auto command = fmt::format(
 		#ifdef PACC_SYSTEM_WINDOWS
 			"where \"{}\"",
 		#else
@@ -53,15 +53,15 @@ fs::path findExecutable(std::string_view execName_)
 		);
 
 	// TODO:
-	ChildProcess finder{command, "", ch::milliseconds{2500}};
+	auto finder = ChildProcess{command, "", ch::milliseconds{2500}};
 	auto exitStatus = finder.runSync();
 
 	if (exitStatus.value_or(1) == 0)
 	{
-		std::string& stdOut = finder.out.stdOut;
+		auto& stdOut = finder.out.stdOut;
 
 		// Parse `where execName` output
-		size_t newLinePos = finder.out.stdOut.find_first_of("\r\n");
+		auto newLinePos = finder.out.stdOut.find_first_of("\r\n");
 		if (newLinePos != std::string::npos)
 			return stdOut.substr(0, newLinePos);
 		else
@@ -74,8 +74,6 @@ fs::path findExecutable(std::string_view execName_)
 ///////////////////////////////////////////////////
 fs::path getPaccAppPath()
 {
-	fs::path path;
-
 	std::array<char, 4 * 1024> buf;
 
 	#ifdef PACC_SYSTEM_WINDOWS
@@ -91,9 +89,7 @@ fs::path getPaccAppPath()
 		bytes = std::min(readlink("/proc/self/exe", buf.data(), buf.size()), ssize_t(buf.size() - 1));
 	#endif
 
-	path = std::string(buf.data(), bytes);
-
-	return path;
+	return fs::path(std::string(buf.data(), bytes));
 }
 
 

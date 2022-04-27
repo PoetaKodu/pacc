@@ -94,7 +94,7 @@ struct StringTokenIterator
 	/////////////////////////////////
 	StringTokenIterator end() const
 	{
-		StringTokenIterator result{ view, tokens };
+		auto result = StringTokenIterator{ view, tokens };
 		result.currentPos = std::string_view::npos;
 		result.wasInvalid = true;
 		return result;

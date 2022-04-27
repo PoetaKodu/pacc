@@ -18,10 +18,10 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 	if (!makePath.empty() && fs::exists(makePath))
 	{
 		// Make show version command:
-		// make -v 
+		// make -v
 		std::string command = makePath.string() + " -v";
 
-		ChildProcess makeVer{command, "", ch::milliseconds{2500}};
+		auto makeVer = ChildProcess{command, "", ch::milliseconds{2500}};
 
 		auto exitStatus = makeVer.runSync();
 		if (exitStatus.value_or(1) == 0)
@@ -88,7 +88,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 			fmt::format("CXX={}", cppCompilerName),
 			fmt::format("CC={}", cCompilerName)
 		};
-		
+
 	if (settings_.cores.has_value())
 		params.push_back(fmt::format("-j{}", settings_.cores.value()));
 
@@ -96,7 +96,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
-	ChildProcess proc{buildCommand, "build", std::nullopt, verbose};
+	auto proc = ChildProcess{buildCommand, "build", std::nullopt, verbose};
 
 	proc.runSync();
 
@@ -128,7 +128,7 @@ bool GNUMakeToolchain::isEqual(Toolchain const& other_) const
 void GNUMakeToolchain::serialize(json& out_) const
 {
 	Toolchain::serialize(out_);
-	
+
 	out_["cppCompiler"] = this->cppCompilerName;
 	out_["cCompiler"] 	= this->cCompilerName;
 }
@@ -140,7 +140,7 @@ bool GNUMakeToolchain::deserialize(json const& in_)
 		return false;
 
 	using JV = JsonView;
-	JsonView view{in_};
+	auto view = JsonView{in_};
 
 	cppCompilerName	= view.stringFieldOr("cppCompiler",	"g++");
 	cCompilerName	= view.stringFieldOr("cCompiler",	"gcc");

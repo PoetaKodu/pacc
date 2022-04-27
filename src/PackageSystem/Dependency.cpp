@@ -142,7 +142,7 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 {
 	PackageVersions result;
 
-	std::size_t numLines = rg::count(lsRemoteOutput_, '\n') + 1;
+	auto numLines = rg::count(lsRemoteOutput_, '\n') + 1;
 	result.confirmed.reserve(numLines / 2);
 	result.rest.reserve(numLines / 2);
 
@@ -161,11 +161,11 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 		if (token.empty())
 			continue;
 
-		std::size_t lastSlash = token.find_last_of("/");
+		auto lastSlash = token.find_last_of("/");
 		if (lastSlash == std::string_view::npos)
 			continue;
 
-		std::string tagName(token.substr(lastSlash + 1));
+		auto tagName = std::string(token.substr(lastSlash + 1));
 
 		Version ver;
 		if (startsWith(tagName, "pacc-"))

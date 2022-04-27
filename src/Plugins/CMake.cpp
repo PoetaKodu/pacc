@@ -86,7 +86,7 @@ auto runCMakeCommand(fs::path const& packagePath_, std::string_view command_)
 {
 	std::string generator = "Visual Studio 17 2022";
 	auto command = fmt::format("cmake -G=\"{}\" {} ..", generator, command_);
-	ChildProcess proc{
+	auto proc = ChildProcess{
 			command,
 			packagePath_ / "build", ch::seconds{2 * 60}
 		};
@@ -100,7 +100,7 @@ auto runCMakeCommand(fs::path const& packagePath_, std::string_view command_)
 auto runCMakeBuildCommand(fs::path const& packagePath_, std::string_view commandOpt_ = "")
 {
 	auto command = fmt::format("cmake --build .", commandOpt_);
-	ChildProcess proc{
+	auto proc = ChildProcess{
 			command,
 			packagePath_ / "build", ch::seconds{15 * 60}
 		};

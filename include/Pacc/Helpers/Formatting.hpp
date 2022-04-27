@@ -47,7 +47,7 @@ namespace fmt_args
 	};
 
 	inline Styles const& s() {
-		static Styles instance{};
+		static auto instance = Styles{};
 		return instance;
 	}
 

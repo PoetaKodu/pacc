@@ -57,7 +57,7 @@ void PaccApp::generate()
 {
 	auto pkg = Package::load();
 
-	BuildQueueBuilder depQueue{*this};
+	auto depQueue = BuildQueueBuilder{*this};
 	setupBuildQueue(*pkg, depQueue);
 	this->createPremake5Generator().generate(*pkg);
 }
@@ -161,7 +161,7 @@ void PaccApp::buildPackage()
 		auto settings	= this->determineBuildSettingsFromArgs();
 		auto pkg		= this->loadPackage(fs::current_path(), "auto");
 
-		BuildQueueBuilder depQueue{*this};
+		auto depQueue = BuildQueueBuilder{*this};
 		setupBuildQueue(*pkg, depQueue);
 		ensureDependenciesBuilt(*pkg, depQueue, settings);
 

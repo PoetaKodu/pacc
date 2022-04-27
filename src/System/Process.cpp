@@ -25,7 +25,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		{
 			if (printRealTime || storeOutput)
 			{
-				std::string s(bytes, n);
+				auto s = std::string(bytes, n);
 				if (printRealTime)
 				{
 					std::cout << s;
@@ -41,7 +41,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		{
 			if (printRealTime || storeOutput)
 			{
-				std::string s(bytes, n);
+				auto s = std::string(bytes, n);
 
 				if (printRealTime)
 				{
@@ -56,9 +56,9 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		}
 	);
 
-	bool killed 	= false;
-	int exitStatus 	= 1;
-	auto startTime = ch::steady_clock::now();
+	auto killed		= false;
+	auto exitStatus	= 1;
+	auto startTime	= ch::steady_clock::now();
 
 	while(!proc.try_get_exit_status(exitStatus))
 	{

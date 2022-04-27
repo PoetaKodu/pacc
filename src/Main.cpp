@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
 	fmt::enableColors();
 
-	ProgramArgs args{ argv, argv + argc };
+	auto args = ProgramArgs{ argv, argv + argc };
 
 
 	try {

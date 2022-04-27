@@ -6,11 +6,11 @@
 ///////////////////////////////////////////////////
 std::string readFileContents(fs::path const& path_)
 {
-	std::ifstream input(path_);
+	auto input = std::ifstream(path_);
 
 	if (!input.is_open())
 		throw PaccException("failed to open file {} for reading", path_.string());
-	
+
 
 	std::string result;
 	std::string buf;

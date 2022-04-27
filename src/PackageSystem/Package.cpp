@@ -415,7 +415,7 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 	using fmt::fg, fmt::color;
 	using json_vt = json::value_t;
 
-	JsonView jv{root_};
+	auto jv = JsonView{root_};
 
 	conf_.symbolVisibility 		= GNUSymbolVisibility::fromString(root_.value("symbolVisibility", "Default"));
 	conf_.moduleDefinitionFile 	= root_.value("moduleDefinitionFile", "");
@@ -469,7 +469,7 @@ auto Package::loadFromJSON(Package& package_, std::string const& packageContent_
 
 	// Parse and make conformant:
 	json j;
-	PackageJsonReader view{ j };
+	auto view = PackageJsonReader{ j };
 
 	j = json::parse(packageContent_);
 	view.makeConformant();
@@ -553,7 +553,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			}
 			else if (startsWith(depPattern, "self:"))
 			{
-				SelfDependency sd { &proj_, depPattern.substr(5), &pkg_ };
+				auto sd = SelfDependency { &proj_, depPattern.substr(5), &pkg_ };
 				target_.push_back( Dependency::self( std::move(sd) ) );
 			}
 			else
