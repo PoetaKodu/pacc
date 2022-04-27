@@ -9,7 +9,7 @@
 
 
 ///////////////////////////////////////////////
-static auto detectVSProperty(std::string propertyName)
+static auto detectVSProperty(std::string_view propertyName)
 {
 	auto result				= std::vector<std::string>();
 
