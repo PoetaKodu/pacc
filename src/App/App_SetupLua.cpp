@@ -120,5 +120,5 @@ void PaccApp::setupLua()
 	lua["package"]["path"].set(currentPackagesPath + ";" + paccLuaScriptsPattern.string());
 	lua.script("require(\"pacc-std/app\")");
 
-	lua["pacc"]["version"] = Version::fromString("0.4.0");
+	lua["pacc"]["version"] = Version::fromString("0.4.1");
 }

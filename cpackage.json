@@ -27,5 +27,6 @@
 			"dependencies": [ "file:stdc++fs", "file:pthread" ]
 		}
 	},
+	"version": "0.4.1-prealpha",
 	"description": "Main pacc app project"
 }
