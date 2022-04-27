@@ -14,7 +14,7 @@ BuildProcessResult PaccPackageBuilder::run(Package const& pkg_, Toolchain& tc_, 
 	app->createPremake5Generator().generate(pkg_);
 
 	// Run premake:
-	gen::runPremakeGeneration(app->args[0], tc_.premakeToolchainType());
+	gen::runPremakeGeneration(tc_.premakeToolchainType());
 
 	// TODO: build should be implemented here, instead of in the toolchain
 	return tc_.run(pkg_, settings_, verbosityLevel_);

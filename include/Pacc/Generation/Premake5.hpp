@@ -17,7 +17,9 @@ public:
 	void generate(Package const & package_);
 };
 
-void runPremakeGeneration(fs::path appRoot_, std::string_view toolchainName_);
+fs::path getPremake5Path();
+
+void runPremakeGeneration(std::string_view toolchainName_);
 
 }
 

@@ -104,17 +104,19 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_, MultiAccess a
 void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_);
 
 /////////////////////////////////////////////////
-void runPremakeGeneration(fs::path appRoot_, std::string_view toolchainName_)
+fs::path getPremake5Path()
+{
+	return env::getPaccAppPath().parent_path() / "premake5";
+}
+
+/////////////////////////////////////////////////
+void runPremakeGeneration(std::string_view toolchainName_)
 {
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Running Premake5... ");
 
-	auto command = std::string("premake5");
-	if (appRoot_.has_parent_path())
-		command = (appRoot_.parent_path() / command).string();
-
-	command = fmt::format("\"{}\" {}", command, toolchainName_);
+	auto command = fmt::format("\"{}\" {}", getPremake5Path().string(), toolchainName_);
 
 	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
@@ -162,13 +164,14 @@ void Premake5::generate(Package const & pkg_)
 /////////////////////////////////////////////////
 bool Premake5::exportCompileCommands()
 {
-	fs::path premake5ScriptPath = env::findExecutable("premake5").parent_path().parent_path() / "premake";
+	auto premake5Path = getPremake5Path();
+	fs::path premake5ScriptPath = premake5Path.parent_path().parent_path() / "premake";
 
 	using fmt::fg, fmt::color;
 
 	fmt::print(fg(color::gray), "Exporting compile commands... ");
 
-	std::string command = fmt::format("premake5 \"--scripts={}\" export-compile-commands", premake5ScriptPath.string());
+	std::string command = fmt::format("\"{}\" \"--scripts={}\" export-compile-commands", premake5Path.string(), premake5ScriptPath.string());
 
 	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
 
