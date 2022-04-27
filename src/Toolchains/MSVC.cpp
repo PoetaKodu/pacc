@@ -11,15 +11,15 @@
 ///////////////////////////////////////////////
 static auto detectVSProperty(std::string propertyName)
 {
+	auto result				= std::vector<std::string>();
+
 	// TODO: find better way to find this program
 	// TODO: this won't support older visual studios
-	auto const vswherePath 		= std::string("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere");
-	auto const params 			= std::string("-prerelease -sort -utf8 -property ");
+	auto const vswherePath	= std::string("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere");
+	auto const params		= std::string("-prerelease -sort -utf8 -property ");
+	auto vswhere			= ChildProcess{ fmt::format("\"{}\" {} {}", vswherePath, params, propertyName), "", ch::milliseconds{2500} };
+	auto exitCode			= vswhere.runSync();
 
-	auto result = std::vector<std::string>();
-
-	auto vswhere = ChildProcess{ fmt::format("\"{}\" {} {}", vswherePath, params, propertyName), "", ch::milliseconds{2500} };
-	auto exitCode = vswhere.runSync();
 	if (exitCode.value_or(1) != 0)
 		return std::optional( result );
 
