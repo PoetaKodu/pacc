@@ -30,50 +30,54 @@ void PaccApp::listPackages()
 	};
 
 	auto pkgs = std::vector<PackageInfo>();
-	pkgs.reserve(100);
 
-	// Collect info
-	for (auto entry : fs::directory_iterator(packagesRoot))
+	if (fs::is_directory(packagesRoot))
 	{
-		if (!filter.empty() && entry.path().filename().string().find(filter) == std::string::npos)
-			continue;
+		pkgs.reserve(100);
 
-		bool dir = fs::is_directory(entry);
-		bool sym = fs::is_symlink(entry);
-		if (dir || sym)
+		// Collect info
+		for (auto entry : fs::directory_iterator(packagesRoot))
 		{
-			if (!fs::is_regular_file(entry.path() / "cpackage.json"))
+			if (!filter.empty() && entry.path().filename().string().find(filter) == std::string::npos)
 				continue;
 
-			std::unique_ptr<Package> pkg;
-			try {
-				pkg = this->loadPackage(entry.path());
-			}
-			catch (PaccException& e) {
-				fmt::print("{}\n", e.what());
-				continue;
-			}
-			catch (std::exception& e) {
-				fmt::print("{}\n", e.what());
-			}
-			catch (...) {
-				continue;
-			}
-
-
-			++totalCount;
-			auto pkgInfo = PackageInfo();
-			pkgInfo.ver = pkg->version;
-
-			pkgInfo.name = entry.path().filename().string();
-
-			if (sym)
+			bool dir = fs::is_directory(entry);
+			bool sym = fs::is_symlink(entry);
+			if (dir || sym)
 			{
-				++linksCount;
-				pkgInfo.linkTo = fs::read_symlink(entry).string();
-			}
+				if (!fs::is_regular_file(entry.path() / "cpackage.json"))
+					continue;
 
-			pkgs.emplace_back(std::move(pkgInfo));
+				std::unique_ptr<Package> pkg;
+				try {
+					pkg = this->loadPackage(entry.path());
+				}
+				catch (PaccException& e) {
+					fmt::print("{}\n", e.what());
+					continue;
+				}
+				catch (std::exception& e) {
+					fmt::print("{}\n", e.what());
+				}
+				catch (...) {
+					continue;
+				}
+
+
+				++totalCount;
+				auto pkgInfo = PackageInfo();
+				pkgInfo.ver = pkg->version;
+
+				pkgInfo.name = entry.path().filename().string();
+
+				if (sym)
+				{
+					++linksCount;
+					pkgInfo.linkTo = fs::read_symlink(entry).string();
+				}
+
+				pkgs.emplace_back(std::move(pkgInfo));
+			}
 		}
 	}
 
