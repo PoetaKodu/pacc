@@ -1,0 +1,121 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    tags:
+      - "v*"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  Build-on-Linux:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          path: 'pacc-repo'
+
+      - name: Setup GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+      
+      - name: Download pacc
+        uses: robinraju/release-downloader@v1.4
+        with:
+          latest: true
+          repository: "PoetaKodu/pacc"
+          fileName: "*-linux-x64.zip"
+          
+      - run: unzip '*-linux-x64.zip'
+      
+      - name: Install and build
+        run: |
+          export LD_PRELOAD=$GITHUB_WORKSPACE/pacc/bin/libstdc++.so.6
+          ../pacc/bin/pacc install
+          ../pacc/bin/pacc build --verbose -c=Release --cores=2
+        working-directory: pacc-repo
+        
+      - name: Setup deployment folder
+        run: |
+          cp bin/x64/Release/pacc res/deploy/content/bin/pacc
+        working-directory: pacc-repo
+        
+      - name: Upload VM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ format('pacc-{0}-linux-x64', github.ref_name) }}
+          path: |
+            pacc-repo/res/deploy/content
+            !pacc-repo/res/deploy/content/bin/premake5.exe
+
+      - name: Setup bindeps deployment folder
+        run: |
+          cp `g++ -print-file-name=libstdc++.so.6` res/deploy/content/bin/libstdc++.so.6
+        working-directory: pacc-repo
+      - name: Upload VM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ format('pacc-bindeps-{0}-linux-x64', github.ref_name) }}
+          path: pacc-repo/res/deploy/content/bin/libstdc++.so.6
+
+  Build-on-Windows:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          path: 'pacc-repo'
+
+      - name: Download pacc
+        uses: robinraju/release-downloader@v1.4
+        with:
+          latest: true
+          repository: "PoetaKodu/pacc"
+          fileName: "*-windows-x64.zip"
+          
+      - shell: pwsh
+        run: Get-ChildItem '.' -Filter *-windows-x64.zip | Expand-Archive -DestinationPath '.' -Force
+      
+      - name: Install and build
+        run: |
+          ..\pacc\bin\pacc install
+          ..\pacc\bin\pacc build --verbose -c=Release --cores=2
+        working-directory: pacc-repo
+
+      - name: Setup deployment folder
+        run: |
+          copy bin\x64\Release\pacc.exe res\deploy\content\bin\pacc.exe
+        working-directory: pacc-repo
+        
+      - name: Upload VM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ format('pacc-{0}-windows-x64', github.ref_name) }}
+          path: |
+            pacc-repo/res/deploy/content
+            !pacc-repo/res/deploy/content/bin/premake5
+          
+  release:
+    runs-on: ubuntu-latest
+    needs: [ Build-on-Linux, Build-on-Windows ]
+    steps:
+        - uses: google-github-actions/release-please-action@v3
+          with:
+            release-type: simple
+            package-name: pacc
