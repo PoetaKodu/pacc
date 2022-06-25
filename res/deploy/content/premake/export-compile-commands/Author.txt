@@ -1,0 +1,7 @@
+Export Compile Commands Author:
+
+tarruda from GitHub:
+https://github.com/tarruda/premake-export-compile-commands
+
+License:
+Unknown (see https://github.com/tarruda/premake-export-compile-commands/issues/3)

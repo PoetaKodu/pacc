@@ -1,18 +1,3 @@
-# Custom:
-/build
-/bin
-.xmake/
-.vscode/
-/res/installer
-/testbed/
-/deps/*
-!/deps/cpackage.json
-!/deps/README.md
-*.user.*
-premake5.lua
-/pacc_packages
-compile_commands.json
-
 # Prerequisites
 *.d
 
@@ -45,3 +30,20 @@ compile_commands.json
 *.exe
 *.out
 *.app
+
+# Custom:
+/build
+/bin
+.xmake/
+.vscode/
+/res/installer
+/testbed/
+/deps/*
+!/deps/cpackage.json
+!/deps/README.md
+*.user.*
+premake5.lua
+/pacc_packages
+compile_commands.json
+
+!premake5.exe
