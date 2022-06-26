@@ -113,7 +113,7 @@ jobs:
           name: ${{ format('pacc-{0}-windows-x64', github.ref_name) }}
           path: |
             deploy-main
-            !deploy-main/bin/premake5
+            !deploy-main/pacc/bin/premake5
           
   release:
     runs-on: ubuntu-latest
