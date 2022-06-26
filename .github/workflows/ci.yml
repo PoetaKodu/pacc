@@ -51,8 +51,8 @@ jobs:
       - name: Setup deployment folder
         run: |
           mkdir deploy-main
-          cp -rf pacc-repo/res/deploy/content deploy-main/pacc
-          cp -rf pacc-repo/lua deploy-main/pacc/lua
+          cp -af pacc-repo/res/deploy/content deploy-main/pacc
+          cp -af pacc-repo/lua deploy-main/pacc/lua
           cp pacc-repo/bin/x64/Release/pacc deploy-main/pacc/bin/pacc
         
       - name: Upload VM artifact
