@@ -108,12 +108,12 @@ Use `pch` field inside `cpackage.json` to set up Precompiled Headers easily:
 
 Folder contents:
 ```
-- cpackage.json
+- pacc.json
 - src/
 	- Main.cpp
 ```
 
-`cpackage.json` contents:
+`pacc.json` contents:
 
 ```json
 {

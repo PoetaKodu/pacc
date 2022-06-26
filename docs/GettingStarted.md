@@ -17,14 +17,14 @@ Table of contents:
 
 The main purpose of **pacc** is to provide easy package management and build tools to your project.
 
-Everything is done by creating **package script** in the root directory of your project. A Package script is either a static JSON file (`cpackage.json`) or a dynamic Lua script (`cpackage.lua`, not supported yet).
+Everything is done by creating **package script** in the root directory of your project. A Package script is either a static JSON file (`pacc.json`) or a dynamic Lua script (`pacc.lua`, not supported yet).
 
-For most things, JSON is enough. If you want to create more advanced scripts, use `cpackage.lua`, or bind Lua functions to your `cpackage.json` file (not supported yet).
+For most things, JSON is enough. If you want to create more advanced scripts, use `pacc.lua`, or bind Lua functions to your `pacc.json` file (not supported yet).
 
 
 ## Creating a package script
 
-Example `cpackage.json` contents:
+Example `pacc.json` contents:
 
 ```json
 {
@@ -58,7 +58,7 @@ pacc run
 
 ## Adding more projects
 
-If your workspace has more projects, you can change `cpackage.json` to contain a workspace definition.
+If your workspace has more projects, you can change `pacc.json` to contain a workspace definition.
 
 This is a **single project** definition:
 
@@ -298,7 +298,7 @@ This will **link** the package to the user environment, making it visible from a
 
 ## Versioning your package
 
-You can add an optional `version` field to your `cpackage.json` to specify its version.
+You can add an optional `version` field to your `pacc.json` to specify its version.
 
 ```json
 {
