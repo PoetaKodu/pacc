@@ -57,7 +57,7 @@ auto PaccApp::detectPreferredPackageLoaderFor(fs::path const& path_) const
 	}
 
 	throw PaccException("Could not auto-detect package loader for \"{}\"!", path_.string())
-		.withHelp("Please specify the package loader explicitly or provide a cpackage.json file or other supported package format.");
+		.withHelp("Please specify the package loader explicitly or provide a pacc.json file or other supported package format.");
 }
 
 //////////////////////////////////////

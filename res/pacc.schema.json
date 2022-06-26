@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"$id": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
+	"$id": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/pacc.schema.json",
 	"oneOf": [
 		{
 			"$ref": "#/definitions/workspace"
@@ -15,8 +15,8 @@
 			"description": "Creates a new workspace with no projects",
 			"body": {
 				"name": "${1:WorkspaceName}",
-				"projects": [ 
-					
+				"projects": [
+
 				],
 				"description": "An empty workspace. Hover mouse over a `projects` field to see what you can do."
 			}

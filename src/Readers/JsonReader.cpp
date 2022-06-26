@@ -72,9 +72,9 @@ void PackageJsonReader::makeConformant()
 			this->makeConformant();
 		}
 		else
-			throw PaccException("Invalid cpackage.json format.")
+			throw PaccException("Invalid pacc.json format.")
 				.withHelp("Insert either \"projects\" (workspace) or \"type\" (single project) field.");
 	}
 	else
-		throw PaccException("Empty workspace not allowed, your cpackage.json is invalid.");
+		throw PaccException("Empty workspace not allowed, your pacc.json is invalid.");
 }

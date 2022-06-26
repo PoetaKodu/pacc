@@ -9,18 +9,18 @@
 struct Package;
 struct Project;
 
-constexpr std::string_view PackageJSON		= "cpackage.json";
-constexpr std::string_view PackageLUA		= "cpackage.lua";
-constexpr std::string_view PackageLUAScript	= "cpackage.script.lua";
+constexpr std::string_view PackageJSON[2]		= { "pacc.json", "cpackage.json" };
+constexpr std::string_view PackageLUA[2]		= { "pacc.lua", "cpackage.lua" };
+constexpr std::string_view PackageLUAScript[2]	= { "pacc.script.lua", "cpackage.script.lua" };
 
 using PackagePtr 	= std::shared_ptr<Package>;
 
-/////////////////////////////////////////////////
 std::size_t getNumElements(VecOfStr const& v);
-
-/////////////////////////////////////////////////
 std::size_t getNumElements(VecOfStrAcc const& v);
 
+
+auto findPackageFile(fs::path const& directory_, std::optional<std::string_view> extension_ = std::nullopt) -> fs::path;
+auto findPackageScriptFile(fs::path const& directory_) -> fs::path;
 
 /// <summary>GNU visibility mode</summary>
 /// <remarks>Check https://gcc.gnu.org/wiki/Visibility</remarks>
@@ -190,11 +190,11 @@ struct PackagePreloadInfo
 	fs::path scriptFile;
 
 	bool usesJsonConfig() const {
-		return root.filename() == PackageJSON;
+		return rg::find(PackageJSON, root.filename()) != std::end(PackageJSON);
 	}
 
 	bool usesLuaConfig() const {
-		return root.filename() == PackageLUA;
+		return rg::find(PackageJSON, root.filename()) != std::end(PackageLUA);
 	}
 
 	bool usesScriptFile() const {

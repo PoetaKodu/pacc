@@ -45,7 +45,7 @@ UPtr<Package> MainPackageLoader::load(fs::path const& root_)
 /////////////////////////////////////////////
 bool MainPackageLoader::canLoad(fs::path const& root_) const
 {
-	return fs::is_directory(root_) && fs::is_regular_file(root_ / "cpackage.json");
+	return fs::is_directory(root_) && !findPackageFile(root_).empty();
 }
 
 

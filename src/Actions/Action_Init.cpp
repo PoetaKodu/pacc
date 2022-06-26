@@ -16,15 +16,14 @@ void PaccApp::initPackage()
 	using fmt::fg, fmt::color;
 	using namespace fmt::literals;
 
-	auto cwd = fs::current_path();
-
-	fs::path target;
-	std::string targetName;
+	auto cwd		= fs::current_path();
+	auto target		= fs::path();
+	auto targetName	= std::string();
 
 	getInitPackageNameAndTarget(args, target, targetName);
 
 	fmt::print( "Initializing package \"{}\"\n"
-				"Do you want to create \"cpackage.json\" file (Y/N): ",
+				"Do you want to create \"pacc.json\" file (Y/N): ",
 				target.stem().string() );
 
 	if (!ensureUserApproval())
@@ -32,14 +31,14 @@ void PaccApp::initPackage()
 
 	fs::create_directories(target);
 
-	writeStringToFile(target / "cpackage.json",
-			fmt::format(app_tmpl::cpackage_json,
+	writeStringToFile(target / "pacc.json",
+			fmt::format(app_tmpl::pacc_json,
 				"PackageName"_a = target.stem().string()
 			)
 		);
 
 	fmt::print(fg(color::lime_green),
-			"\"cpackage.json\" has been created.\n"
+			"\"pacc.json\" has been created.\n"
 			"Happy development!"
 		);
 }
@@ -79,9 +78,11 @@ static void getInitPackageNameAndTarget(ProgramArgs const& args_, fs::path& targ
 		else
 			target_ = targetName_;
 
-		if (fs::exists(target_ / "cpackage.json"))
+
+		auto packageFile = findPackageFile(target_);
+		if (!packageFile.empty())
 		{
-			throw PaccException("Folder \"{}\" already contains cpackage.json!", targetName_);
+			throw PaccException("Folder \"{}\" already contains {}!", targetName_, packageFile.filename().string());
 		}
 	}
 }

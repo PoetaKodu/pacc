@@ -45,7 +45,8 @@ void PaccApp::listPackages()
 			bool sym = fs::is_symlink(entry);
 			if (dir || sym)
 			{
-				if (!fs::is_regular_file(entry.path() / "cpackage.json"))
+				auto packageFile = findPackageFile(entry.path());
+				if (packageFile.empty())
 					continue;
 
 				std::unique_ptr<Package> pkg;

@@ -59,6 +59,48 @@ void readScriptableActions(json const& scriptsContainer, ScriptableTarget &targe
 
 
 ///////////////////////////////////////////////////
+auto findPackageFile(fs::path const& directory_, std::optional<std::string_view> extension_)
+	-> fs::path
+{
+	auto fileExists = [&] (fs::path const& path_)
+	{
+		return fs::exists(directory_ / path_) && fs::is_regular_file(path_);
+	};
+
+	// Test LUA files:
+	{
+		auto it = rg::find_if(PackageJSON, fileExists);
+		if (it != std::end(PackageJSON))
+			return directory_ / *it;
+	}
+
+	// Test JSON files:
+	{
+		auto it = rg::find_if(PackageLUA, fileExists);
+		if (it != std::end(PackageLUA))
+			return directory_ / *it;
+	}
+
+	return {};
+}
+
+///////////////////////////////////////////////////
+auto findPackageScriptFile(fs::path const& directory_)
+	-> fs::path
+{
+	auto fileExists = [&] (fs::path const& path_)
+	{
+		return fs::exists(directory_ / path_) && fs::is_regular_file(path_);
+	};
+
+	auto it = rg::find_if(PackageLUAScript, fileExists);
+	if (it != std::end(PackageLUAScript))
+		return directory_ / *it;
+
+	return {};
+}
+
+///////////////////////////////////////////////////
 auto detectArtifactTypeFromPath(std::string_view path_)
 	-> Artifact
 {
@@ -284,24 +326,14 @@ auto Package::preload(fs::path dir_)
 		dir_ = fs::current_path();
 	}
 
-	auto tryUseFile = [&dir_](fs::path& out_, std::string_view name_)
-		{
-			fs::path conf = dir_ / name_;
-			if (fs::exists(conf)) {
-				out_ = std::move(conf);
-				return true;
-			}
-			return false;
-		};
-
-	if (!tryUseFile(result.root, PackageLUA) &&
-		!tryUseFile(result.root, PackageJSON))
+	result.root = findPackageFile(dir_);
+	if (result.root.empty())
 	{
 		throw PaccException(errors::NoPackageSourceFile[0])
 				.withHelp(errors::NoPackageSourceFile[1]);
 	}
 
-	tryUseFile(result.scriptFile, PackageLUAScript);
+	result.scriptFile = findPackageScriptFile(dir_);
 
 	return result;
 }

@@ -5,10 +5,10 @@
 namespace app_tmpl
 {
 
-constexpr std::string_view cpackage_json =
+constexpr std::string_view pacc_json =
 R"PKG({{
-	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/cpackage.schema.json",
-	
+	"$schema": "https://raw.githubusercontent.com/PoetaKodu/pacc/main/res/pacc.schema.json",
+
 	"name": "{PackageName}",
 	"projects": [
 		{{
