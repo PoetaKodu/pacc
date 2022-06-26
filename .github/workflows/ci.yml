@@ -50,6 +50,7 @@ jobs:
         
       - name: Setup deployment folder
         run: |
+          mkdir deploy-main
           cp -rf pacc-repo/res/deploy/content deploy-main/pacc
           cp -rf pacc-repo/lua deploy-main/pacc/lua
           cp pacc-repo/bin/x64/Release/pacc deploy-main/pacc/bin/pacc
@@ -102,8 +103,8 @@ jobs:
       - name: Setup deployment folder
         run: |
           mkdir deploy-main
-          xcopy /s /q /y pacc-repo\res\deploy\content deploy-main\pacc
-          xcopy /s /q /y pacc-repo\lua deploy-main\pacc\lua
+          echo d | xcopy /s /q pacc-repo\res\deploy\content deploy-main\pacc
+          echo d | xcopy /s /q pacc-repo\lua deploy-main\pacc\lua
           copy pacc-repo\bin\x64\Release\pacc.exe deploy-main\pacc\bin\pacc.exe
         
       - name: Upload VM artifact
