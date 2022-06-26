@@ -40,6 +40,7 @@
 /testbed/
 /deps/*
 !/deps/cpackage.json
+!/deps/pacc.json
 !/deps/README.md
 *.user.*
 premake5.lua
