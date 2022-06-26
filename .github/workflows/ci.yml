@@ -50,26 +50,27 @@ jobs:
         
       - name: Setup deployment folder
         run: |
-          cp bin/x64/Release/pacc res/deploy/content/bin/pacc
-        working-directory: pacc-repo
+          cp -rf pacc-repo/res/deploy/content deploy-main/pacc
+          cp -rf pacc-repo/lua deploy-main/pacc/lua
+          cp pacc-repo/bin/x64/Release/pacc deploy-main/pacc/bin/pacc
         
       - name: Upload VM artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ format('pacc-{0}-linux-x64', github.ref_name) }}
           path: |
-            pacc-repo/res/deploy/content
-            !pacc-repo/res/deploy/content/bin/premake5.exe
+            deploy-main
+            !deploy-main/pacc/bin/premake5.exe
 
       - name: Setup bindeps deployment folder
         run: |
-          cp `g++ -print-file-name=libstdc++.so.6` res/deploy/content/bin/libstdc++.so.6
-        working-directory: pacc-repo
+          mkdir -p deploy-bindeps/pacc/bin
+          cp `g++ -print-file-name=libstdc++.so.6` deploy-bindeps/pacc/bin/libstdc++.so.6
       - name: Upload VM artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ format('pacc-bindeps-{0}-linux-x64', github.ref_name) }}
-          path: pacc-repo/res/deploy/content/bin/libstdc++.so.6
+          path: deploy-bindeps
 
   Build-on-Windows:
     # The type of runner that the job will run on
@@ -100,16 +101,18 @@ jobs:
 
       - name: Setup deployment folder
         run: |
-          copy bin\x64\Release\pacc.exe res\deploy\content\bin\pacc.exe
-        working-directory: pacc-repo
+          mkdir deploy-main
+          xcopy /s /q /y pacc-repo\res\deploy\content deploy-main\pacc
+          xcopy /s /q /y pacc-repo\lua deploy-main\pacc\lua
+          copy pacc-repo\bin\x64\Release\pacc.exe deploy-main\pacc\bin\pacc.exe
         
       - name: Upload VM artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ format('pacc-{0}-windows-x64', github.ref_name) }}
           path: |
-            pacc-repo/res/deploy/content
-            !pacc-repo/res/deploy/content/bin/premake5
+            deploy-main
+            !deploy-main/bin/premake5
           
   release:
     runs-on: ubuntu-latest
