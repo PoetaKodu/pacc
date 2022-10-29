@@ -49,7 +49,7 @@ void makeWritableAll(fs::path const& path_)
 }
 
 #ifdef PACC_SYSTEM_WINDOWS
-static bool isReparsePoint(fs::path const& path);
+static bool isReparsePoint(fs::path const& path)
 {
 	auto attr = GetFileAttributesW(path.c_str());
 	return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_REPARSE_POINT);
