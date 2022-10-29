@@ -4,7 +4,7 @@
 #include <Pacc/Helpers/Exceptions.hpp>
 
 ///////////////////////////////////////////////////
-std::string readFileContents(fs::path const& path_)
+String readFileContents(fs::path const& path_)
 {
 	auto input = std::ifstream(path_);
 
@@ -12,8 +12,8 @@ std::string readFileContents(fs::path const& path_)
 		throw PaccException("failed to open file {} for reading", path_.string());
 
 
-	std::string result;
-	std::string buf;
+	String result;
+	String buf;
 	buf.resize(4 * 1024 * 1024);
 	while(input.read(buf.data(), buf.capacity()))
 		result.append(buf.data(), input.gcount());

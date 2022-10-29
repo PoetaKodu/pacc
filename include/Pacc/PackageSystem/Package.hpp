@@ -9,17 +9,17 @@
 struct Package;
 struct Project;
 
-constexpr std::string_view PackageJSON[2]		= { "pacc.json", "cpackage.json" };
-constexpr std::string_view PackageLUA[2]		= { "pacc.lua", "cpackage.lua" };
-constexpr std::string_view PackageLUAScript[2]	= { "pacc.script.lua", "cpackage.script.lua" };
+constexpr StringView PackageJSON[2]		= { "pacc.json", "cpackage.json" };
+constexpr StringView PackageLUA[2]		= { "pacc.lua", "cpackage.lua" };
+constexpr StringView PackageLUAScript[2]	= { "pacc.script.lua", "cpackage.script.lua" };
 
 using PackagePtr 	= std::shared_ptr<Package>;
 
-std::size_t getNumElements(VecOfStr const& v);
+std::size_t getNumElements(Vec<String> const& v);
 std::size_t getNumElements(VecOfStrAcc const& v);
 
 
-auto findPackageFile(fs::path const& directory_, std::optional<std::string_view> extension_ = std::nullopt) -> fs::path;
+auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_ = std::nullopt) -> fs::path;
 auto findPackageScriptFile(fs::path const& directory_) -> fs::path;
 
 /// <summary>GNU visibility mode</summary>
@@ -38,7 +38,7 @@ struct GNUSymbolVisibility
 		return value;
 	}
 
-	static GNUSymbolVisibility fromString(std::string_view str_)
+	static GNUSymbolVisibility fromString(StringView str_)
 	{
 		if (compareIgnoreCase(str_, "Default"))
 			return { Mode::Default };
@@ -50,7 +50,7 @@ struct GNUSymbolVisibility
 		return { Mode::Unknown };
 	}
 
-	std::string_view toString() const
+	StringView toString() const
 	{
 		if (value == Mode::Default)
 			return "Default";
@@ -63,7 +63,7 @@ struct GNUSymbolVisibility
 
 struct Command
 {
-	Command(std::string content_, bool req_ = true)
+	Command(String content_, bool req_ = true)
 		:
 		content(std::move(content_)),
 		required(req_)
@@ -71,7 +71,7 @@ struct Command
 
 	}
 
-	std::string content;
+	String content;
 	bool required = true;
 };
 
@@ -89,8 +89,8 @@ struct Configuration
 
 	GNUSymbolVisibility 			symbolVisibility;
 
-	std::string 					moduleDefinitionFile;
-	VecOfStr					 	files;
+	String 					moduleDefinitionFile;
+	Vec<String>					 	files;
 	SaC<AccessSplitVec<Dependency>> dependencies;
 	SaC<VecOfStrAcc>			 	defines;
 	SaC<VecOfStrAcc>			 	includeFolders;
@@ -102,12 +102,12 @@ struct Configuration
 
 struct ScriptableAction
 {
-	std::string moduleName; // either a file or a plugin
-	std::string functionName;
+	String moduleName; // either a file or a plugin
+	String functionName;
 };
 
-using OptScriptableAction	= std::optional<ScriptableAction>;
-using ScriptableActionsMap	= std::unordered_map<std::string, OptScriptableAction>;
+using OptScriptableAction	= Opt<ScriptableAction>;
+using ScriptableActionsMap	= std::unordered_map<String, OptScriptableAction>;
 
 struct ScriptableTarget {
 	ScriptableActionsMap scripts;
@@ -124,7 +124,7 @@ enum class Artifact {
 };
 inline constexpr int ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 
-Artifact detectArtifactTypeFromPath(std::string_view path_);
+Artifact detectArtifactTypeFromPath(StringView path_);
 
 struct ArtifactProducer {
 	using ArtifactsType = std::array<Vec<fs::path>, ArtifactTypesCount>;
@@ -137,9 +137,9 @@ struct TargetBase
 	Configuration,
 	ArtifactProducer
 {
-	std::string 	name;
+	String 	name;
 
-	Map<std::string, Configuration>	premakeFilters;
+	Map<String, Configuration>	premakeFilters;
 
 	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
 
@@ -148,9 +148,9 @@ struct TargetBase
 
 struct PrecompiledHeader
 {
-	std::string 		header;
-	std::string 		source;
-	std::string 		definition;
+	String 		header;
+	String 		source;
+	String 		definition;
 };
 
 enum class ProjectType
@@ -163,8 +163,8 @@ enum class ProjectType
 	Unknown
 };
 
-std::string toString(ProjectType type_, std::string_view pluginName_ = "");
-ProjectType parseProjectType(std::string_view type_);
+String toString(ProjectType type_, StringView pluginName_ = "");
+ProjectType parseProjectType(StringView type_);
 
 struct Project
 	: TargetBase, ScriptableTarget
@@ -172,8 +172,8 @@ struct Project
 	using Type = ProjectType;
 	using enum ProjectType;
 
-	std::string language;
-	std::optional<PrecompiledHeader> pch;
+	String language;
+	Opt<PrecompiledHeader> pch;
 
 	Type type;
 
@@ -208,10 +208,10 @@ struct Package
 	ScriptableTarget,
 	PackagePreloadInfo
 {
-	std::vector<Project> 	projects;
+	Vec<Project> 	projects;
 	Version					version;
 	bool					isCMake = false;
-	std::string 			startupProject;
+	String 			startupProject;
 
 	static PackagePreloadInfo preload(fs::path dir_ = "");
 
@@ -225,9 +225,9 @@ struct Package
 
 	static UPtr<Package> load(PackagePreloadInfo info_);
 
-	Project const* findProject(std::string_view name_) const;
+	Project const* findProject(StringView name_) const;
 
-	Project const& requireProject(std::string_view name_) const;
+	Project const& requireProject(StringView name_) const;
 
 	fs::path predictOutputFolder(Project const& project_) const;
 	fs::path predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const;
@@ -246,12 +246,12 @@ struct Package
 	}
 
 private:
-	static bool loadFromJSON(Package& package_, std::string const& packageContent_);
+	static bool loadFromJSON(Package& package_, String const& packageContent_);
 };
 
 
 template <typename T, typename TMapValueFn = ReturnIdentity>
-void mergeFields(std::vector<T>& into_, std::vector<T> const& from_, TMapValueFn&& mapValueFn_ = TMapValueFn())
+void mergeFields(Vec<T>& into_, Vec<T> const& from_, TMapValueFn&& mapValueFn_ = TMapValueFn())
 {
 	into_.reserve(from_.size());
 	for(auto const & elem : from_)

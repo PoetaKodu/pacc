@@ -12,7 +12,7 @@ fs::path requireBuildLogsFolder()
 }
 
 ////////////////////////////////////////////
-fs::path saveBuildOutputLog(std::string_view packageName_, std::string const& outputLog_)
+fs::path saveBuildOutputLog(StringView packageName_, String const& outputLog_)
 {
 
 	fs::path p = requireBuildLogsFolder();
@@ -24,11 +24,11 @@ fs::path saveBuildOutputLog(std::string_view packageName_, std::string const& ou
 }
 
 ////////////////////////////////////////////
-std::vector<fs::path> getSortedBuildLogs(size_t limit)
+auto getSortedBuildLogs(size_t limit) -> Vec<fs::path>
 {
-	fs::path logsPath = requireBuildLogsFolder();
+	auto logsPath = requireBuildLogsFolder();
 
-	std::vector<fs::path> logs;
+	auto logs = Vec<fs::path>();
 
 	logs.reserve(1024);
 
@@ -52,7 +52,7 @@ std::vector<fs::path> getSortedBuildLogs(size_t limit)
 }
 
 ////////////////////////////////////////////
-std::string currentTimeForLog()
+auto currentTimeForLog() -> String
 {
 	return fmt::format("{:%Y_%m_%d_%H_%M_%S}", fmt::localtime( std::time(nullptr) ));
 }

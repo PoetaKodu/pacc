@@ -3,6 +3,7 @@
 #include PACC_PCH
 
 #include <Pacc/PackageSystem/Package.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 
 namespace gen
 {
@@ -19,7 +20,7 @@ public:
 
 fs::path getPremake5Path();
 
-void runPremakeGeneration(std::string_view toolchainName_);
+void runPremakeGeneration(StringView toolchainName_);
 
 }
 

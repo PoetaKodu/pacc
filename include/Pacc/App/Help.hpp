@@ -5,7 +5,7 @@
 namespace help
 {
 
-using ActionInfo = std::pair< std::string_view, std::string_view >;
+using ActionInfo = std::pair< StringView, StringView >;
 
 constexpr ActionInfo actions[] = {
 	{ "init", 			"creates a local package inside specified folder (default = current)" },
@@ -24,7 +24,7 @@ constexpr ActionInfo actions[] = {
 	{ "uninstall",		"uninstalls package artifacts" }
 };
 
-constexpr std::string_view DependencySyntax =
+constexpr StringView DependencySyntax =
 	"    - \"RepoName\" for package from official repository (https://github.com/pacc-repo)\n"
 	"    - \"github:UserName/RepoName\" for package from GitHub repository\n"
 	"    - \"gitlab:UserName/RepoName\" for package from GitLab repository";

@@ -19,7 +19,7 @@ void PaccApp::logs()
 		}
 		else
 		{
-			std::string content = readFileContents(logs[0]);
+			String content = readFileContents(logs[0]);
 			fmt::print("{}\n", content);
 		}
 	}
@@ -30,7 +30,7 @@ void PaccApp::logs()
 		if (args.size() >= 3)
 		{
 			try {
-				amount = std::stol( std::string(args[2]) );
+				amount = std::stol( String(args[2]) );
 			}
 			catch(...) {}
 		}

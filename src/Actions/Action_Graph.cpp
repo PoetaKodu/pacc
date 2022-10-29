@@ -7,11 +7,11 @@
 ///////////////////////////////////
 void PaccApp::visualizeGraph()
 {
-	constexpr std::string_view OutputSwitches[] = { "-o", "--output" };
+	constexpr StringView OutputSwitches[] = { "-o", "--output" };
 
 	auto pkg = Package::load();
 
-	auto outFileName = std::string();
+	auto outFileName = String();
 
 	for (auto sw : OutputSwitches)
 	{

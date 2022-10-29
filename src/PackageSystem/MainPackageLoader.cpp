@@ -50,7 +50,7 @@ bool MainPackageLoader::canLoad(fs::path const& root_) const
 
 
 /////////////////////////////////////////////
-bool MainPackageLoader::loadTarget(fs::path const& root_, std::string const& name_, TargetBase& target_)
+bool MainPackageLoader::loadTarget(fs::path const& root_, String const& name_, TargetBase& target_)
 {
 	auto pkg = load(root_);
 

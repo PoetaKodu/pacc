@@ -2,12 +2,14 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 struct ChildProcess
 {
-	using ExitCode 	= std::optional<int>;
-	using Timeout 	= std::optional<ch::milliseconds>;
+	using ExitCode 	= Opt<int>;
+	using Timeout 	= Opt<ch::milliseconds>;
 
-	std::string 		command;
+	String 		command;
 
 	fs::path 			workingDirectory 	= ""; // "" => current working dir
 	Timeout				timeout 			= std::nullopt;
@@ -16,12 +18,12 @@ struct ChildProcess
 	ch::milliseconds 	passiveSleepStep 	= ch::milliseconds{10};
 
 	struct {
-		std::string stdOut;
-		std::string stdErr;
+		String stdOut;
+		String stdErr;
 	} out{};
 
 	ExitCode exitCode 	= std::nullopt;
-	
+
 	ExitCode runSync();
 };
 

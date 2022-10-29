@@ -3,9 +3,9 @@
 #include <Pacc/Helpers/String.hpp>
 
 /////////////////////////////////////////
-std::string toLower(std::string_view str_)
+String toLower(StringView str_)
 {
-	std::string lower(str_);
+	String lower(str_);
 	// TODO: this won't work on unicode characters.
 	// Use ICU later.
 	rg::transform(lower, lower.begin(),
@@ -19,10 +19,10 @@ std::string toLower(std::string_view str_)
 
 
 ///////////////////////////////////////////////////
-StringPair splitBy(std::string_view str_, char delim_, bool leftAsFallback_)
+StringPair splitBy(StringView str_, char delim_, bool leftAsFallback_)
 {
 	auto pos = str_.find(delim_);
-	if (pos != std::string_view::npos)
+	if (pos != StringView::npos)
 		return StringPair{ str_.substr(0, pos), str_.substr(pos + 1) };
 	else
 	{
@@ -34,7 +34,7 @@ StringPair splitBy(std::string_view str_, char delim_, bool leftAsFallback_)
 }
 
 /////////////////////////////////////////////
-bool startsWith(std::string_view str_, std::string_view prefixTest_)
+bool startsWith(StringView str_, StringView prefixTest_)
 {
 	if (str_.length() < prefixTest_.length())
 		return false;
@@ -49,7 +49,7 @@ bool startsWith(std::string_view str_, std::string_view prefixTest_)
 }
 
 /////////////////////////////////////////////
-bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string &value_)
+bool parseArgSwitch(StringView arg_, StringView switch_, String &value_)
 {
 	// Syntax:
 	// --arg=val
@@ -68,7 +68,7 @@ bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string
 }
 
 /////////////////////////////////////////////////
-bool compareIgnoreCase(std::string_view l, std::string_view r)
+bool compareIgnoreCase(StringView l, StringView r)
 {
 	if (l.length() != r.length()) return false;
 
@@ -82,15 +82,15 @@ bool compareIgnoreCase(std::string_view l, std::string_view r)
 }
 
 /////////////////////////////////////////////////
-std::string replaceAll(std::string_view source_, std::string_view from_, std::string_view to_)
+String replaceAll(StringView source_, StringView from_, StringView to_)
 {
-    std::string newString;
+    String newString;
     newString.reserve(source_.length());  // avoids a few memory allocations
 
-    std::string::size_type lastPos = 0;
-    std::string::size_type findPos;
+    String::size_type lastPos = 0;
+    String::size_type findPos;
 
-    while(std::string::npos != (findPos = source_.find(from_, lastPos)))
+    while(String::npos != (findPos = source_.find(from_, lastPos)))
     {
         newString.append(source_, lastPos, findPos - lastPos);
         newString += to_;

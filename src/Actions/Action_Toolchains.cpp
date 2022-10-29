@@ -13,7 +13,7 @@ void PaccApp::toolchains()
 		int tcIdx = -1;
 
 		try {
-			tcIdx = std::stoi(std::string(args[2]));
+			tcIdx = std::stoi(String(args[2]));
 		}
 		catch(...) {}
 
@@ -25,8 +25,8 @@ void PaccApp::toolchains()
 
 		fmt::print("Changed selected toolchain to {} (\"{}\", version \"{}\")",
 				tcIdx,
-				tcs[tcIdx]->prettyName,	
-				tcs[tcIdx]->version	
+				tcs[tcIdx]->prettyName,
+				tcs[tcIdx]->version
 			);
 
 		cfg.updateSelectedToolchain(tcIdx);
@@ -35,7 +35,7 @@ void PaccApp::toolchains()
 	{
 		// Display toolchains
 		std::cout << "TOOLCHAINS:\n";
-			
+
 		if (!tcs.empty())
 		{
 			using fmt::fg, fmt::color;

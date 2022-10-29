@@ -2,12 +2,14 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 struct Package;
 
 namespace viz
 {
 
-std::string generateGraphContent(Package const& root_);
+auto generateGraphContent(Package const& root_) -> String;
 
 
 }

@@ -33,7 +33,7 @@ PaccApp::PaccApp()
 
 
 ///////////////////////////////////////////////////
-IPackageLoader* PaccApp::registerPackageLoader(std::string const& name_, UPtr<IPackageLoader> loader_)
+IPackageLoader* PaccApp::registerPackageLoader(String const& name_, UPtr<IPackageLoader> loader_)
 {
 	auto ptr = loader_.get();
 	packageLoaders[name_] = std::move(loader_);
@@ -65,9 +65,9 @@ auto PaccApp::setupPackageBuilders()
 
 ///////////////////////////////////////////////////
 auto PaccApp::collectMissingDependencies(Package const & pkg_)
-	-> std::vector<PackageDependency>
+	-> Vec<PackageDependency>
 {
-	std::vector<PackageDependency> result;
+	Vec<PackageDependency> result;
 
 	for (auto const& proj : pkg_.projects)
 	{
@@ -115,7 +115,7 @@ auto PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 		throw PaccException(CouldNotLoad, loc_.repository);
 	}
 
-	std::string cloneLink = loc_.getGitLink();
+	String cloneLink = loc_.getGitLink();
 
 	// Ensure repository exists and is available:
 	{
@@ -131,9 +131,9 @@ auto PaccApp::downloadPackage(fs::path const &target_, DownloadLocation const& l
 
 	// Clone the repository
 	{
-		std::string branchParam;
+		String branchParam;
 
-		std::string branch = loc_.getBranch();
+		String branch = loc_.getBranch();
 		if (!branch.empty())
 			branchParam = fmt::format(BranchParam, branch);
 
@@ -184,13 +184,13 @@ auto PaccApp::loadPaccConfig()
 }
 
 ///////////////////////////////////////////////////
-auto PaccApp::containsSwitch(std::string_view switch_) const
+auto PaccApp::containsSwitch(StringView switch_) const
 	-> bool
 {
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
 	// Start at 2
-	std::string unused;
+	String unused;
 	for(size_t i = 2; i < args.size(); ++i)
 	{
 		if (args[i] == switch_ || parseArgSwitch(args[i], switch_, unused))
@@ -201,19 +201,19 @@ auto PaccApp::containsSwitch(std::string_view switch_) const
 }
 
 ///////////////////////////////////////////////////
-auto PaccApp::argValue(std::string_view name_) const
-	-> std::string
+auto PaccApp::argValue(StringView name_) const
+	-> String
 {
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
 	// Start at 2
-	std::string result;
+	String result;
 	for(size_t i = 2; i < args.size(); ++i)
 	{
 		if (parseArgSwitch(args[i], name_, result))
 			return result;
 		else if (args[i] == name_ && i + 1 < args.size())
-			return std::string(args[i + 1]);
+			return String(args[i + 1]);
 	}
 
 	return result;

@@ -9,7 +9,7 @@ namespace plugins::cmake
 {
 
 struct BuildInfo {
-	std::map<std::string, fs::path> artifacts;
+	std::map<String, fs::path> artifacts;
 
 	// TODO: add more info
 };
@@ -28,7 +28,7 @@ public:
 	}
 
 	auto load(fs::path const& root_) -> UPtr<Package> override;
-	auto loadTarget(fs::path const& root_, std::string const& name_, TargetBase& target_) -> bool override;
+	auto loadTarget(fs::path const& root_, String const& name_, TargetBase& target_) -> bool override;
 
 protected:
 	auto discoverTargets(json const& json_) const -> Vec<StringPair>;

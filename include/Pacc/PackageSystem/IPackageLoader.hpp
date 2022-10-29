@@ -2,6 +2,7 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 
 class PaccApp;
@@ -21,7 +22,7 @@ public:
 	// Utilized during loader autodetection
 	virtual bool canLoad(fs::path const& root_) const = 0;
 
-	virtual bool loadTarget(fs::path const& root_, std::string const& name_, TargetBase& target_) = 0;
+	virtual bool loadTarget(fs::path const& root_, String const& name_, TargetBase& target_) = 0;
 
 	// Lower value means higher priority.
 	int autodetectPriority = 0;

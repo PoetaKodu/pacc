@@ -9,38 +9,38 @@
 
 
 ///////////////////////////////////////////////
-static auto detectVSProperty(std::string_view propertyName)
+static auto detectVSProperty(StringView propertyName)
 {
-	auto result				= std::vector<std::string>();
+	auto result				= Vec<String>();
 
 	// TODO: find better way to find this program
 	// TODO: this won't support older visual studios
-	auto const vswherePath	= std::string("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere");
-	auto const params		= std::string("-prerelease -sort -utf8 -property ");
+	auto const vswherePath	= String("C:/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere");
+	auto const params		= String("-prerelease -sort -utf8 -property ");
 	auto vswhere			= ChildProcess{ fmt::format("\"{}\" {} {}", vswherePath, params, propertyName), "", ch::milliseconds{2500} };
 	auto exitCode			= vswhere.runSync();
 
 	if (exitCode.value_or(1) != 0)
-		return std::optional( result );
+		return Opt( result );
 
 	std::erase(vswhere.out.stdOut, '\r');
 	for (auto strRange : std::views::split(vswhere.out.stdOut, '\n'))
 	{
 		auto common = strRange | std::views::common;
-		auto str = std::string(common.begin(), common.end());
+		auto str = String(common.begin(), common.end());
 		if (str.empty())
 			continue;
 
 		result.emplace_back( std::move(str) );
 	}
 
-	return std::optional( result );
+	return Opt( result );
 }
 
 ///////////////////////////////////////////////
-std::vector<MSVCToolchain> MSVCToolchain::detect()
+Vec<MSVCToolchain> MSVCToolchain::detect()
 {
-	auto tcs = std::vector<MSVCToolchain>();
+	auto tcs = Vec<MSVCToolchain>();
 
 	// Read pretty names
 	{
@@ -96,7 +96,7 @@ std::vector<MSVCToolchain> MSVCToolchain::detect()
 }
 
 ///////////////////////////////
-std::string MSVCToolchain::handleWin32SpecialCase(std::string const& platformName_)
+String MSVCToolchain::handleWin32SpecialCase(String const& platformName_)
 {
 	if (platformName_ == "x86")
 		return "Win32";
@@ -105,7 +105,7 @@ std::string MSVCToolchain::handleWin32SpecialCase(std::string const& platformNam
 }
 
 ///////////////////////////////
-MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lvStr_)
+MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(String const& lvStr_)
 {
 	LineVersion lv;
 	try {
@@ -117,7 +117,7 @@ MSVCToolchain::LineVersion MSVCToolchain::parseLineVersion(std::string const& lv
 
 
 ///////////////////////////////
-std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_, int verbosityLevel_)
+Opt<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_, int verbosityLevel_)
 {
 	using fmt::fg, fmt::color;
 
@@ -127,7 +127,7 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 
 
 	// TODO: make configurable
-	std::vector<std::string> params = {
+	Vec<String> params = {
 		"/m",
 		"/property:Configuration=" + settings_.configName,
 		"/property:Platform=" + handleWin32SpecialCase(settings_.platformName),
@@ -148,14 +148,14 @@ std::optional<int> MSVCToolchain::run(Package const& pkg_, BuildSettings setting
 
 	fs::path const msbuildPath = mainPath / "MSBuild/Current/Bin/msbuild.exe";
 
-	std::string buildCommand = fmt::format("{} {}.sln", msbuildPath.string(), pkg_.name);
+	String buildCommand = fmt::format("{} {}.sln", msbuildPath.string(), pkg_.name);
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
 	auto proc = ChildProcess{buildCommand, "build", std::nullopt, verbose};
 	proc.runSync();
 
-	std::string outputLog = fmt::format(
+	String outputLog = fmt::format(
 			FMT_COMPILE("STDOUT:\n\n{}\n\nSTDERR:\n\n{}"),
 			proc.out.stdOut,
 			proc.out.stdErr
@@ -190,7 +190,7 @@ bool MSVCToolchain::deserialize(json const& in_)
 }
 
 ///////////////////////////////
-std::string MSVCToolchain::premakeToolchainType() const
+String MSVCToolchain::premakeToolchainType() const
 {
 	switch(lineVersion)
 	{

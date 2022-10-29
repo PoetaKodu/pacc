@@ -2,6 +2,8 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 namespace env
 {
 
@@ -23,7 +25,7 @@ fs::path requirePaccDataStorageFolder();
 /// <summary>Finds executable with given name, that is visible from current folder (either in path, or same folder)</summary>
 /// <param name="execName_">The executable name</param>
 /// <returns>fs::path</returns>
-fs::path findExecutable(std::string_view execName_);
+fs::path findExecutable(StringView execName_);
 
 /// <summary>
 /// Gets the directory of the Pacc executable.

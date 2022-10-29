@@ -4,27 +4,27 @@
 #include <Pacc/Helpers/Exceptions.hpp>
 
 //////////////////////////////////////////////////
-std::string JsonView::stringFieldOr(std::string_view subfieldName_, std::string_view alt_) const
+String JsonView::stringFieldOr(StringView subfieldName_, StringView alt_) const
 {
 	auto it = root.find(subfieldName_);
 	if (it != root.end())
 	{
 		if (it->type() == json::value_t::string)
-			return it->get<std::string>();
+			return it->get<String>();
 	}
 
-	return std::string(alt_);
+	return String(alt_);
 }
 
 
 //////////////////////////////////////////////////
-void JsonView::expect(std::string_view name, json::value_t type) const
+void JsonView::expect(StringView name, json::value_t type) const
 {
 	using namespace fmt;
 
-	constexpr std::string_view WrongTypeMsg =
+	constexpr StringView WrongTypeMsg =
 		"field \"{}\" expected to be of type \"{}\", but \"{}\" given instead";
-	constexpr std::string_view NoFieldMsg =
+	constexpr StringView NoFieldMsg =
 		"field \"{}\" expected to be of type \"{}\" does not exist";
 
 	auto it = root.find(name);
@@ -39,11 +39,11 @@ void JsonView::expect(std::string_view name, json::value_t type) const
 }
 
 //////////////////////////////////////////////////
-void JsonView::requireType(std::string_view name, json::value_t type) const
+void JsonView::requireType(StringView name, json::value_t type) const
 {
 	using namespace fmt;
 
-	constexpr std::string_view WrongTypeMsg =
+	constexpr StringView WrongTypeMsg =
 		"field \"{}\" expected to be of type \"{}\", but \"{}\" given instead";
 
 	if (root.type() != type)
@@ -51,7 +51,7 @@ void JsonView::requireType(std::string_view name, json::value_t type) const
 }
 
 //////////////////////////////////////////////////
-constexpr std::string_view jsonTypeName(json::value_t type)
+constexpr StringView jsonTypeName(json::value_t type)
 {
 	switch(type)
 	{

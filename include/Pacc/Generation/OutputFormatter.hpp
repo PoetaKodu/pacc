@@ -4,7 +4,7 @@
 
 struct OutputFormatter
 {
-	std::string& output;	
+	String& output;
 	int indent = 0;
 
 	void writeIndent()
@@ -22,7 +22,7 @@ struct OutputFormatter
 		output += fmt::format( fmt::runtime(std::forward<FirstArg>(firstArg_)), std::forward<Args>(args_)... );
 	}
 
-	void writeRaw(std::string_view s)
+	void writeRaw(StringView s)
 	{
 		output += s;
 	}

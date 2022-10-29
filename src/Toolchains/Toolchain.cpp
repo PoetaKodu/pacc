@@ -3,7 +3,7 @@
 #include <Pacc/Toolchains/Toolchain.hpp>
 
 ////////////////////////////////////////////
-std::string_view Toolchain::typeName(Type type_)
+StringView Toolchain::typeName(Type type_)
 {
 	switch(type_)
 	{
@@ -14,13 +14,13 @@ std::string_view Toolchain::typeName(Type type_)
 }
 
 ////////////////////////////////////////////
-std::optional<int> Toolchain::run(struct Package const & pkg_, BuildSettings settings_, int verbosityLevel_)
+Opt<int> Toolchain::run(struct Package const & pkg_, BuildSettings settings_, int verbosityLevel_)
 {
 	return 1;
 }
 
 ////////////////////////////////////////////
-std::string Toolchain::premakeToolchainType() const
+String Toolchain::premakeToolchainType() const
 {
 	return "";
 }
@@ -60,7 +60,7 @@ void Toolchain::serialize(json& out_) const
 	{
 		// Note: this is a workaround, because std::u8string is detected as an array of numbers by json
 		auto mp = mainPath.u8string();
-		out_["mainPath"] = std::string(mp.begin(), mp.end());
+		out_["mainPath"] = String(mp.begin(), mp.end());
 	}
 	out_["type"] 		= Toolchain::typeName(this->type());
 }

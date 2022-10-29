@@ -32,8 +32,8 @@ public:
 		}
 	};
 
-	using DepQueueStep 		= std::vector<ProjectDep>;
-	using DepQueue 			= std::vector<DepQueueStep>;
+	using DepQueueStep 		= Vec<ProjectDep>;
+	using DepQueue 			= Vec<DepQueueStep>;
 	using PendingDeps 		= DepQueueStep;
 
 	DepQueue const& 		getQueue() const { return queue; }
@@ -59,7 +59,7 @@ private:
 	bool 					isPackageLoaded(fs::path root_) const;
 	PackagePtr 				findPackageByRoot(fs::path root_) const;
 
-	std::vector<PackagePtr> loadedPackages;
+	Vec<PackagePtr> loadedPackages;
 	PendingDeps 			pendingDeps;
 	DepQueue 				queue; // prepared queue
 };

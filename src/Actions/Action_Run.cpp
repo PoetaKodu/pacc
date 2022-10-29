@@ -17,7 +17,7 @@ void PaccApp::run()
 
 	Project const* project = nullptr;
 
-	std::string targetName;
+	String targetName;
 	// Try to get target name from args (ignore build settings --target flag, too complex)
 	if (args.size() >= 3 && args[2][0] != '-') // not a switch
 		targetName = args[2];

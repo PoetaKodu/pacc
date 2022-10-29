@@ -9,17 +9,17 @@
 #include <Pacc/PackageSystem/Package.hpp>
 
 ///////////////////////////////////////////////
-std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
+Vec<GNUMakeToolchain> GNUMakeToolchain::detect()
 {
 	fs::path makePath = env::findExecutable("make");
 
-	std::vector<GNUMakeToolchain> tcs;
+	Vec<GNUMakeToolchain> tcs;
 
 	if (!makePath.empty() && fs::exists(makePath))
 	{
 		// Make show version command:
 		// make -v
-		std::string command = makePath.string() + " -v";
+		String command = makePath.string() + " -v";
 
 		auto makeVer = ChildProcess{command, "", ch::milliseconds{2500}};
 
@@ -33,14 +33,14 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 			// Method: parse first line.
 			// TODO: find better method if available.
 
-			std::string& stdOut = makeVer.out.stdOut;
+			String& stdOut = makeVer.out.stdOut;
 
-			std::string firstLine;
+			String firstLine;
 
 			// Remove all lines but first:
 			{
 				size_t newLinePos = stdOut.find_first_of("\r\n");
-				if (newLinePos != std::string::npos)
+				if (newLinePos != String::npos)
 					firstLine = stdOut.substr(0, newLinePos);
 			}
 
@@ -51,7 +51,7 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 			{
 				// Find version digit:
 				size_t digitPos = firstLine.find_first_of("0123456789");
-				if (digitPos != std::string::npos)
+				if (digitPos != String::npos)
 				{
 					tc.prettyName 	= firstLine.substr(0, digitPos - 1); // -1 because of the space
 					tc.version 		= firstLine.substr(digitPos);
@@ -70,7 +70,7 @@ std::vector<GNUMakeToolchain> GNUMakeToolchain::detect()
 
 
 ///////////////////////////////
-std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings settings_, int verbosityLevel_)
+Opt<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings settings_, int verbosityLevel_)
 {
 	using fmt::fg, fmt::color;
 
@@ -78,7 +78,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 
 	fmt::print(fg(color::gray), "Running GNU Make... {}", verbose ? "\n" : "");
 
-	std::vector<std::string> params =
+	Vec<String> params =
 		{
 			// Note: this probably won't work on configurations with spaces in names
 			fmt::format("config={}_{}",
@@ -92,7 +92,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 	if (settings_.cores.has_value())
 		params.push_back(fmt::format("-j{}", settings_.cores.value()));
 
-	std::string buildCommand = (mainPath / "make").string();
+	String buildCommand = (mainPath / "make").string();
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
@@ -100,7 +100,7 @@ std::optional<int> GNUMakeToolchain::run(Package const & pkg_, BuildSettings set
 
 	proc.runSync();
 
-	std::string outputLog = fmt::format(
+	String outputLog = fmt::format(
 			FMT_COMPILE("STDOUT:\n\n{}\n\nSTDERR:\n\n{}"),
 			proc.out.stdOut,
 			proc.out.stdErr

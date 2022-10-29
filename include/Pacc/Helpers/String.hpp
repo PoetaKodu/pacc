@@ -2,27 +2,29 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 
 /////////////////////////////////////////
-std::string toLower(std::string_view str_);
+String toLower(StringView str_);
 
 
-using StringPair = std::pair<std::string, std::string>;
+using StringPair = std::pair<String, String>;
 
 ///////////////////////////////////////////////////
-StringPair splitBy(std::string_view str_, char delim_, bool leftAsFallback_ = true);
+StringPair splitBy(StringView str_, char delim_, bool leftAsFallback_ = true);
 
 /////////////////////////////////////////////
-bool startsWith(std::string_view str_, std::string_view prefixTest_);
+bool startsWith(StringView str_, StringView prefixTest_);
 
 /////////////////////////////////////////////
-bool parseArgSwitch(std::string_view arg_, std::string_view switch_, std::string &value_);
+bool parseArgSwitch(StringView arg_, StringView switch_, String &value_);
 
 /////////////////////////////////////////////////
-bool compareIgnoreCase(std::string_view l, std::string_view r);
+bool compareIgnoreCase(StringView l, StringView r);
 
 /////////////////////////////////////////////////
-std::string replaceAll(std::string_view source_, std::string_view from_, std::string_view to_);
+String replaceAll(StringView source_, StringView from_, StringView to_);
 
 struct IgnoreCaseLess
 {
@@ -34,7 +36,7 @@ struct IgnoreCaseLess
 			return tolower(c1_) < tolower(c2_);
 		}
 	};
-	bool operator() (std::string_view const& s1_, std::string_view const& s2_) const
+	bool operator() (StringView const& s1_, StringView const& s2_) const
 	{
 		return rg::lexicographical_compare(s1_, s2_, CompareIgnoreCase{});
 	}
@@ -42,11 +44,11 @@ struct IgnoreCaseLess
 
 /////////////////////////////////////////////////
 template <typename T>
-std::optional<T> convertTo(std::string const& str_) = delete;
+Opt<T> convertTo(String const& str_) = delete;
 
 /////////////////////////////////////////////////
 template <typename T>
-T convertToOr(std::string const& str_, T val={})
+T convertToOr(String const& str_, T val={})
 {
 	return convertTo<T>(str_).value_or();
 }
@@ -54,7 +56,7 @@ T convertToOr(std::string const& str_, T val={})
 struct StringTokenIterator
 {
 	/////////////////////////////////////
-	StringTokenIterator(std::string_view view_, std::string_view tokens_)
+	StringTokenIterator(StringView view_, StringView tokens_)
 		: view(view_), tokens(tokens_)
 	{
 	}
@@ -63,7 +65,7 @@ struct StringTokenIterator
 	StringTokenIterator& operator++()
 	{
 		if (currentPos.has_value() &&
-			*currentPos == std::string_view::npos)
+			*currentPos == StringView::npos)
 			wasInvalid = true;
 		else
 		{
@@ -75,11 +77,11 @@ struct StringTokenIterator
 	}
 
 	/////////////////////////////////
-	std::string_view operator*() const
+	StringView operator*() const
 	{
 		size_t startPos = currentPos.has_value() ? (*currentPos + 1) : 0;
 		size_t nextToken = view.find_first_of(tokens, startPos);
-		if (nextToken == std::string_view::npos)
+		if (nextToken == StringView::npos)
 			return view.substr(startPos);
 
 		return view.substr(startPos, nextToken - startPos);
@@ -95,7 +97,7 @@ struct StringTokenIterator
 	StringTokenIterator end() const
 	{
 		auto result = StringTokenIterator{ view, tokens };
-		result.currentPos = std::string_view::npos;
+		result.currentPos = StringView::npos;
 		result.wasInvalid = true;
 		return result;
 	}
@@ -109,9 +111,9 @@ struct StringTokenIterator
 			wasInvalid 	!= rhs.wasInvalid;
 	}
 
-	std::string_view 		view;
-	std::string_view 		tokens;
-	std::optional<size_t> 	currentPos 	= std::nullopt;
+	StringView 		view;
+	StringView 		tokens;
+	Opt<size_t> 	currentPos 	= std::nullopt;
 	bool 					wasInvalid 	= false;
 };
 
@@ -122,7 +124,7 @@ struct StringTokenIterator
 
 /////////////////////////////////////////////////
 template <>
-inline std::optional<int> convertTo(std::string const& str_)
+inline Opt<int> convertTo(String const& str_)
 {
 	try 		{ return std::stoi(str_); }
 	catch(...) 	{ return std::nullopt; }

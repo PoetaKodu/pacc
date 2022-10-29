@@ -2,4 +2,6 @@
 
 #include PACC_PCH
 
-std::string readFileContents(fs::path const& path_);
+#include <Pacc/Helpers/HelperTypes.hpp>
+
+String readFileContents(fs::path const& path_);

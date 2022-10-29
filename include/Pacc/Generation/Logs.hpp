@@ -2,8 +2,10 @@
 
 #include PACC_PCH
 
-std::string currentTimeForLog();
+#include <Pacc/Helpers/HelperTypes.hpp>
 
-fs::path saveBuildOutputLog(std::string_view packageName_, std::string const& outputLog_);
+auto currentTimeForLog() -> String;
 
-std::vector<fs::path> getSortedBuildLogs(size_t limit = 0);
+auto saveBuildOutputLog(StringView packageName_, String const& outputLog_) -> fs::path;
+
+auto getSortedBuildLogs(size_t limit = 0) -> Vec<fs::path>;

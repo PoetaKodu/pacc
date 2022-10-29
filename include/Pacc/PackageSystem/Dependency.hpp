@@ -5,7 +5,7 @@
 #include <Pacc/Helpers/HelperTypes.hpp>
 #include <Pacc/PackageSystem/Version.hpp>
 
-using RawDependency 	= std::string;
+using RawDependency 	= String;
 using PackagePtr 		= std::shared_ptr<struct Package>;
 
 enum class AccessType
@@ -17,8 +17,8 @@ enum class AccessType
 
 enum MultiAccess
 {
-	Private 	= 1 << 0,	
-	Public		= 1 << 1,	
+	Private 	= 1 << 0,
+	Public		= 1 << 1,
 	Interface 	= 1 << 2,
 
 	All 		= Private | Public | Interface,
@@ -33,8 +33,8 @@ struct AccessSplit
 	T interface_;
 };
 template <typename T>
-using AccessSplitVec 	= AccessSplit<std::vector<T>>;
-using VecOfStrAcc 		= AccessSplitVec<std::string>;
+using AccessSplitVec 	= AccessSplit<Vec<T>>;
+using VecOfStrAcc 		= AccessSplitVec<String>;
 
 template <typename T>
 T& targetByAccessType(AccessSplit<T> & accessSplit_, AccessType type_);
@@ -49,36 +49,36 @@ struct DownloadLocation
 		OfficialRepo // userName is ignored when this is used.
 	};
 
-	static DownloadLocation parse(std::string const& depTemplate_);
+	static DownloadLocation parse(String const& depTemplate_);
 
-	std::string getGitLink() const;
-	std::string getBranch() const;
+	String getGitLink() const;
+	String getBranch() const;
 
-	std::string repository;
+	String repository;
 
-	std::string userName 	= "";
-	std::string branch		= ""; // Branch or a tag.
+	String userName 	= "";
+	String branch		= ""; // Branch or a tag.
 	Platform platform 		= Unknown;
 	bool exactBranch 		= false;
 };
 
-using StringVersionPair = std::pair<std::string, Version>;
+using StringVersionPair = std::pair<String, Version>;
 struct PackageVersions
 {
-	std::vector<StringVersionPair> confirmed, rest;
+	Vec<StringVersionPair> confirmed, rest;
 
 	PackageVersions& sort();
 	PackageVersions filter(VersionReq const& req_);
 
-	static PackageVersions parse(std::string const& lsRemoteOutput_);
+	static PackageVersions parse(String const& lsRemoteOutput_);
 };
-	
+
 
 struct PackageDependency
 {
-	VecOfStr 		projects;
-	std::string 	packageName;
-	std::string 	downloadLocation;
+	Vec<String> 		projects;
+	String 	packageName;
+	String 	downloadLocation;
 	VersionReq 		version{};
 
 	// Resolved (or not) package pointer.
@@ -91,13 +91,13 @@ struct PackageDependency
 struct SelfDependency
 {
 	struct Project*	project;
-	std::string 	depProjName;
+	String 	depProjName;
 	struct Package*	package;
 };
 
 class Dependency
 {
-public:	
+public:
 	AccessType accessType;
 
 	Dependency() = default;
@@ -122,9 +122,9 @@ public:
 			return Type::Package;
 		else if (this->isSelf())
 			return Type::Self;
-		
+
 		return Type::None;
-	}	
+	}
 
 	// const getters
 
@@ -162,18 +162,18 @@ private:
 
 // TODO: add C++20 support to use concepts
 template <typename T>
-auto getAccesses(std::vector<T> & v, MultiAccess mode_ = MultiAccess::All)
+auto getAccesses(Vec<T> & v, MultiAccess mode_ = MultiAccess::All)
 {
-	return std::vector{ &v };
+	return Vec< Vec<T>* >{ &v };
 }
 
 /////////////////////////////////////////////////
 template <typename T>
 auto getAccesses(AccessSplitVec<T> & v, MultiAccess mode_ = MultiAccess::All)
 {
-	using ValType = std::vector<T> *;
-	
-	auto result = std::vector<ValType>{};
+	using ValType = Vec<T> *;
+
+	auto result = Vec<ValType>{};
 	result.reserve(3);
 
 	if (mode_ & MultiAccess::Private)
@@ -188,18 +188,18 @@ auto getAccesses(AccessSplitVec<T> & v, MultiAccess mode_ = MultiAccess::All)
 
 /////////////////////////////////////////////////
 template <typename T>
-auto getAccesses(std::vector<T> const & v, MultiAccess mode_ = MultiAccess::All)
+auto getAccesses(Vec<T> const & v, MultiAccess mode_ = MultiAccess::All)
 {
-	return std::vector{ &v };
+	return Vec<Vec<T> const*>{ &v };
 }
 
 /////////////////////////////////////////////////
 template <typename T>
 auto getAccesses(AccessSplitVec<T> const & v, MultiAccess mode_ = MultiAccess::All)
 {
-	using ValType = std::vector<T> const*;
-	
-	auto result = std::vector<ValType>{};
+	using ValType = Vec<T> const*;
+
+	auto result = Vec<ValType>{};
 	result.reserve(3);
 
 	if (mode_ & MultiAccess::Private)

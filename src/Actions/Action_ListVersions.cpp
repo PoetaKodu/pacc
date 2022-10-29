@@ -27,13 +27,13 @@ void PaccApp::listVersions()
 				);
 	}
 
-	auto dependencyTemplate = std::string(args[2]);
+	auto dependencyTemplate = String(args[2]);
 
 	auto loc = DownloadLocation::parse(dependencyTemplate);
 
 	auto repoLink = loc.getGitLink();
 
-	std::string output;
+	String output;
 	// List versions
 	{
 		auto command 		= fmt::format(ListRemoteCommand, repoLink);
@@ -54,7 +54,7 @@ void PaccApp::listVersions()
 		VersionReq req;
 		if (args.size() >= 4 && args[3][0] != '-')
 		{
-			req = VersionReq::fromString( std::string(args[3]) );
+			req = VersionReq::fromString( String(args[3]) );
 			versions = versions.filter(req);
 		}
 		else

@@ -12,14 +12,14 @@
 /// </summary>
 struct Version
 {
-	constexpr static std::string_view FieldNames[3] = { "major", "minor", "patch" };
+	constexpr static StringView FieldNames[3] = { "major", "minor", "patch" };
 
 	int major = 0;
 	int minor = 0;
 	int patch = 0;
 
-	static Version fromString(std::string_view str_);
-	std::string toString() const;
+	static Version fromString(StringView str_);
+	String toString() const;
 
 	auto operator<=>(Version const& rhs_) const = default;
 };
@@ -49,16 +49,16 @@ struct VersionRequirement
 
 	}
 
-	VersionRequirement(std::string_view str_)
+	VersionRequirement(StringView str_)
 	{
 		*this = fromString(str_);
 	}
 
-	std::string toString() const;
+	String toString() const;
 
 	bool test(Version const& version_) const;
 
-	static VersionRequirement fromString(std::string_view str_);
+	static VersionRequirement fromString(StringView str_);
 };
 
 // A shorthand for VersionRequirement

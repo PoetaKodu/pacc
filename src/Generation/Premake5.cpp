@@ -14,7 +14,7 @@ namespace constants
 {
 
 /////////////////////////////////////////////////////////////////////
-constexpr std::string_view DefaultPremakeCfg =
+constexpr StringView DefaultPremakeCfg =
 R"DefaultCfg(
 platforms { "x86", "x64" }
 	configurations { "Debug", "Release" }
@@ -49,8 +49,8 @@ namespace mappings
 /////////////////////////////////////////////////////////////////////
 auto const& LangToPremakeLangAndDialect()
 {
-	using LangAndDialect = std::pair<std::string_view, std::string_view>;
-	static const std::map<std::string_view, LangAndDialect, IgnoreCaseLess> dict =
+	using LangAndDialect = std::pair<StringView, StringView>;
+	static const std::map<StringView, LangAndDialect, IgnoreCaseLess> dict =
 		{
 			{ "C89", 	{ "C", 		"" } },
 			{ "C90", 	{ "C", 		"" } },
@@ -73,7 +73,7 @@ auto const& LangToPremakeLangAndDialect()
 /////////////////////////////////////////////////////////////////////
 auto const& AppTypeToPremakeKind()
 {
-	static const std::map<Project::Type, std::string_view> AppTypeToPremakeKind =
+	static const std::map<Project::Type, StringView> AppTypeToPremakeKind =
 		{
 			{ Project::Type::App, 		"ConsoleApp" },
 			{ Project::Type::StaticLib, "StaticLib" },
@@ -98,10 +98,10 @@ void appendWorkspace		(OutputFormatter &fmt_, Package const& pkg_);
 void appendProject			(OutputFormatter &fmt_, Package const& pkg_, Project const& project_);
 void appendConfiguration	(OutputFormatter &fmt_, Package const& pkg_, Project const& project_, Configuration const& config_);
 template <typename T>
-void appendPropWithAccess	(OutputFormatter &fmt_, std::string_view propName, T const& values_, MultiAccess accesses_ = MultiAccess::NoInterface);
+void appendPropWithAccess	(OutputFormatter &fmt_, StringView propName, T const& values_, MultiAccess accesses_ = MultiAccess::NoInterface);
 template <typename T>
 void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_, MultiAccess accesses_ = MultiAccess::NoInterface);
-void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_);
+void appendStrings(OutputFormatter &fmt_, Vec<String> const& vec_);
 
 /////////////////////////////////////////////////
 fs::path getPremake5Path()
@@ -110,7 +110,7 @@ fs::path getPremake5Path()
 }
 
 /////////////////////////////////////////////////
-void runPremakeGeneration(std::string_view toolchainName_)
+void runPremakeGeneration(StringView toolchainName_)
 {
 	using fmt::fg, fmt::color;
 
@@ -139,7 +139,7 @@ void runPremakeGeneration(std::string_view toolchainName_)
 void Premake5::generate(Package const & pkg_)
 {
 	// Prepare output buffer
-	std::string out;
+	String out;
 	out.reserve(4 * 1024 * 1024);
 
 	auto fmt = OutputFormatter{out};
@@ -212,7 +212,7 @@ void appendWorkspace(OutputFormatter &fmt_, Package const& pkg_)
 
 
 /////////////////////////////////////////////////
-std::string_view mapToPremake5Kind(Project::Type projectType_)
+StringView mapToPremake5Kind(Project::Type projectType_)
 {
 	auto const& AppTypeMapping = constants::mappings::AppTypeToPremakeKind();
 
@@ -224,7 +224,7 @@ std::string_view mapToPremake5Kind(Project::Type projectType_)
 }
 
 /////////////////////////////////////////////////
-void appendPremake5Lang(OutputFormatter& fmt_, std::string_view lang_)
+void appendPremake5Lang(OutputFormatter& fmt_, StringView lang_)
 {
 	auto const& LangMapping = constants::mappings::LangToPremakeLangAndDialect();
 
@@ -338,7 +338,7 @@ void appendConfiguration(OutputFormatter &fmt_, Package const& pkg_, Project con
 
 /////////////////////////////////////////////////
 template <typename T>
-void appendPropWithAccess(OutputFormatter &fmt_, std::string_view propName, T const& values_, MultiAccess accesses_)
+void appendPropWithAccess(OutputFormatter &fmt_, StringView propName, T const& values_, MultiAccess accesses_)
 {
 	if (getNumElements(values_) > 0)
 	{
@@ -367,7 +367,7 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& acc_, MultiAccess a
 }
 
 /////////////////////////////////////////////////
-void appendStrings(OutputFormatter &fmt_, VecOfStr const& vec_)
+void appendStrings(OutputFormatter &fmt_, Vec<String> const& vec_)
 {
 	for(auto const & str : vec_)
 		fmt_.write("\"{}\",\n", replaceAll(str, "\"", "\\\""));

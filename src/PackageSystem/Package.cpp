@@ -19,21 +19,21 @@ template <json::value_t type>
 json const* expect(json const& j);
 
 template <json::value_t type>
-json const* expectSub(json const& j, std::string_view subfieldName);
+json const* expectSub(json const& j, StringView subfieldName);
 
 template <json::value_t type>
 json const& require(json const& j);
 
 template <json::value_t type>
-json const& requireSub(json const& j, std::string_view subfieldName);
+json const& requireSub(json const& j, StringView subfieldName);
 
-json const* 	selfOrSubfieldOpt(json const& self, std::string_view fieldName = "");
-json const& 	selfOrSubfieldReq(json const& self, std::string_view fieldName = "");
-json const* 	selfOrSubfield(json const& self, std::string_view fieldName, bool required = false);
+json const* 	selfOrSubfieldOpt(json const& self, StringView fieldName = "");
+json const& 	selfOrSubfieldReq(json const& self, StringView fieldName = "");
+json const* 	selfOrSubfield(json const& self, StringView fieldName, bool required = false);
 
-void 			readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std::vector<Dependency> &target_);
-VecOfStr 		loadVecOfStrField(json const& j, std::string_view fieldName, bool direct = false, bool required = false);
-VecOfStrAcc 	loadVecOfStrAccField(json const& j, std::string_view fieldName, AccessType defaultAccess_ = AccessType::Private);
+void 			readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, Vec<Dependency> &target_);
+Vec<String> 		loadVecOfStrField(json const& j, StringView fieldName, bool direct = false, bool required = false);
+VecOfStrAcc 	loadVecOfStrAccField(json const& j, StringView fieldName, AccessType defaultAccess_ = AccessType::Private);
 
 void			loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration& conf_, json const& root_);
 
@@ -46,7 +46,7 @@ void readScriptableActions(json const& scriptsContainer, ScriptableTarget &targe
 
 	for (auto [key, value] : scripts.items())
 	{
-		auto content = value.get<std::string>(); // TODO: ensure is a string
+		auto content = value.get<String>(); // TODO: ensure is a string
 		auto[md, fn] = splitBy(content, ':', false);
 
 		target_.scripts[key] = ScriptableAction{ std::move(md), std::move(fn) };
@@ -59,7 +59,7 @@ void readScriptableActions(json const& scriptsContainer, ScriptableTarget &targe
 
 
 ///////////////////////////////////////////////////
-auto findPackageFile(fs::path const& directory_, std::optional<std::string_view> extension_)
+auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_)
 	-> fs::path
 {
 	auto fileExists = [&] (fs::path const& path_)
@@ -101,7 +101,7 @@ auto findPackageScriptFile(fs::path const& directory_)
 }
 
 ///////////////////////////////////////////////////
-auto detectArtifactTypeFromPath(std::string_view path_)
+auto detectArtifactTypeFromPath(StringView path_)
 	-> Artifact
 {
 	if (path_.ends_with(".lib"))
@@ -154,8 +154,8 @@ auto TargetBase::outputArtifact() const
 }
 
 ///////////////////////////////////////////////////
-auto toString(ProjectType type_, std::string_view pluginName_)
-	-> std::string
+auto toString(ProjectType type_, StringView pluginName_)
+	-> String
 {
 	switch (type_)
 	{
@@ -175,7 +175,7 @@ auto toString(ProjectType type_, std::string_view pluginName_)
 }
 
 ///////////////////////////////////////////////////
-auto parseProjectType(std::string_view type_)
+auto parseProjectType(StringView type_)
 	-> ProjectType
 {
 	if (compareIgnoreCase(type_, "app"))
@@ -244,7 +244,7 @@ auto Project::getPrimaryArtifact() const
 ///////////////////////////////////////////////////
 void Package::loadPackageSpecificInfo(json const& json_)
 {
-	name 			= json_["name"].get<std::string>();
+	name 			= json_["name"].get<String>();
 	startupProject	= json_.value("startupProject", "");
 	version 		= Version::fromString( json_.value("version", "0") );
 
@@ -272,8 +272,8 @@ void Package::loadWorkspaceInfo(json const& json_)
 
 		Project project;
 
-		project.name = jsonProject["name"].get<std::string>();
-		project.type = parseProjectType(jsonProject["type"].get<std::string>());
+		project.name = jsonProject["name"].get<String>();
+		project.type = parseProjectType(jsonProject["type"].get<String>());
 
 		readScriptableActions(json_, project);
 
@@ -289,7 +289,7 @@ void Package::loadWorkspaceInfo(json const& json_)
 
 		// TODO: type and value validation
 		if (auto it = jsonProject.find("language"); it != jsonProject.end())
-			project.language = it->get<std::string>();
+			project.language = it->get<String>();
 
 		loadConfigurationFromJSON(*this, project, project, jsonProject);
 
@@ -343,7 +343,7 @@ auto Package::preload(fs::path dir_)
 auto Package::load(PackagePreloadInfo preloadInfo_)
 	-> UPtr<Package>
 {
-	UPtr<Package> pkg;
+	auto pkg = UPtr<Package>();
 
 	// Decide what to do:
 	if (preloadInfo_.usesJsonConfig())
@@ -357,14 +357,15 @@ auto Package::load(PackagePreloadInfo preloadInfo_)
 	else // Lua config
 	{
 		// TODO: implement this.
-		std::cout << "This function is not implemented yet." << std::endl;
+		throw PaccException("This function is not implemented yet.")
+				.withHelp("Use \"pacc.json\" config for now.");
 	}
 	return pkg;
 }
 
 
 ///////////////////////////////////////////////////
-auto Package::findProject(std::string_view name_) const
+auto Package::findProject(StringView name_) const
 	-> Project const*
 {
 	auto it = rg::find(projects, name_, &Project::name);
@@ -376,7 +377,7 @@ auto Package::findProject(std::string_view name_) const
 }
 
 ///////////////////////////////////////////////////
-auto Package::requireProject(std::string_view name_) const
+auto Package::requireProject(StringView name_) const
 	-> Project const&
 {
 	Project const *proj = this->findProject(name_);
@@ -494,7 +495,7 @@ void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration
 }
 
 ///////////////////////////////////////////////////
-auto Package::loadFromJSON(Package& package_, std::string const& packageContent_)
+auto Package::loadFromJSON(Package& package_, String const& packageContent_)
 	-> bool
 {
 	using json_vt = json::value_t;
@@ -514,7 +515,7 @@ auto Package::loadFromJSON(Package& package_, std::string const& packageContent_
 }
 
 /////////////////////////////////////////////////
-auto getNumElements(VecOfStr const& v)
+auto getNumElements(Vec<String> const& v)
 	-> std::size_t
 {
 	return v.size();
@@ -565,7 +566,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 ///////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////
-void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std::vector<Dependency> &target_)
+void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, Vec<Dependency> &target_)
 {
 	using json_vt = json::value_t;
 
@@ -578,7 +579,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 	{
 		if (json const* rawDep = expect<json_vt::string>(item.value()))
 		{
-			std::string depPattern = rawDep->get<std::string>();
+			String depPattern = rawDep->get<String>();
 			if (startsWith(depPattern, "file:"))
 			{
 				target_.push_back( Dependency::raw( depPattern.substr(5) ) );
@@ -633,12 +634,12 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 				{
 					json const& projName = require<json_vt::string>(proj.value());
 
-					pd.projects.push_back(projName.get<std::string>());
+					pd.projects.push_back(projName.get<String>());
 				}
 			}
 			else
 			{
-				std::string originalName;
+				String originalName;
 
 				if (!loc.repository.empty())
 					originalName = loc.repository;
@@ -652,7 +653,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 			if (version)
 			{
 				try {
-					pd.version = VersionReq::fromString(version->get<std::string>());
+					pd.version = VersionReq::fromString(version->get<String>());
 				}
 				catch (...) {
 					pd.version.type = VersionReq::Any;
@@ -672,7 +673,7 @@ void readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, std
 
 
 ///////////////////////////////////////////////////
-auto selfOrSubfieldOpt(json const &self, std::string_view fieldName)
+auto selfOrSubfieldOpt(json const &self, StringView fieldName)
 	-> json const*
 {
 	if (fieldName == "")
@@ -687,7 +688,7 @@ auto selfOrSubfieldOpt(json const &self, std::string_view fieldName)
 }
 
 ///////////////////////////////////////////////////
-auto selfOrSubfieldReq(json const &self, std::string_view fieldName)
+auto selfOrSubfieldReq(json const &self, StringView fieldName)
 	-> json const&
 {
 	json const* v = selfOrSubfieldOpt(self, fieldName);
@@ -698,7 +699,7 @@ auto selfOrSubfieldReq(json const &self, std::string_view fieldName)
 }
 
 ///////////////////////////////////////////////////
-auto selfOrSubfield(json const &self, std::string_view fieldName, bool required)
+auto selfOrSubfield(json const &self, StringView fieldName, bool required)
 	-> json const*
 {
 	if (required)
@@ -708,13 +709,13 @@ auto selfOrSubfield(json const &self, std::string_view fieldName, bool required)
 }
 
 ///////////////////////////////////////////////////
-auto loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, bool required)
-	-> VecOfStr
+auto loadVecOfStrField(json const &j, StringView fieldName, bool direct, bool required)
+	-> Vec<String>
 {
 	using JV = JsonView;
 
-	VecOfStr result;
-	std::string const elemName = std::string(fieldName) + " element";
+	Vec<String> result;
+	String const elemName = String(fieldName) + " element";
 
 	// Either subfield or the `j` itself (direct => `j` is an array)
 	json const* val = selfOrSubfield(j, direct ? "" : fieldName, required);
@@ -744,7 +745,7 @@ auto loadVecOfStrField(json const &j, std::string_view fieldName, bool direct, b
 }
 
 ///////////////////////////////////////////////////
-auto loadVecOfStrAccField(json const &j, std::string_view fieldName, AccessType defaultAccess_)
+auto loadVecOfStrAccField(json const &j, StringView fieldName, AccessType defaultAccess_)
 	-> VecOfStrAcc
 {
 	VecOfStrAcc result;
@@ -776,7 +777,7 @@ auto expect(json const &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-auto expectSub(json const &j, std::string_view subfieldName)
+auto expectSub(json const &j, StringView subfieldName)
 	-> json const*
 {
 	auto it = j.find(subfieldName);
@@ -801,7 +802,7 @@ auto require(json const &j)
 
 ///////////////////////////////////////////////////
 template <json::value_t type>
-auto requireSub(json const &j, std::string_view subfieldName)
+auto requireSub(json const &j, StringView subfieldName)
 	-> json const&
 {
 	auto it = j.find(subfieldName);

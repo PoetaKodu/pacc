@@ -38,7 +38,7 @@ PaccConfig PaccConfig::load(fs::path const& jsonPath_)
 	result.toolchains.insert(result.toolchains.end(), customTcs.begin(), customTcs.end());
 
 	result.readSelectedToolchain(j);
-	
+
 	return result;
 }
 
@@ -65,7 +65,7 @@ void PaccConfig::readSelectedToolchain(json const& input_)
 }
 
 /////////////////////////////////////////////////
-PaccConfig::VecOfTc PaccConfig::readToolchains(json const& input_, std::string const& field_)
+PaccConfig::VecOfTc PaccConfig::readToolchains(json const& input_, String const& field_)
 {
 	using JV = JsonView;
 
@@ -82,8 +82,8 @@ PaccConfig::VecOfTc PaccConfig::readToolchains(json const& input_, std::string c
 
 		if (jsonTc.type() != json::value_t::object)
 			continue;
-		
-		std::string tcType = JV{jsonTc}.stringFieldOr("type", "");
+
+		String tcType = JV{jsonTc}.stringFieldOr("type", "");
 
 		UPtr<Toolchain> tc;
 
@@ -130,7 +130,7 @@ void PaccConfig::updateToolchains(Vec< SPtr<Toolchain> > current_)
 	json j = json::parse(readFileContents(path));
 
 	j["detectedToolchains"] = serializeToolchains(detectedToolchains);
-	
+
 
 	std::ofstream(path) << j.dump(1, '\t');
 }
@@ -145,7 +145,7 @@ void PaccConfig::updateSelectedToolchain(int index_)
 	json j = json::parse(readFileContents(path));
 
 	j["selectedToolchain"] = int(selectedToolchain);
-	
+
 	std::ofstream(path) << j.dump(1, '\t');
 }
 
@@ -167,7 +167,7 @@ bool PaccConfig::validateDetectedToolchains(Vec< SPtr<Toolchain> > const& curren
 /////////////////////////////////////////////////
 json PaccConfig::serializeToolchains(VecOfTc const& tcs_)
 {
-	std::vector<json> result;
+	Vec<json> result;
 	result.reserve(tcs_.size());
 
 	for(auto const& tc : tcs_)

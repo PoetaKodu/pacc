@@ -3,13 +3,14 @@
 #include PACC_PCH
 
 #include <Pacc/Helpers/Formatting.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 
 struct PaccException
 	: std::runtime_error
 {
 	// TODO: this is not professional
 	// String itself may cause exception
-	std::string helpMessage;
+	String helpMessage;
 
 public:
 	using Super = std::runtime_error;
@@ -36,7 +37,7 @@ public:
 		return *this;
 	}
 
-	std::string const& help() const { return helpMessage; }
+	String const& help() const { return helpMessage; }
 };
 
 

@@ -2,9 +2,8 @@
 
 #include PACC_PCH
 
-using VecOfStr 		= std::vector< std::string >;
-using VecOfStrPtr 	= std::vector< std::string* >;
-
+using String		= std::string;
+using StringView	= std::string_view;
 
 // Containers:
 template <typename T>
@@ -34,3 +33,6 @@ struct ReturnIdentity {
         return std::forward<U>(v);
     }
 };
+
+template <typename T>
+using Opt = std::optional<T>;

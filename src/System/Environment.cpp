@@ -41,7 +41,7 @@ fs::path requirePaccDataStorageFolder()
 }
 
 ///////////////////////////////////////////////////
-fs::path findExecutable(std::string_view execName_)
+fs::path findExecutable(StringView execName_)
 {
 	const auto command = fmt::format(
 		#ifdef PACC_SYSTEM_WINDOWS
@@ -62,7 +62,7 @@ fs::path findExecutable(std::string_view execName_)
 
 		// Parse `where execName` output
 		auto newLinePos = finder.out.stdOut.find_first_of("\r\n");
-		if (newLinePos != std::string::npos)
+		if (newLinePos != String::npos)
 			return stdOut.substr(0, newLinePos);
 		else
 			return stdOut;
@@ -89,7 +89,7 @@ fs::path getPaccAppPath()
 		bytes = std::min(readlink("/proc/self/exe", buf.data(), buf.size()), ssize_t(buf.size() - 1));
 	#endif
 
-	return fs::path(std::string(buf.data(), bytes));
+	return fs::path(String(buf.data(), bytes));
 }
 
 

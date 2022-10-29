@@ -26,12 +26,12 @@ void PaccApp::install()
 	 // TODO: improve this
 	if (args.size() >= (global ? 4 : 3))
 	{
-		auto packageTemplate = std::string(args[2]);
+		auto packageTemplate = String(args[2]);
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
 		fs::path targetPackagePath = targetPath / loc.repository;
-		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
+		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath)) // works for both symlinks and junctions (is_directory is true)
 		{
 			throw PaccException("Package \"{0}\" is already installed{1}.", loc.repository, global ? " globally" : "")
 				.withHelp("Uninstall the package with \"pacc uninstall {0}{1}\"", loc.repository, global ? " --global" : "");
@@ -81,11 +81,11 @@ void PaccApp::uninstall()
 	 // TODO: improve this
 	if (args.size() >= (global ? 4 : 3))
 	{
-		auto packageName = std::string(args[2]);
+		auto packageName = String(args[2]);
 
 		fs::path packagePath = targetPath / packageName;
 
-		if (fs::is_symlink(packagePath) && global)
+		if (fsx::isSymlinkOrJunction(packagePath) && global)
 		{
 			fsx::makeWritableAll(packagePath);
 			fs::remove(packagePath);
@@ -134,7 +134,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 
 	size_t numInstalled = 0;
 
-	std::vector<fs::path> installed;
+	Vec<fs::path> installed;
 
 	for (auto const& dep : deps)
 	{
@@ -149,7 +149,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 		}
 
 		fs::path targetPackagePath = targetPath / dep.packageName;
-		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath))
+		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath)) // works for both symlinks and junctions (is_directory is true)
 		{
 			throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
 				.withHelp("Remove the folder.");

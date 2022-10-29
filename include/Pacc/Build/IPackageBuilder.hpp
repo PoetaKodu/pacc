@@ -2,6 +2,8 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 class PaccApp;
 struct Package;
 struct Toolchain;
@@ -11,15 +13,15 @@ struct Toolchain;
 /// </summary>
 struct BuildSettings
 {
-	std::string configName 		= "Debug";
-	std::string platformName 	= "x64";
+	String configName 		= "Debug";
+	String platformName 	= "x64";
 
-	std::string targetName 		= "";
+	String targetName 		= "";
 
-	std::optional<int> cores;
+	Opt<int> cores;
 };
 
-using BuildProcessResult = std::optional<int>;
+using BuildProcessResult = Opt<int>;
 
 /// <summary>
 /// 	Interface for package builders.

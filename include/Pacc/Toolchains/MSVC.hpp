@@ -7,7 +7,7 @@ struct MSVCToolchain : Toolchain
 	{
 		return MSVC;
 	}
-	
+
 	enum class LineVersion
 	{
 		VS2022 	= 2022,
@@ -20,15 +20,15 @@ struct MSVCToolchain : Toolchain
 	LineVersion lineVersion;
 
 	// say something polish
-	virtual std::optional<int> run(struct Package const& pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
+	virtual Opt<int> run(struct Package const& pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
 
 	virtual void serialize(json& out_) const override;
 
 	virtual bool deserialize(json const& in_) override;
 
-	virtual std::string premakeToolchainType() const override;
+	virtual String premakeToolchainType() const override;
 
-	static std::vector<MSVCToolchain> detect();
+	static Vec<MSVCToolchain> detect();
 
 private:
 
@@ -37,6 +37,6 @@ private:
 	/// 	x86 platform for native C++ projects has to be named "Win32", instead of x86.
 	/// 	Link: https://github.com/premake/premake-core/blob/65deb619f8d5579487def157d7c369e5c6d18864/modules/vstudio/vstudio.lua#L274
 	/// </summary>
-	static std::string handleWin32SpecialCase(std::string const& platformName_);
-	static LineVersion parseLineVersion(std::string const& lvStr_);
+	static String handleWin32SpecialCase(String const& platformName_);
+	static LineVersion parseLineVersion(String const& lvStr_);
 };

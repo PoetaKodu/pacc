@@ -2,4 +2,6 @@
 
 #include PACC_PCH
 
-using ProgramArgs = std::vector< std::string_view >;
+#include <Pacc/Helpers/HelperTypes.hpp>
+
+using ProgramArgs = Vec< StringView >;

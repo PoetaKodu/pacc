@@ -5,7 +5,7 @@
 #include <Pacc/System/Environment.hpp>
 
 //////////////////////////////////////
-sol::protected_function_result PaccApp::execLuaEvent(Package& pkg_, std::string const& eventName_)
+sol::protected_function_result PaccApp::execLuaEvent(Package& pkg_, String const& eventName_)
 {
 	auto it = pkg_.scripts.find(eventName_);
 
@@ -68,7 +68,7 @@ auto PaccApp::loadPackage(fs::path const& path_)
 }
 
 //////////////////////////////////////
-auto PaccApp::loadPackage(fs::path const& path_, std::string const& loaderName_)
+auto PaccApp::loadPackage(fs::path const& path_, String const& loaderName_)
 	-> UPtr<Package>
 {
 	if (loaderName_ == "auto") {
@@ -86,14 +86,14 @@ auto PaccApp::loadPackage(fs::path const& path_, std::string const& loaderName_)
 
 //////////////////////////////////////
 auto PaccApp::loadPackageByName(
-		std::string const&	name_,
+		String const&	name_,
 		VersionRequirement	verReq_,
 		UPtr<Package>*		invalidVersion_,
-		std::string const&	loaderName_
+		String const&	loaderName_
 	)
 	-> UPtr<Package>
 {
-	std::vector<fs::path> candidates = {
+	Vec<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
 			fs::current_path() 					/ "..",
 			env::getPaccDataStorageFolder() 	/ "packages"

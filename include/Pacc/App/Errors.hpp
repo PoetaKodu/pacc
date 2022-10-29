@@ -4,7 +4,7 @@
 namespace errors
 {
 
-constexpr std::string_view NoPackageSourceFile[2] = {
+constexpr StringView NoPackageSourceFile[2] = {
 		// Error:
 		"No package file inside current directory.",
 		// Help

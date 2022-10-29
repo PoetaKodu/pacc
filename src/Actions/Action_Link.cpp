@@ -2,6 +2,7 @@
 
 #include <Pacc/App/App.hpp>
 
+#include <Pacc/System/Filesystem.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/System/Environment.hpp>
 
@@ -20,12 +21,12 @@ void PaccApp::linkPackage()
 
 	if (fs::exists(targetSymlink))
 	{
-		if (fs::is_symlink(targetSymlink))
+		if (fsx::isSymlinkOrJunction(targetSymlink))
 		{
 			throw PaccException(
 					"Package \"{}\" is already linked to {}.\n",
 					pkg->name,
-					fs::read_symlink(targetSymlink).string()
+					fsx::readSymlinkOrJunction(targetSymlink).string()
 				)
 				.withHelp("If you want to update the link, use \"pacc unlink\" first.");
 		}
@@ -40,7 +41,7 @@ void PaccApp::linkPackage()
 	}
 	else
 	{
-		fs::create_directory_symlink(fs::current_path(), targetSymlink);
+		fsx::createSymlink(fs::current_path(), targetSymlink, true);
 		fmt::print("Package \"{}\" has been linked inside the user environment.", pkg->name);
 	}
 }
@@ -48,7 +49,7 @@ void PaccApp::linkPackage()
 ///////////////////////////////////////////////////
 void PaccApp::unlinkPackage()
 {
-	std::string pkgName;
+	String pkgName;
 	if (args.size() > 2)
 		pkgName = args[2];
 
@@ -60,7 +61,7 @@ void PaccApp::unlinkPackage()
 
 	fs::path storage = env::getPaccDataStorageFolder();
 	fs::path symlinkPath = storage / "packages" / pkgName;
-	if (fs::is_symlink(symlinkPath))
+	if (fsx::isSymlinkOrJunction(symlinkPath))
 	{
 		fs::remove(symlinkPath);
 		fmt::print("Package \"{}\" has been unlinked from the user environment.", pkgName);
@@ -71,5 +72,5 @@ void PaccApp::unlinkPackage()
 				"Package \"{}\" is not linked within user environment.\n",
 				pkgName
 			).withHelp("If you want to link current package, use \"pacc link\" first.");
-	}	
+	}
 }

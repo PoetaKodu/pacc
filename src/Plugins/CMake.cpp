@@ -10,11 +10,11 @@
 namespace plugins::cmake
 {
 
-constexpr std::string_view TargetHashSeparator		= "::@";
-constexpr std::string_view CacheProjectVersionKey	= "CMAKE_PROJECT_VERSION:STATIC=";
+constexpr StringView TargetHashSeparator		= "::@";
+constexpr StringView CacheProjectVersionKey	= "CMAKE_PROJECT_VERSION:STATIC=";
 
 ///////////////////////////////////////
-static inline ProjectType projectTypeFromString(std::string const& str_)
+static inline ProjectType projectTypeFromString(String const& str_)
 {
 	if(str_ == "EXECUTABLE")
 		return ProjectType::App;
@@ -82,9 +82,9 @@ json readReplyFile(fs::path const& root_)
 
 
 ///////////////////////////////////////
-auto runCMakeCommand(fs::path const& packagePath_, std::string_view command_)
+auto runCMakeCommand(fs::path const& packagePath_, StringView command_)
 {
-	std::string generator = "Visual Studio 17 2022";
+	String generator = "Visual Studio 17 2022";
 	auto command = fmt::format("cmake -G=\"{}\" {} ..", generator, command_);
 	auto proc = ChildProcess{
 			command,
@@ -97,7 +97,7 @@ auto runCMakeCommand(fs::path const& packagePath_, std::string_view command_)
 }
 
 ///////////////////////////////////////
-auto runCMakeBuildCommand(fs::path const& packagePath_, std::string_view commandOpt_ = "")
+auto runCMakeBuildCommand(fs::path const& packagePath_, StringView commandOpt_ = "")
 {
 	auto command = fmt::format("cmake --build .", commandOpt_);
 	auto proc = ChildProcess{
@@ -151,7 +151,7 @@ UPtr<Package> PackageLoader::load(fs::path const& root_)
 }
 
 ///////////////////////////////////////
-bool PackageLoader::loadTarget(fs::path const& root_, std::string const& name_, TargetBase& target_)
+bool PackageLoader::loadTarget(fs::path const& root_, String const& name_, TargetBase& target_)
 {
 	// TODO: implement this
 	return false;
@@ -172,7 +172,7 @@ Vec< StringPair > PackageLoader::discoverTargets(json const& json_) const
 			for (auto target : conf["targets"])
 			{
 				auto id = target.value("id", "");
-				if (id.find(TargetHashSeparator) != std::string::npos)
+				if (id.find(TargetHashSeparator) != String::npos)
 				{
 					result.push_back( { std::move(id), target.value("jsonFile", "") } );
 				}
@@ -221,11 +221,11 @@ Version PackageLoader::loadVersion(fs::path const& root_)
 
 	auto cache = readFileContents(cacheFile);
 	auto pos = cache.find(CacheProjectVersionKey);
-	if (pos == std::string::npos)
+	if (pos == String::npos)
 		return {};
 
 	auto endOfLine = cache.find('\n', pos);
-	auto view = std::string_view(cache);
+	auto view = StringView(cache);
 	return Version::fromString(view.substr(pos + CacheProjectVersionKey.size(), endOfLine - pos - CacheProjectVersionKey.size()));
 }
 

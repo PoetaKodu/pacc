@@ -4,12 +4,13 @@
 
 #include <Pacc/Helpers/Json.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 #include <Pacc/Build/IPackageBuilder.hpp>
 
 struct Toolchain
 {
-	std::string 	prettyName;
-	std::string 	version;
+	String 	prettyName;
+	String 	version;
 
 	fs::path 		mainPath;
 
@@ -24,11 +25,11 @@ struct Toolchain
 
 	virtual Type type() const;
 
-	virtual std::optional<int> run(struct Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0);
+	virtual Opt<int> run(struct Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0);
 
-	static std::string_view typeName(Type type_);
+	static StringView typeName(Type type_);
 
-	virtual std::string premakeToolchainType() const;
+	virtual String premakeToolchainType() const;
 
 
 	virtual bool generateProjectFiles();

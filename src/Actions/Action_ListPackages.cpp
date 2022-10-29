@@ -15,7 +15,7 @@ void PaccApp::listPackages()
 
 	auto packagesRoot = env::getPaccDataStorageFolder() / "packages";
 
-	std::string filter = "";
+	String filter = "";
 
 	if (args.size() >= 3)
 		filter = args[2];
@@ -24,12 +24,12 @@ void PaccApp::listPackages()
 	size_t linksCount = 0;
 
 	struct PackageInfo {
-		std::string name;
-		std::string linkTo;
+		String name;
+		String linkTo;
 		Version		ver;
 	};
 
-	auto pkgs = std::vector<PackageInfo>();
+	auto pkgs = Vec<PackageInfo>();
 
 	if (fs::is_directory(packagesRoot))
 	{
@@ -38,7 +38,7 @@ void PaccApp::listPackages()
 		// Collect info
 		for (auto entry : fs::directory_iterator(packagesRoot))
 		{
-			if (!filter.empty() && entry.path().filename().string().find(filter) == std::string::npos)
+			if (!filter.empty() && entry.path().filename().string().find(filter) == String::npos)
 				continue;
 
 			bool dir = fs::is_directory(entry);
@@ -71,10 +71,10 @@ void PaccApp::listPackages()
 
 				pkgInfo.name = entry.path().filename().string();
 
-				if (sym)
+				if (fsx::isSymlinkOrJunction(entry))
 				{
 					++linksCount;
-					pkgInfo.linkTo = fs::read_symlink(entry).string();
+					pkgInfo.linkTo = fsx::readSymlinkOrJunction(entry).string();
 				}
 
 				pkgs.emplace_back(std::move(pkgInfo));

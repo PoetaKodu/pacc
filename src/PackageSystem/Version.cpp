@@ -5,7 +5,7 @@
 
 
 ////////////////////////////////////////
-Version Version::fromString(std::string_view str_)
+Version Version::fromString(StringView str_)
 {
 	if (str_.empty())
 		throw PaccException("could not parse version (empty string)");
@@ -17,12 +17,12 @@ Version Version::fromString(std::string_view str_)
 	for (int i = 0; i < 3; ++i)
 	{
 		size_t dotPos = str_.find('.', searchStart);
-		bool dotFound = (dotPos != std::string_view::npos);
+		bool dotFound = (dotPos != StringView::npos);
 
 		auto optField = convertTo<int>(
 				dotFound ?
-				std::string(str_.substr(searchStart, dotPos - searchStart)) :
-				std::string(str_.substr(searchStart))
+				String(str_.substr(searchStart, dotPos - searchStart)) :
+				String(str_.substr(searchStart))
 			);
 
 		if (!optField.has_value())
@@ -40,7 +40,7 @@ Version Version::fromString(std::string_view str_)
 }
 
 ////////////////////////////////////////
-std::string Version::toString() const
+String Version::toString() const
 {
 	return fmt::format(FMT_COMPILE("{}.{}.{}"), major, minor, patch);
 }
@@ -59,7 +59,7 @@ bool VersionRequirement::test(Version const& version_) const
 }
 
 ////////////////////////////////////////
-VersionRequirement VersionRequirement::fromString(std::string_view str_)
+VersionRequirement VersionRequirement::fromString(StringView str_)
 {
 	if (str_.empty())
 		throw PaccException("could not parse version requirement (empty string)");
@@ -85,12 +85,12 @@ VersionRequirement VersionRequirement::fromString(std::string_view str_)
 
 
 ////////////////////////////////////////
-std::string VersionRequirement::toString() const
+String VersionRequirement::toString() const
 {
-	constexpr static std::string_view ReqChar[3] = { "", "~", "^" };
+	constexpr static StringView ReqChar[3] = { "", "~", "^" };
 
 	if (type == Any)
 		return "*";
 
-	return std::string(ReqChar[static_cast<int>(type)]) + version.toString();
+	return String(ReqChar[static_cast<int>(type)]) + version.toString();
 }

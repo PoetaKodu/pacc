@@ -11,8 +11,8 @@ auto loadFmtArgs(sol::variadic_args va)
 
 	for (auto arg : va)
 	{
-		if (arg.is<std::string>())
-			store.push_back(arg.as<std::string>());
+		if (arg.is<String>())
+			store.push_back(arg.as<String>());
 		else if (arg.is<int>())
 			store.push_back(arg.as<int>());
 		else if (arg.is<double>())
@@ -37,12 +37,12 @@ void PaccApp::setupLua()
 
 	lua["fmt"] = lua.create_table_with(
 		"string",
-		[](std::string fmt_, sol::variadic_args va) -> std::string
+		[](String fmt_, sol::variadic_args va) -> String
 		{
 			return fmt::vformat(fmt_, loadFmtArgs(va));
 		},
 		"print",
-		[](std::string fmt_, sol::variadic_args va)
+		[](String fmt_, sol::variadic_args va)
 		{
 			fmt::vprint(fmt_, loadFmtArgs(va));
 		}
@@ -56,13 +56,13 @@ void PaccApp::setupLua()
 		);
 
 	struct AccessWrapperGetter {
-		AccessSplitVec<std::string> const* ptr;
+		AccessSplitVec<String> const* ptr;
 		auto public_() const { return std::ref(ptr->public_); }
 		auto private_() const { return std::ref(ptr->private_); }
 		auto protected_() const { return std::ref(ptr->interface_); }
 	};
 	struct AccessWrapperSetter {
-		AccessSplitVec<std::string>* ptr;
+		AccessSplitVec<String>* ptr;
 		auto public_() const { return std::ref(ptr->public_); }
 		auto private_() const { return std::ref(ptr->private_); }
 		auto protected_() const { return std::ref(ptr->interface_); }
@@ -87,7 +87,7 @@ void PaccApp::setupLua()
 			"name",		&Project::name,
 			"kind",		sol::property(
 				[](Project const& proj) { return toString(proj.type); },
-				[](Project& proj, std::string const& val_) { proj.type = parseProjectType(val_); }
+				[](Project& proj, String const& val_) { proj.type = parseProjectType(val_); }
 			),
 			"includeFolders", sol::property(
 				[](Project const& proj) { return AccessWrapperGetter{&proj.includeFolders.self}; },
@@ -104,7 +104,7 @@ void PaccApp::setupLua()
 			"root",		[] (Package const& pkg) { return pkg.root.string(); },
 			"version",	&Package::version,
 			"projects",	&Package::projects,
-			"addProject", [](Package& pkg, std::string name)
+			"addProject", [](Package& pkg, String name)
 			{
 				Project p;
 				p.name = std::move(name);
@@ -114,7 +114,7 @@ void PaccApp::setupLua()
 		);
 
 
-	auto currentPackagesPath	= lua["package"]["path"].get<std::string>();
+	auto currentPackagesPath	= lua["package"]["path"].get<String>();
 	auto paccLuaScriptsPattern	= env::getPaccAppPath().parent_path() / "../lua/?.lua";
 
 	lua["package"]["path"].set(currentPackagesPath + ";" + paccLuaScriptsPattern.string());

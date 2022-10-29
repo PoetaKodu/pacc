@@ -48,7 +48,7 @@ void PackageJsonReader::makeConformant()
 			else
 			{
 				// Use first project's name
-				root["name"] = (*it)[0]["name"].get<std::string>();
+				root["name"] = (*it)[0]["name"].get<String>();
 			}
 
 			// TODO: make each project conformant

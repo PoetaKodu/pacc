@@ -3,7 +3,7 @@
 #include <Pacc/PackageSystem/Dependency.hpp>
 
 /////////////////////////////////////////////////
-DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
+DownloadLocation DownloadLocation::parse(String const& depTemplate_)
 {
 	if (depTemplate_.empty())
 		return {};
@@ -11,10 +11,10 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 	DownloadLocation result;
 
 	std::size_t colonPos = depTemplate_.find(':');
-	std::string rest;
-	std::string platformName;
+	String rest;
+	String platformName;
 
-	if (colonPos != std::string::npos)
+	if (colonPos != String::npos)
 	{
 		rest = depTemplate_.substr( colonPos + 1 );
 
@@ -32,7 +32,7 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 		result.platform = OfficialRepo;
 	}
 
-	std::string repo;
+	String repo;
 	if (result.platform == OfficialRepo)
 	{
 		repo = std::move(rest);
@@ -40,7 +40,7 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 	else
 	{
 		std::size_t slashPos = rest.find('/');
-		if (slashPos == std::string::npos)
+		if (slashPos == String::npos)
 		{
 			throw PaccException("Invalid package \"{}\". Unknown user name.", depTemplate_)
 				.withHelp("Use following syntax: \"{}:UserName/RepoName\"", platformName);
@@ -68,13 +68,13 @@ DownloadLocation DownloadLocation::parse(std::string const& depTemplate_)
 
 
 ///////////////////////////////////////
-std::string DownloadLocation::getGitLink() const
+String DownloadLocation::getGitLink() const
 {
 	if (platform == DownloadLocation::Unknown)
 		return "";
 
-	std::string platformName;
-	std::string user = userName;
+	String platformName;
+	String user = userName;
 	switch(platform)
 	{
 	case DownloadLocation::OfficialRepo:
@@ -98,7 +98,7 @@ std::string DownloadLocation::getGitLink() const
 }
 
 ///////////////////////////////////////
-std::string DownloadLocation::getBranch() const
+String DownloadLocation::getBranch() const
 {
 	if (branch.empty())
 		return {};
@@ -121,7 +121,7 @@ PackageVersions& PackageVersions::sort()
 ///////////////////////////////////////
 PackageVersions PackageVersions::filter(VersionReq const& req_)
 {
-	std::vector<StringVersionPair> c, r;
+	Vec<StringVersionPair> c, r;
 	c.reserve(confirmed.size());
 	r.reserve(rest.size());
 
@@ -138,7 +138,7 @@ PackageVersions PackageVersions::filter(VersionReq const& req_)
 
 
 ///////////////////////////////////////
-PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
+PackageVersions PackageVersions::parse(String const& lsRemoteOutput_)
 {
 	PackageVersions result;
 
@@ -146,7 +146,7 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 	result.confirmed.reserve(numLines / 2);
 	result.rest.reserve(numLines / 2);
 
-	auto tryParseVersion = [](Version & ver, std::string const& str)
+	auto tryParseVersion = [](Version & ver, String const& str)
 		{
 			try {
 				ver = Version::fromString(str);
@@ -162,10 +162,10 @@ PackageVersions PackageVersions::parse(std::string const& lsRemoteOutput_)
 			continue;
 
 		auto lastSlash = token.find_last_of("/");
-		if (lastSlash == std::string_view::npos)
+		if (lastSlash == StringView::npos)
 			continue;
 
-		auto tagName = std::string(token.substr(lastSlash + 1));
+		auto tagName = String(token.substr(lastSlash + 1));
 
 		Version ver;
 		if (startsWith(tagName, "pacc-"))

@@ -82,7 +82,7 @@ void BuildQueueBuilder::recursiveLoad(Package & pkg_)
 
 	for(auto & p : pkg_.projects)
 	{
-		std::vector<Configuration*> configs;
+		Vec<Configuration*> configs;
 		configs.reserve(1 + p.premakeFilters.size());
 		configs.push_back(&p);
 		for(auto& [key, value] : p.premakeFilters)

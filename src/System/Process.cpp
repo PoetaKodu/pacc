@@ -15,8 +15,8 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		std::wstring 	theCommand(command.begin(), command.end());
 		std::wstring 	env = L"";
 	#else
-		std::string const& theCommand = this->command;
-		std::string 	env = "";
+		String const& theCommand = this->command;
+		String 	env = "";
 	#endif
 
 	proc::Process proc(theCommand, env,
@@ -25,7 +25,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		{
 			if (printRealTime || storeOutput)
 			{
-				auto s = std::string(bytes, n);
+				auto s = String(bytes, n);
 				if (printRealTime)
 				{
 					std::cout << s;
@@ -41,7 +41,7 @@ ChildProcess::ExitCode ChildProcess::runSync()
 		{
 			if (printRealTime || storeOutput)
 			{
-				auto s = std::string(bytes, n);
+				auto s = String(bytes, n);
 
 				if (printRealTime)
 				{

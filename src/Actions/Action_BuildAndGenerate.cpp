@@ -72,7 +72,7 @@ gen::Premake5 PaccApp::createPremake5Generator()
 
 
 ///////////////////////////////////////////////////
-void PaccApp::ensureProjectsAreBuilt(Package& pkg_, std::vector<std::string> const& projectNames_, BuildSettings const& settings_)
+void PaccApp::ensureProjectsAreBuilt(Package& pkg_, Vec<String> const& projectNames_, BuildSettings const& settings_)
 {
 	fs::path rootFolder = pkg_.root.parent_path();
 
@@ -189,13 +189,13 @@ void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildS
 ///////////////////////////////////////////////////
 BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 {
-	using SwitchNames = std::vector<std::string>;
+	using SwitchNames = Vec<String>;
 	static const SwitchNames cores 			= { "--cores" };
 	static const SwitchNames target 		= { "--target", "-t" };
 	static const SwitchNames platforms 		= { "--platform", "--plat", "-p" };
 	static const SwitchNames configurations = { "--configuration", "--config", "--cfg", "-c" };
 
-	auto parseSwitch = [](std::string_view arg, SwitchNames const& switches, std::string& val)
+	auto parseSwitch = [](StringView arg, SwitchNames const& switches, String& val)
 		{
 			for(auto sw : switches)
 			{
@@ -212,7 +212,7 @@ BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 	// Start at 2
 	for(size_t i = 2; i < args.size(); ++i)
 	{
-		std::string switchVal;
+		String switchVal;
 		if (parseSwitch(args[i], cores, switchVal))
 		{
 			result.cores = convertTo<int>(switchVal);

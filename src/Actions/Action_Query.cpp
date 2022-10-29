@@ -5,8 +5,8 @@
 ///////////////////////////////////
 void PaccApp::query()
 {
-	constexpr std::string_view OutputSwitches[] = { "-o", "--output" };
-	auto outFileName = std::string();
+	constexpr StringView OutputSwitches[] = { "-o", "--output" };
+	auto outFileName = String();
 
 	for (auto sw : OutputSwitches)
 	{

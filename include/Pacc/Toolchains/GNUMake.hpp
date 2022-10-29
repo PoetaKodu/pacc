@@ -4,8 +4,8 @@
 
 struct GNUMakeToolchain : Toolchain
 {
-	std::string cppCompilerName	= "g++";
-	std::string cCompilerName 	= "gcc";
+	String cppCompilerName	= "g++";
+	String cCompilerName 	= "gcc";
 
 	virtual Type type() const { return GNUMake; }
 
@@ -16,9 +16,9 @@ struct GNUMakeToolchain : Toolchain
 	virtual bool deserialize(json const& in_) override;
 
 	// TODO: Choose between "gmake" and "gmake2"
-	virtual std::string premakeToolchainType() const { return "gmake2"; }
+	virtual String premakeToolchainType() const { return "gmake2"; }
 
-	virtual std::optional<int> run(Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
+	virtual Opt<int> run(Package const & pkg_, BuildSettings settings_ = {}, int verbosityLevel_ = 0) override;
 
-	static std::vector<GNUMakeToolchain> detect();
+	static Vec<GNUMakeToolchain> detect();
 };

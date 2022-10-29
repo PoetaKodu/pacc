@@ -28,7 +28,7 @@ public:
 	T operator()(T && toPass_) const
 	{
 		return std::forward<T>(toPass_);
-	}	
+	}
 };
 
 ////////////////////////////////////
@@ -42,7 +42,7 @@ public:
 	{
 		if (path_.is_relative())
 			return fsx::fwd(basePath / path_).string();
-		else 
+		else
 			return path_;
 	}
 }
@@ -74,6 +74,6 @@ class ArrayProperty
 		else
 			doMerge(MergePolicy{});
 	}
-	
-	std::vector<ValueType> content;
+
+	Vec<ValueType> content;
 };

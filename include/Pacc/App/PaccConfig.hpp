@@ -18,7 +18,7 @@ struct PaccConfig
 	{
 		if (selectedToolchain < toolchains.size())
 			return toolchains[selectedToolchain].get();
-		
+
 		return nullptr;
 	}
 
@@ -38,6 +38,6 @@ struct PaccConfig
 
 private:
 
-	VecOfTc readToolchains(json const& input_, std::string const &field_);
+	VecOfTc readToolchains(json const& input_, String const &field_);
 	void readSelectedToolchain(json const& input_);
 };

@@ -2,6 +2,8 @@
 
 #include PACC_PCH
 
+#include <Pacc/Helpers/HelperTypes.hpp>
+
 template <typename T>
 struct BasicJsonView
 {
@@ -19,9 +21,9 @@ struct JsonView
 {
 	using BasicJsonView::BasicJsonView;
 
-	std::string stringFieldOr(std::string_view subfieldName_, std::string_view alt_) const;
-	void expect(std::string_view name, json::value_t type) const;
-	void requireType(std::string_view name, json::value_t type) const;
+	String stringFieldOr(StringView subfieldName_, StringView alt_) const;
+	void expect(StringView name, json::value_t type) const;
+	void requireType(StringView name, json::value_t type) const;
 };
 
-constexpr std::string_view jsonTypeName(json::value_t type);
+constexpr StringView jsonTypeName(json::value_t type);
