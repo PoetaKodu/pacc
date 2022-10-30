@@ -95,7 +95,8 @@ auto PaccApp::loadPackageByName(
 {
 	Vec<fs::path> candidates = {
 			fs::current_path() 					/ "pacc_packages",
-			fs::current_path() 					/ "..",
+			// Folder above that is inside pacc_packages folder
+			fs::current_path() 					/ "../../pacc_packages",
 			env::getPaccDataStorageFolder() 	/ "packages"
 		};
 
