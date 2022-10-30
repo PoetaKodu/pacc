@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Generation/Logs.hpp>
 #include <Pacc/System/Environment.hpp>

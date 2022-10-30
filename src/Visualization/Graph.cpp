@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Visualization/Graph.hpp>
 #include <Pacc/PackageSystem/Package.hpp>

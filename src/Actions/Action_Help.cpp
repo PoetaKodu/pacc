@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/App/App.hpp>
 #include <Pacc/App/Help.hpp>
@@ -21,7 +21,7 @@ void PaccApp::displayHelp(bool abbrev_)
 				FMT_INLINE_ARG("USAGE", style.Yellow, "USAGE")
 			);
 
-	// 
+	//
 	if (abbrev_)
 	{
 		fmt::print("Use \"{} help\" for more information\n", programName.string());
@@ -30,7 +30,7 @@ void PaccApp::displayHelp(bool abbrev_)
 	{
 		// Display actions
 		std::cout << "ACTIONS\n";
-					
+
 		for (auto action : help::actions)
 		{
 			fmt::print("\t{:16}{}\n", action.first, action.second);

@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Toolchains/GNUMake.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include PACC_PCH
+#include <Pacc/PaccPCH.hpp>
 
 #include <Pacc/Main.hpp>
 #include <Pacc/App/PaccConfig.hpp>

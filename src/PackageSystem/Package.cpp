@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/App/Errors.hpp>

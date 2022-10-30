@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Helpers/Exceptions.hpp>
 
@@ -17,7 +17,7 @@ void dumpException(std::exception const& exc_)
 void dumpException(PaccException const& exc_)
 {
 	dumpException(static_cast<std::exception const&>(exc_));
-	
+
 	if (!exc_.help().empty())
 	{
 		fmt::printErr(fmt::runtime("{Help}\n"

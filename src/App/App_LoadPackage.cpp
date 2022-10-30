@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/App/App.hpp>
 
@@ -86,14 +86,14 @@ auto PaccApp::loadPackage(fs::path const& path_, String const& loaderName_)
 
 //////////////////////////////////////
 auto PaccApp::loadPackageByName(
-		String const&	name_,
+		String const&		name_,
 		VersionRequirement	verReq_,
 		UPtr<Package>*		invalidVersion_,
-		String const&	loaderName_
+		String const&		loaderName_
 	)
 	-> UPtr<Package>
 {
-	Vec<fs::path> candidates = {
+	auto candidates = Vec<fs::path>{
 			fs::current_path() 					/ "pacc_packages",
 			// Folder above that is inside pacc_packages folder
 			fs::current_path() 					/ "../../pacc_packages",

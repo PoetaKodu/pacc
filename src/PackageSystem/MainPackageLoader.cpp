@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/App/App.hpp>
 #include <Pacc/PackageSystem/MainPackageLoader.hpp>

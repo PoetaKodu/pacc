@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Toolchains/MSVC.hpp>
 #include <Pacc/System/Process.hpp>

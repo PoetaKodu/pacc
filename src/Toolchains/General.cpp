@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Toolchains/General.hpp>
 
@@ -41,5 +41,5 @@ void detectToolchainsByType(Vec<SPtr<Toolchain>> &out_)
 {
 	auto tcs = ToolchainType::detect();
 	for(auto& tc : tcs)
-		out_.push_back( std::make_shared<ToolchainType>( std::move(tc) ) );	
+		out_.push_back( std::make_shared<ToolchainType>( std::move(tc) ) );
 }

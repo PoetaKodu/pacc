@@ -1,6 +1,6 @@
 #pragma once
 
-#include PACC_PCH
+#include <Pacc/PaccPCH.hpp>
 
 #include <Pacc/Helpers/Json.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>

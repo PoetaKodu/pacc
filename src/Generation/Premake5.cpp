@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Generation/OutputFormatter.hpp>

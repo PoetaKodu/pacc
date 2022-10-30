@@ -1,4 +1,4 @@
-#include PACC_PCH
+#include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
