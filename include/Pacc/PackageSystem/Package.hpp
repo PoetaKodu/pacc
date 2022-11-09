@@ -225,17 +225,15 @@ struct Package
 
 	static UPtr<Package> load(PackagePreloadInfo info_);
 
-	Project const* findProject(StringView name_) const;
+	auto findProject(StringView name_) const -> Project const*;
+	auto requireProject(StringView name_) const -> Project const&;
 
-	Project const& requireProject(StringView name_) const;
+	auto predictOutputFolder(Project const& project_) const -> fs::path;
+	auto predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const -> fs::path;
 
-	fs::path predictOutputFolder(Project const& project_) const;
-	fs::path predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const;
+	auto getAbsoluteArtifactFilePath(Project const& project_) const -> fs::path;
 
-	fs::path getAbsoluteArtifactFilePath(Project const& project_) const;
-
-	/////////////////////////////////////////////////
-	fs::path resolvePath( fs::path const& path_) const;
+	auto resolvePath( fs::path const& path_) const -> fs::path;
 
 	fs::path outputRoot;
 
