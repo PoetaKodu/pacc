@@ -15,8 +15,8 @@ constexpr StringView PackageLUAScript[2]	= { "pacc.script.lua", "cpackage.script
 
 using PackagePtr 	= std::shared_ptr<Package>;
 
-std::size_t getNumElements(Vec<String> const& v);
-std::size_t getNumElements(VecOfStrAcc const& v);
+auto getNumElements(Vec<String> const& v) -> std::size_t;
+auto getNumElements(VecOfStrAcc const& v) -> std::size_t;
 
 
 auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_ = std::nullopt) -> fs::path;
@@ -38,7 +38,7 @@ struct GNUSymbolVisibility
 		return value;
 	}
 
-	static GNUSymbolVisibility fromString(StringView str_)
+	static auto fromString(StringView str_) -> GNUSymbolVisibility
 	{
 		if (compareIgnoreCase(str_, "Default"))
 			return { Mode::Default };
@@ -50,7 +50,7 @@ struct GNUSymbolVisibility
 		return { Mode::Unknown };
 	}
 
-	StringView toString() const
+	auto toString() const -> StringView
 	{
 		if (value == Mode::Default)
 			return "Default";
