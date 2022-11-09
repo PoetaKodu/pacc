@@ -209,8 +209,8 @@ struct Package
 	PackagePreloadInfo
 {
 	Vec<Project> 	projects;
-	Version					version;
-	bool					isCMake = false;
+	Version			version;
+	bool			isCMake = false;
 	String 			startupProject;
 
 	static PackagePreloadInfo preload(fs::path dir_ = "");
