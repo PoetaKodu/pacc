@@ -127,7 +127,7 @@ inline constexpr auto ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 Artifact detectArtifactTypeFromPath(StringView path_);
 
 struct ArtifactProducer {
-	using ArtifactsType = std::array<Vec<fs::path>, ArtifactTypesCount>;
+	using ArtifactsType = Array<Vec<fs::path>, ArtifactTypesCount>;
 
 	ArtifactsType artifacts;
 };

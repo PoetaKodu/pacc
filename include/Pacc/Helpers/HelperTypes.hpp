@@ -6,6 +6,9 @@ using String		= std::string;
 using StringView	= std::string_view;
 
 // Containers:
+template <typename T, size_t N>
+using Array = std::array<T, N>;
+
 template <typename T>
 using Vec = std::vector<T>;
 
