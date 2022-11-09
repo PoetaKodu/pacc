@@ -122,7 +122,7 @@ enum class Artifact {
 	Unknown,
 	MAX
 };
-inline constexpr int ArtifactTypesCount = static_cast<int>(Artifact::MAX);
+inline constexpr auto ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 
 Artifact detectArtifactTypeFromPath(StringView path_);
 
