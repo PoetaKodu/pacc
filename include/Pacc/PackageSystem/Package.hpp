@@ -163,8 +163,8 @@ enum class ProjectType
 	Unknown
 };
 
-String toString(ProjectType type_, StringView pluginName_ = "");
-ProjectType parseProjectType(StringView type_);
+auto toString(ProjectType type_, StringView pluginName_ = "") -> String;
+auto parseProjectType(StringView type_) -> ProjectType;
 
 struct Project
 	: TargetBase, ScriptableTarget
