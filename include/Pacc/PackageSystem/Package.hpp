@@ -194,7 +194,7 @@ struct PackagePreloadInfo
 	}
 
 	bool usesLuaConfig() const {
-		return rg::find(PackageJSON, root.filename()) != std::end(PackageLUA);
+		return rg::find(PackageLUA, root.filename()) != std::end(PackageLUA);
 	}
 
 	bool usesScriptFile() const {
