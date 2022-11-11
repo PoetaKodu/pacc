@@ -107,7 +107,7 @@ auto PaccApp::loadPackageByName(
 	for(auto const& c : candidates)
 	{
 		auto pkgFolder = c / name_;
-		UPtr<Package> pkg;
+		auto pkg = UPtr<Package>();
 		try {
 			pkg = this->loadPackage(pkgFolder, loaderName_);
 		}
