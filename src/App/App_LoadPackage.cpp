@@ -29,15 +29,18 @@ sol::protected_function_result PaccApp::execLuaEvent(Package& pkg_, String const
 
 ////////////////////////////////////
 // Enables view of the underlying container of the priority_queue
-template <class T, class S, class C>
-S const& viewContainer(std::priority_queue<T, S, C> const& q)
+template <class T, class Cont, class P>
+auto viewContainer(std::priority_queue<T, Cont, P> const& q) -> Cont const&
 {
-    struct ViewableQueue : private std::priority_queue<T, S, C> {
-        static S const& viewContainer(std::priority_queue<T, S, C> const& q) {
-            return q.*&ViewableQueue::c;
-        }
-    };
-    return ViewableQueue::viewContainer(q);
+	struct ViewableQueue
+		: private std::priority_queue<T, Cont, P>
+	{
+		static auto viewContainer(std::priority_queue<T, Cont, P> const& q) -> Cont const&
+		{
+			return q.*&ViewableQueue::c;
+		}
+	};
+	return ViewableQueue::viewContainer(q);
 }
 
 //////////////////////////////////////
