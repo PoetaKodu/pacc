@@ -67,14 +67,14 @@ auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_)
 		return fs::exists(directory_ / path_) && fs::is_regular_file(path_);
 	};
 
-	// Test LUA files:
+	// Test JSON files:
 	{
 		auto it = rg::find_if(PackageJSON, fileExists);
 		if (it != std::end(PackageJSON))
 			return directory_ / *it;
 	}
 
-	// Test JSON files:
+	// Test LUA files:
 	{
 		auto it = rg::find_if(PackageLUA, fileExists);
 		if (it != std::end(PackageLUA))
