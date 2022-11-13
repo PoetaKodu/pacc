@@ -54,20 +54,25 @@ public:
 	///////////////////////
 	// Other functions:
 	///////////////////////
-	UPtr<Package>	loadPackage(fs::path const& path_);
-	UPtr<Package>	loadPackage(fs::path const& path_, String const& loaderName_);
-	UPtr<Package>	loadPackageByName(String const& name_, VersionRequirement verReq_ = {}, UPtr<Package>* invalidVersion_ = nullptr, String const& loaderName_ = "auto");
+	auto loadPackage(fs::path const& path_) -> UPtr<Package>;
+	auto loadPackage(fs::path const& path_, String const& loaderName_) -> UPtr<Package>;
+	auto loadPackageByName(
+			String const&		name_,
+			VersionRequirement	verReq_ = {},
+			UPtr<Package>*		invalidVersion_ = nullptr,
+			String const&		loaderName_ = "auto"
+		) -> UPtr<Package>;
 
-	IPackageLoader& detectPreferredPackageLoaderFor(fs::path const& path_) const;
+	auto detectPreferredPackageLoaderFor(fs::path const& path_) const -> IPackageLoader&;
 
-	void 			loadPaccConfig();
+	void loadPaccConfig();
 
 	PaccApp();
 
-	ProgramArgs		args;
-	PaccConfig 		cfg;
+	ProgramArgs	args;
+	PaccConfig 	cfg;
 
-	sol::state		lua;
+	sol::state	lua;
 
 	UMap<String, UPtr<IPackageLoader> > packageLoaders;
 	UMap<String, UPtr<IPackageBuilder> > packageBuilders;
