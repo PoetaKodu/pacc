@@ -33,7 +33,7 @@ PaccApp::PaccApp()
 
 
 ///////////////////////////////////////////////////
-IPackageLoader* PaccApp::registerPackageLoader(String const& name_, UPtr<IPackageLoader> loader_)
+auto PaccApp::registerPackageLoader(String const& name_, UPtr<IPackageLoader> loader_) -> IPackageLoader*
 {
 	auto ptr = loader_.get();
 	packageLoaders[name_] = std::move(loader_);
