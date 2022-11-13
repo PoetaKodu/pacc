@@ -144,7 +144,7 @@ UPtr<Package> PackageLoader::load(fs::path const& root_)
 	{
 		Project p;
 		this->loadProjectFromFile(replyFolderOf(root_) / path, p);
-		package->projects.push_back(std::move(p));
+		package->projects.emplace_back(std::move(p));
 	}
 
 	return package; // TODO: move loading logic from Package class
