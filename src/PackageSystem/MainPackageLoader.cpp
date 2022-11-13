@@ -4,17 +4,17 @@
 #include <Pacc/PackageSystem/MainPackageLoader.hpp>
 
 /////////////////////////////////////////////
-UPtr<Package> MainPackageLoader::load(fs::path const& root_)
+auto MainPackageLoader::load(fs::path const& root_) -> UPtr<Package>
 {
 	auto preloaded	= Package::preload(root_);
-	bool usesScript	= preloaded.usesScriptFile();
+	auto usesScript	= preloaded.usesScriptFile();
 
 	if (usesScript)
 	{
 		auto script = app.lua.load_file(preloaded.scriptFile.string());
 		if (!script.valid())
 		{
-			sol::error err = script;
+			auto err = sol::error(script);
 			throw PaccException("{}", err.what());
 		}
 
@@ -22,7 +22,7 @@ UPtr<Package> MainPackageLoader::load(fs::path const& root_)
 
 		if (!result.valid())
 		{
-			sol::error err = result;
+			auto err = sol::error(result);
 			throw PaccException("{}", err.what());
 		}
 	}
@@ -43,14 +43,14 @@ UPtr<Package> MainPackageLoader::load(fs::path const& root_)
 }
 
 /////////////////////////////////////////////
-bool MainPackageLoader::canLoad(fs::path const& root_) const
+auto MainPackageLoader::canLoad(fs::path const& root_) const -> bool
 {
 	return fs::is_directory(root_) && !findPackageFile(root_).empty();
 }
 
 
 /////////////////////////////////////////////
-bool MainPackageLoader::loadTarget(fs::path const& root_, String const& name_, TargetBase& target_)
+auto MainPackageLoader::loadTarget(fs::path const& root_, String const& name_, TargetBase& target_) -> bool
 {
 	auto pkg = load(root_);
 
