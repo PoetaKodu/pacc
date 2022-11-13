@@ -1,27 +1,33 @@
 #include "include/Pacc/PaccPCH.hpp"
 
 #include <Pacc/App/App.hpp>
-
 #include <Pacc/App/Help.hpp>
-#include <Pacc/System/Environment.hpp>
 #include <Pacc/App/Errors.hpp>
+
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/PackageSystem/Version.hpp>
 #include <Pacc/PackageSystem/MainPackageLoader.hpp>
+
+#include <Pacc/System/Environment.hpp>
 #include <Pacc/System/Filesystem.hpp>
 #include <Pacc/System/Process.hpp>
+
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
 #include <Pacc/Generation/Logs.hpp>
+
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/Readers/JsonReader.hpp>
+
 #include <Pacc/Helpers/Formatting.hpp>
 #include <Pacc/Helpers/Exceptions.hpp>
 #include <Pacc/Helpers/String.hpp>
+#include <Pacc/Helpers/Lua.hpp>
+
+#include <Pacc/UserTasks/LuaTask.hpp>
+#include <Pacc/Toolchains/General.hpp>
+
 #include <Pacc/Plugins/CMake.hpp>
 #include <Pacc/Build/PaccPackageBuilder.hpp>
-
-
-#include <Pacc/Toolchains/General.hpp>
 
 
 ///////////////////////////////////////////////////
@@ -29,6 +35,7 @@ PaccApp::PaccApp()
 {
 	this->setupPackageLoaders();
 	this->setupPackageBuilders();
+	this->setupEventActions();
 }
 
 
@@ -39,6 +46,12 @@ auto PaccApp::registerPackageLoader(String const& name_, UPtr<IPackageLoader> lo
 	packageLoaders[name_] = std::move(loader_);
 	autodetectPackageLoaders.push(ptr);
 	return ptr;
+}
+
+///////////////////////////////////////////////////
+auto PaccApp::setupEventActions() -> void
+{
+	this->registerEventAction("lua", std::make_unique<LuaTaskAction>());
 }
 
 ///////////////////////////////////////////////////
@@ -217,4 +230,60 @@ auto PaccApp::argValue(StringView name_) const
 	}
 
 	return result;
+}
+
+auto PaccApp::requireLuaScript(Package const& packageContext, fs::path const& path) -> sol::state&
+{
+	auto context = LuaScriptContext{ &packageContext, path };
+
+	auto it = loadedLuaScripts.find(context);
+	if (it != loadedLuaScripts.end())
+		return it->second;
+
+	auto[insertIt, success] = loadedLuaScripts.emplace( std::move(context), freshLuaInstance());
+	auto& state = insertIt->second;
+
+	auto absolutePath = packageContext.rootFolder() / path;
+	auto loadResult = state.load_file(absolutePath.string());
+	if (!loadResult.valid())
+	{
+		throw PaccException(
+				"Could not load Lua script \"{}\" of package \"{}\".\n"
+				"Message: {}\n",
+				path.string(), packageContext.name,
+				getError(loadResult).what()
+			);
+	}
+	auto executionResult = loadResult();
+	if (!executionResult.valid())
+	{
+		throw PaccException(
+				"Could not execute Lua script \"{}\" of package \"{}\".\n"
+				"Message: {}\n",
+				path.string(), packageContext.name,
+				getError(executionResult).what()
+			);
+	}
+
+	return state;
+}
+
+//////////////////////////////////////
+void PaccApp::execPackageEvent(Package& pkg_, String const& eventName_)
+{
+	auto it = pkg_.eventHandlers.find(eventName_);
+
+	if (it == pkg_.eventHandlers.end())
+		return;
+
+	for (auto& task: it->second)
+	{
+		auto executor = this->findEventAction(task->action);
+
+		// Note: the executor should always be found, because you cannot
+		// add an event handler with an action that does not exist.
+		assert(executor && "Unknown event action");
+
+		executor->execute(pkg_, *task);
+	}
 }

@@ -4,29 +4,6 @@
 
 #include <Pacc/System/Environment.hpp>
 
-//////////////////////////////////////
-sol::protected_function_result PaccApp::execLuaEvent(Package& pkg_, String const& eventName_)
-{
-	auto it = pkg_.scripts.find(eventName_);
-
-	if (it != pkg_.scripts.end()) {
-		auto& funcName = it->second->functionName;
-		auto luaFn = lua[funcName];
-		if (luaFn.get_type() != sol::type::function) {
-			throw PaccException("Could not execute event \"{}\"!\nFunction \"{}\" not defined within the specified module.", eventName_, funcName);
-		}
-
-		auto result = luaFn(std::ref(pkg_));
-
-		if (!result.valid()) {
-			throw PaccException("Could not execute event \"{}\"!\nDetails: {}", eventName_, result.get<sol::error>().what());
-		}
-		return result;
-	}
-
-	return {};
-}
-
 ////////////////////////////////////
 // Enables view of the underlying container of the priority_queue
 template <class T, class Cont, class P>

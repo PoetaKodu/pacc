@@ -4,13 +4,18 @@
 
 #include <Pacc/Main.hpp>
 #include <Pacc/App/PaccConfig.hpp>
+#include <Pacc/PackageSystem/Events.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/PackageSystem/IPackageLoader.hpp>
 #include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
 #include <Pacc/Generation/BuildQueueBuilder.hpp>
 
+#include <Pacc/Helpers/Lua.hpp>
+
 class PaccApp
+	:
+	public PaccAppModule_EventHandlerActions
 {
 public:
 	constexpr static StringView PaccVersion = "0.6.0";
@@ -90,16 +95,18 @@ public:
 	// Package building
 	IPackageBuilder*				defaultPackageBuilder;
 
-	IPackageLoader* registerPackageLoader(String const& name_, UPtr<IPackageLoader> loader_);
+	auto registerPackageLoader(String const& name_, UPtr<IPackageLoader> loader_) -> IPackageLoader*;
 
 	// TODO: use date instead of amount
-	void 			cleanupLogs(size_t maxLogs_) const;
+	void cleanupLogs(size_t maxLogs_) const;
 
-	auto execLuaEvent(Package& pkg, String const& funcName_) -> sol::protected_function_result;
+	auto requireLuaScript(Package const& packageContext, fs::path const& path) -> sol::state&;
+	void execPackageEvent(Package& pkg, String const& funcName_);
 
 	auto setupLua() -> void;
 	auto createPremake5Generator() -> gen::Premake5;
 private:
+	auto setupEventActions() -> void;
 	auto setupPackageLoaders() -> void;
 	auto setupPackageBuilders() -> void;
 	auto determineBuildSettingsFromArgs() const -> BuildSettings;
@@ -122,4 +129,11 @@ private:
 	auto ensureDependenciesBuilt(Package& pkg_, BuildQueueBuilder const &depQueue_, BuildSettings const& settings_) -> void;
 
 	auto collectMissingDependencies(Package const & pkg_) -> Vec<PackageDependency>;
+
+	UMap<LuaScriptContext, sol::state> loadedLuaScripts;
 };
+
+inline PaccApp& useApp() {
+	static PaccApp instance;
+	return instance;
+}

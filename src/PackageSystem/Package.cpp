@@ -1,7 +1,10 @@
 #include "include/Pacc/PaccPCH.hpp"
 
+#include <Pacc/App/App.hpp>
+
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/App/Errors.hpp>
+#include <Pacc/PackageSystem/Events.hpp>
 #include <Pacc/System/Environment.hpp>
 #include <Pacc/Readers/General.hpp>
 #include <Pacc/System/Filesystem.hpp>
@@ -16,42 +19,132 @@
 ///////////////////////////////////////////////////
 
 template <json::value_t type>
-json const* expect(json const& j);
+auto expect(json const& j) -> json const*;
 
 template <json::value_t type>
-json const* expectSub(json const& j, StringView subfieldName);
+auto expectSub(json const& j, StringView subfieldName) -> json const*;
 
 template <json::value_t type>
-json const& require(json const& j);
+auto require(json const& j) -> json const&;
 
 template <json::value_t type>
-json const& requireSub(json const& j, StringView subfieldName);
+auto requireSub(json const& j, StringView subfieldName) -> json const&;
 
-json const* 	selfOrSubfieldOpt(json const& self, StringView fieldName = "");
-json const& 	selfOrSubfieldReq(json const& self, StringView fieldName = "");
-json const* 	selfOrSubfield(json const& self, StringView fieldName, bool required = false);
+auto selfOrSubfieldOpt(json const& self, StringView fieldName = "") -> json const*;
+auto selfOrSubfieldReq(json const& self, StringView fieldName = "") -> json const&;
+auto selfOrSubfield(json const& self, StringView fieldName, bool required = false) -> json const*;
 
-void 			readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, Vec<Dependency> &target_);
-Vec<String> 		loadVecOfStrField(json const& j, StringView fieldName, bool direct = false, bool required = false);
-VecOfStrAcc 	loadVecOfStrAccField(json const& j, StringView fieldName, AccessType defaultAccess_ = AccessType::Private);
+auto readDependencyAccess(Package &pkg_, Project & proj_, json const& deps_, Vec<Dependency> &target_) -> void;
+auto loadVecOfStrField(json const& j, StringView fieldName, bool direct = false, bool required = false) -> Vec<String>;
+auto loadVecOfStrAccField(json const& j, StringView fieldName, AccessType defaultAccess_ = AccessType::Private) -> VecOfStrAcc;
 
-void			loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration& conf_, json const& root_);
+void loadConfigurationFromJSON(Package & pkg_, Project & project_, Configuration& conf_, json const& root_);
+
+
+void readSingleTargetEventHandler(
+		PaccAppModule_EventHandlerActions const&	events_,
+		EventHandlingTarget&						target_,
+		String const&								key,
+		json const&									value,
+		int											handlerIndex = 0
+	)
+{
+	if (value.is_string())
+	{
+		auto action = value.get<String>(); // TODO: ensure is a string
+		auto [name, behavior] = splitBy(action, ':', true);
+
+		if (action.empty())
+		{
+			// TODO: consider throwing an error
+			return;
+		}
+
+		auto actionHandler = events_.findEventAction(name);
+		if (!actionHandler)
+		{
+			fmt::printLog(
+					fmt::fg(fmt::color::yellow),
+					"[Warning] Handler (id: {}) of the event \"{}\" for target \"{}\" uses unknown action \"{}\":\n    ",
+					handlerIndex, key, target_.name, name
+				);
+			fmt::printLog(fmt::bg(fmt::color::dark_red), "{}", name);
+			fmt::printLog(fmt::fg(fmt::color::dim_gray), ":{}\n\n", behavior);
+			return;
+		}
+
+		if (!actionHandler->canLoadFromAbbreviatedString)
+		{
+			fmt::printLog(
+					fmt::fg(fmt::color::yellow),
+					"Action \"{}\" cannot be loaded from an abbreviated string. Use a JSON object instead.\n",
+					key, target_.name
+				);
+			return;
+		}
+
+		target_.eventHandlers[key].push_back(actionHandler->load(behavior));
+	}
+	else if (value.is_object())
+	{
+		auto action = value.value<String>("action", "");
+
+		if (action.empty())
+		{
+			fmt::printLog(
+					fmt::fg(fmt::color::yellow),
+					"[Warning] Handler (id: {}) of the event \"{}\" for target \"{}\" has no \"action\" field specified.\n",
+					handlerIndex, key, target_.name
+				);
+			// TODO: consider throwing an error
+			return;
+		}
+
+		auto actionHandler = events_.findEventAction(action);
+		if (!actionHandler)
+		{
+			fmt::printLog(
+					fmt::fg(fmt::color::yellow),
+					"[Warning] Handler (id: {}) of the event \"{}\" for target \"{}\" uses unknown action \"{}\":\n    ",
+					handlerIndex, key, target_.name, action
+				);
+			fmt::printLog(fmt::fg(fmt::color::gray), "\"action\": \"");
+			fmt::printLog(fmt::bg(fmt::color::dark_red), "{}", action);
+			fmt::printLog(fmt::fg(fmt::color::gray), "\"\n\n");
+			return;
+		}
+
+		target_.eventHandlers[key].push_back(actionHandler->load(value));
+	}
+}
 
 // TODO: refactor
-void readScriptableActions(json const& scriptsContainer, ScriptableTarget &target_)
+void readTargetEventHandlers(
+		PaccAppModule_EventHandlerActions const&	events_,
+		json const&									scriptsContainer,
+		EventHandlingTarget&						target_
+	)
 {
-	if (!scriptsContainer.contains("scripts"))
+	if (!scriptsContainer.contains("events"))
 		return;
-	auto scripts = scriptsContainer["scripts"];
+	auto scripts = scriptsContainer["events"];
 
 	for (auto [key, value] : scripts.items())
 	{
-		auto content = value.get<String>(); // TODO: ensure is a string
-		auto[md, fn] = splitBy(content, ':', false);
-
-		target_.scripts[key] = ScriptableAction{ std::move(md), std::move(fn) };
+		if (value.is_array())
+		{
+			auto idx = 0;
+			for (auto const& item : value)
+			{
+				readSingleTargetEventHandler(events_, target_, key, item, idx);
+				++idx;
+			}
+		}
+		else readSingleTargetEventHandler(events_, target_, key, value);
 	}
 }
+
+
 
 ///////////////////////////////////////////////////
 // Public functions
@@ -253,7 +346,7 @@ void Package::loadPackageSpecificInfo(json const& json_)
 	else
 		isCMake = false;
 
-	readScriptableActions(json_, *this);
+	readTargetEventHandlers(useApp(), json_, *this);
 }
 
 ///////////////////////////////////////////////////
@@ -263,7 +356,7 @@ void Package::loadWorkspaceInfo(json const& json_)
 
 	auto projectsNode = json_.find("projects");
 
-	projects.reserve(projectsNode->size());
+	// projects.reserve(projectsNode->size());
 
 	// Read projects:
 	for(auto it : projectsNode->items())
@@ -275,7 +368,7 @@ void Package::loadWorkspaceInfo(json const& json_)
 		project.name = jsonProject["name"].get<String>();
 		project.type = parseProjectType(jsonProject["type"].get<String>());
 
-		readScriptableActions(json_, project);
+		readTargetEventHandlers(useApp(), jsonProject, project);
 
 		if (auto it = jsonProject.find("pch"); it != jsonProject.end())
 		{
@@ -308,7 +401,7 @@ void Package::loadWorkspaceInfo(json const& json_)
 			}
 		}
 
-		projects.push_back(std::move(project));
+		projects.emplace_back(std::move(project));
 	}
 
 	if (isCMake) {

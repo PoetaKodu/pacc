@@ -4,6 +4,7 @@
 
 #include <Pacc/Helpers/HelperTypes.hpp>
 #include <Pacc/PackageSystem/Dependency.hpp>
+#include <Pacc/PackageSystem/Events.hpp>
 #include <Pacc/Toolchains/Toolchain.hpp>
 
 struct Package;
@@ -89,28 +90,15 @@ struct Configuration
 
 	GNUSymbolVisibility 			symbolVisibility;
 
-	String 					moduleDefinitionFile;
-	Vec<String>					 	files;
+	String							moduleDefinitionFile;
+	Vec<String>						files;
 	SaC<AccessSplitVec<Dependency>> dependencies;
-	SaC<VecOfStrAcc>			 	defines;
-	SaC<VecOfStrAcc>			 	includeFolders;
-	SaC<VecOfStrAcc>			 	linkerFolders;
-	SaC<VecOfStrAcc>			 	linkedLibraries;
-	SaC<VecOfStrAcc>			 	compilerOptions;
-	SaC<VecOfStrAcc>			 	linkerOptions;
-};
-
-struct ScriptableAction
-{
-	String moduleName; // either a file or a plugin
-	String functionName;
-};
-
-using OptScriptableAction	= Opt<ScriptableAction>;
-using ScriptableActionsMap	= std::unordered_map<String, OptScriptableAction>;
-
-struct ScriptableTarget {
-	ScriptableActionsMap scripts;
+	SaC<VecOfStrAcc>				defines;
+	SaC<VecOfStrAcc>				includeFolders;
+	SaC<VecOfStrAcc>				linkerFolders;
+	SaC<VecOfStrAcc>				linkedLibraries;
+	SaC<VecOfStrAcc>				compilerOptions;
+	SaC<VecOfStrAcc>				linkerOptions;
 };
 
 enum class Artifact {
@@ -124,7 +112,7 @@ enum class Artifact {
 };
 inline constexpr auto ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 
-Artifact detectArtifactTypeFromPath(StringView path_);
+auto detectArtifactTypeFromPath(StringView path_) -> Artifact;
 
 struct ArtifactProducer {
 	using ArtifactsType = Array<Vec<fs::path>, ArtifactTypesCount>;
@@ -137,9 +125,9 @@ struct TargetBase
 	Configuration,
 	ArtifactProducer
 {
-	String 	name;
+	String name;
 
-	Map<String, Configuration>	premakeFilters;
+	Map<String, Configuration> premakeFilters;
 
 	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
 
@@ -148,9 +136,9 @@ struct TargetBase
 
 struct PrecompiledHeader
 {
-	String 		header;
-	String 		source;
-	String 		definition;
+	String header;
+	String source;
+	String definition;
 };
 
 enum class ProjectType
@@ -166,8 +154,27 @@ enum class ProjectType
 auto toString(ProjectType type_, StringView pluginName_ = "") -> String;
 auto parseProjectType(StringView type_) -> ProjectType;
 
+struct EventHandlingTarget
+	: TargetBase, EventHandlingEntity
+{
+	EventHandlingTarget() = default;
+	EventHandlingTarget(EventHandlingTarget&& other_)
+		:
+		TargetBase(std::move(other_)),
+		EventHandlingEntity(std::move(other_))
+	{
+	}
+
+	EventHandlingTarget& operator=(EventHandlingTarget&& other_)
+	{
+		TargetBase::operator=(std::move(other_));
+		EventHandlingEntity::operator=(std::move(other_));
+		return *this;
+	}
+};
+
 struct Project
-	: TargetBase, ScriptableTarget
+	: EventHandlingTarget
 {
 	using Type = ProjectType;
 	using enum ProjectType;
@@ -176,6 +183,8 @@ struct Project
 	Opt<PrecompiledHeader> pch;
 
 	Type type;
+
+	using EventHandlingTarget::EventHandlingTarget;
 
 	auto getPrimaryArtifactOfType(Artifact artType_) const -> fs::path;
 	auto getLinkTargetArtifact() const -> fs::path;
@@ -204,8 +213,7 @@ struct PackagePreloadInfo
 
 struct Package
 	:
-	TargetBase,
-	ScriptableTarget,
+	EventHandlingTarget,
 	PackagePreloadInfo
 {
 	Vec<Project> 	projects;

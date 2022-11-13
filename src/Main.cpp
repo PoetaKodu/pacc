@@ -58,7 +58,7 @@ void handleArgs(ProgramArgs args_)
 {
 	using fmt::color, fmt::fg;
 
-	PaccApp app;
+	auto& app = useApp();
 	app.args = std::move(args_);
 
 	app.setupLua();

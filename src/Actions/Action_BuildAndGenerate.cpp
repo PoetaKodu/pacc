@@ -175,13 +175,15 @@ void PaccApp::buildPackage()
 ///////////////////////////////////////////////////
 void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildSettings const& settings_, bool isDependency_)
 {
-	this->execLuaEvent(pkg_, "onPackageBuildStart");
+	this->execPackageEvent(pkg_, "build");
 
 	auto builder = pkg_.builder ? pkg_.builder : defaultPackageBuilder;
 
 	// Run build toolchain
 	auto verbosityLevel = int(this->containsSwitch("--verbose") ? 1 : 0);
 	handleBuildResult( builder->run(pkg_, toolchain_, settings_, verbosityLevel), isDependency_ );
+
+	this->execPackageEvent(pkg_, "post:build");
 }
 
 ///////////////////////////////////////////////////
