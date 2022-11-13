@@ -210,7 +210,7 @@ auto PaccApp::determineBuildSettingsFromArgs() const -> BuildSettings
 	// Start at 2
 	for(size_t i = 2; i < args.size(); ++i)
 	{
-		String switchVal;
+		auto switchVal = String();
 		if (parseSwitch(args[i], cores, switchVal))
 		{
 			result.cores = convertTo<int>(switchVal);
