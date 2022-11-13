@@ -39,3 +39,12 @@ struct ReturnIdentity {
 
 template <typename T>
 using Opt = std::optional<T>;
+
+template <typename First, typename Second>
+using Pair = std::pair<First, Second>;
+
+template <typename T1, typename... Ts>
+using Tuple = std::tuple<T1, Ts...>;
+
+template <typename... Ts>
+using Variant = std::variant<Ts...>;
