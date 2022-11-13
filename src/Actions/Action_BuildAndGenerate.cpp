@@ -63,9 +63,9 @@ void PaccApp::generate()
 }
 
 ///////////////////////////////////////////////////
-gen::Premake5 PaccApp::createPremake5Generator()
+auto PaccApp::createPremake5Generator() -> gen::Premake5
 {
-	gen::Premake5 gen;
+	auto gen = gen::Premake5();
 	gen.compileCommands = this->containsSwitch("--compile-commands") || this->containsSwitch("-cc");
 	return gen;
 }
@@ -74,20 +74,18 @@ gen::Premake5 PaccApp::createPremake5Generator()
 ///////////////////////////////////////////////////
 void PaccApp::ensureProjectsAreBuilt(Package& pkg_, Vec<String> const& projectNames_, BuildSettings const& settings_)
 {
-	fs::path rootFolder = pkg_.root.parent_path();
-
-	fs::path prevWorkingDir = fs::current_path();
+	auto rootFolder = pkg_.root.parent_path();
+	auto prevWorkingDir = fs::current_path();
 
 	using fmt::fg, fmt::color;
 	for (auto const& projName : projectNames_)
 	{
-		Project const* p = pkg_.findProject(projName);
+		auto p = pkg_.findProject(projName);
 		// Build only static and shared libs
 		if (p->type != Project::StaticLib && p->type != Project::SharedLib)
 			continue;
 
-
-		fs::path binaryPath = rootFolder / "bin" / settings_.platformName / settings_.configName;
+		auto binaryPath = rootFolder / "bin" / settings_.platformName / settings_.configName;
 
 		auto tc = *cfg.currentToolchain();
 
@@ -182,18 +180,18 @@ void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildS
 	auto builder = pkg_.builder ? pkg_.builder : defaultPackageBuilder;
 
 	// Run build toolchain
-	int verbosityLevel = (this->containsSwitch("--verbose")) ? 1 : 0;
+	auto verbosityLevel = int(this->containsSwitch("--verbose") ? 1 : 0);
 	handleBuildResult( builder->run(pkg_, toolchain_, settings_, verbosityLevel), isDependency_ );
 }
 
 ///////////////////////////////////////////////////
-BuildSettings PaccApp::determineBuildSettingsFromArgs() const
+auto PaccApp::determineBuildSettingsFromArgs() const -> BuildSettings
 {
 	using SwitchNames = Vec<String>;
-	static const SwitchNames cores 			= { "--cores" };
-	static const SwitchNames target 		= { "--target", "-t" };
-	static const SwitchNames platforms 		= { "--platform", "--plat", "-p" };
-	static const SwitchNames configurations = { "--configuration", "--config", "--cfg", "-c" };
+	static const auto cores 			= SwitchNames{ "--cores" };
+	static const auto target 			= SwitchNames{ "--target", "-t" };
+	static const auto platforms 		= SwitchNames{ "--platform", "--plat", "-p" };
+	static const auto configurations 	= SwitchNames{ "--configuration", "--config", "--cfg", "-c" };
 
 	auto parseSwitch = [](StringView arg, SwitchNames const& switches, String& val)
 		{
@@ -205,7 +203,7 @@ BuildSettings PaccApp::determineBuildSettingsFromArgs() const
 			return false;
 		};
 
-	BuildSettings result;
+	auto result = BuildSettings();
 
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
