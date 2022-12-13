@@ -9,7 +9,7 @@
 
 
 ///////////////////////////////////////////////////
-void PaccApp::install()
+auto PaccApp::install() -> void
 {
 	using fmt::fg, fmt::color;
 
@@ -17,7 +17,7 @@ void PaccApp::install()
 	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
 		global = true;
 
-	fs::path targetPath;
+	auto targetPath = fs::path();
 	if (global)
 		targetPath = env::requirePaccDataStorageFolder() / "packages";
 	else
@@ -30,7 +30,7 @@ void PaccApp::install()
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
-		fs::path targetPackagePath = targetPath / loc.repository;
+		auto targetPackagePath = targetPath / loc.repository;
 		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath)) // works for both symlinks and junctions (is_directory is true)
 		{
 			throw PaccException("Package \"{0}\" is already installed{1}.", loc.repository, global ? " globally" : "")
@@ -64,7 +64,7 @@ void PaccApp::install()
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::uninstall()
+auto PaccApp::uninstall() -> void
 {
 	using fmt::fg, fmt::color;
 
@@ -72,7 +72,7 @@ void PaccApp::uninstall()
 	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
 		global = true;
 
-	fs::path targetPath;
+	auto targetPath = fs::path();
 	if (global)
 		targetPath = env::requirePaccDataStorageFolder() / "packages";
 	else
@@ -83,7 +83,7 @@ void PaccApp::uninstall()
 	{
 		auto packageName = String(args[2]);
 
-		fs::path packagePath = targetPath / packageName;
+		auto packagePath = targetPath / packageName;
 
 		if (fsx::isSymlinkOrJunction(packagePath) && global)
 		{
@@ -117,24 +117,26 @@ void PaccApp::uninstall()
 
 
 ///////////////////////////////////////////////////
-size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
+auto PaccApp::installPackageDependencies(Package& pkg, bool isRoot) -> size_t
 {
 	using fmt::fg, fmt::color;
 
-	fs::path targetPath = isRoot ? "pacc_packages" : "..";
+	auto targetPath = fs::path(isRoot ? "pacc_packages" : "..");
 
-	auto deps = this->collectMissingDependencies(pkg_);
+	auto deps = this->collectMissingDependencies(pkg);
 
 	if (deps.empty())
 	{
-		if (isRoot)
+		if (isRoot) {
 			fmt::print("No packages to install.\n");
+		}
+
 		return 0;
 	}
 
 	size_t numInstalled = 0;
 
-	Vec<fs::path> installed;
+	auto installed = Vec<fs::path>();
 
 	for (auto const& dep : deps)
 	{
@@ -148,7 +150,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 					);
 		}
 
-		fs::path targetPackagePath = targetPath / dep.packageName;
+		auto targetPackagePath = targetPath / dep.packageName;
 		if (fs::is_directory(targetPackagePath) || fs::is_symlink(targetPackagePath)) // works for both symlinks and junctions (is_directory is true)
 		{
 			throw PaccException("Package folder \"{}\" is already used.", targetPackagePath.filename().string())
@@ -166,7 +168,7 @@ size_t PaccApp::installPackageDependencies(Package& pkg_, bool isRoot)
 		++numInstalled;
 	}
 
-	fs::path prevPath = fs::current_path();
+	auto prevPath = fs::current_path();
 	for (auto pkgPath : installed)
 	{
 		fs::current_path(pkgPath);
