@@ -57,7 +57,7 @@ static bool ensureUserApproval()
 
 	if (response[0] != 'y' && response[0] != 'Y')
 	{
-		std::cout << "Action aborted." << std::endl;
+		fmt::print("Action aborted.\n");
 		return false;
 	}
 	return true;
