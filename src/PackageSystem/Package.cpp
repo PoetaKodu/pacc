@@ -152,10 +152,10 @@ void readTargetEventHandlers(
 
 
 ///////////////////////////////////////////////////
-auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_)
-	-> fs::path
+auto findPackageFile(Path const& directory_, Opt<StringView> extension_)
+	-> Path
 {
-	auto fileExists = [&] (fs::path const& path_)
+	auto fileExists = [&] (Path const& path_)
 	{
 		auto fullPath = directory_ / path_;
 		return fs::exists(fullPath) && fs::is_regular_file(fullPath);
@@ -179,10 +179,10 @@ auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_)
 }
 
 ///////////////////////////////////////////////////
-auto findPackageScriptFile(fs::path const& directory_)
-	-> fs::path
+auto findPackageScriptFile(Path const& directory_)
+	-> Path
 {
-	auto fileExists = [&] (fs::path const& path_)
+	auto fileExists = [&] (Path const& path_)
 	{
 		auto fullPath = directory_ / path_;
 		return fs::exists(fullPath) && fs::is_regular_file(fullPath);
@@ -230,7 +230,7 @@ void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const
 
 ///////////////////////////////////////////////////
 auto TargetBase::outputArtifact() const
-	-> fs::path
+	-> Path
 {
 	if (!artifacts[(size_t)Artifact::Executable].empty())
 	{
@@ -297,7 +297,7 @@ auto Project::isLibrary() const -> bool
 
 ///////////////////////////////////////////////////
 auto Project::getPrimaryArtifactOfType(Artifact artType_) const
-	-> fs::path
+	-> Path
 {
 	auto& outputs = artifacts[(size_t)artType_];
 	if (outputs.empty())
@@ -307,7 +307,7 @@ auto Project::getPrimaryArtifactOfType(Artifact artType_) const
 
 ///////////////////////////////////////////////////
 auto Project::getLinkTargetArtifact() const
-	-> fs::path
+	-> Path
 {
 	if (type == ProjectType::SharedLib || type == ProjectType::StaticLib)
 	{
@@ -322,7 +322,7 @@ auto Project::getLinkTargetArtifact() const
 
 ///////////////////////////////////////////////////
 auto Project::getPrimaryArtifact() const
-	-> fs::path
+	-> Path
 {
 	switch (type)
 	{
@@ -412,7 +412,7 @@ void Package::loadWorkspaceInfo(json const& json_)
 }
 
 ///////////////////////////////////////////////////
-auto Package::preload(fs::path dir_)
+auto Package::preload(Path dir_)
 	-> PackagePreloadInfo
 {
 	PackagePreloadInfo result;
@@ -485,7 +485,7 @@ auto Package::requireProject(StringView name_) const
 
 ///////////////////////////////////////////////////
 auto Package::predictOutputFolder(Project const& project_) const
-	-> fs::path
+	-> Path
 {
 	auto artifact = project_.getLinkTargetArtifact();
 
@@ -501,9 +501,9 @@ auto Package::predictOutputFolder(Project const& project_) const
 
 ///////////////////////////////////////////////////
 auto Package::predictRealOutputFolder(Project const& project_, BuildSettings settings_) const
-	-> fs::path
+	-> Path
 {
-	fs::path folder;
+	auto folder = Path();
 
 	auto artifact = project_.getLinkTargetArtifact();
 	if (!artifact.empty())
@@ -522,14 +522,14 @@ auto Package::predictRealOutputFolder(Project const& project_, BuildSettings set
 
 ///////////////////////////////////////////////////
 auto Package::getAbsoluteArtifactFilePath(Project const& project_) const
-	-> fs::path
+	-> Path
 {
 	return this->predictRealOutputFolder(project_) / project_.getPrimaryArtifact().filename();
 }
 
 ///////////////////////////////////////////////////
-auto Package::resolvePath( fs::path const& path_) const
-	-> fs::path
+auto Package::resolvePath( Path const& path_) const
+	-> Path
 {
 	if (path_.is_relative())
 		return fsx::fwd(root.parent_path() / path_).string();
@@ -629,7 +629,7 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 {
 	auto resolvePath = [&](auto const& pathLikeElem)
 		{
-			return fromPkg_.resolvePath(fs::path(pathLikeElem)).string();
+			return fromPkg_.resolvePath(Path(pathLikeElem)).string();
 		};
 
 	mergeAccesses(into_.defines, 			from_.defines, 		 		mode_);
