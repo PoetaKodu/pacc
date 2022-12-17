@@ -157,7 +157,8 @@ auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_)
 {
 	auto fileExists = [&] (fs::path const& path_)
 	{
-		return fs::exists(directory_ / path_) && fs::is_regular_file(path_);
+		auto fullPath = directory_ / path_;
+		return fs::exists(fullPath) && fs::is_regular_file(fullPath);
 	};
 
 	// Test JSON files:
@@ -183,7 +184,8 @@ auto findPackageScriptFile(fs::path const& directory_)
 {
 	auto fileExists = [&] (fs::path const& path_)
 	{
-		return fs::exists(directory_ / path_) && fs::is_regular_file(path_);
+		auto fullPath = directory_ / path_;
+		return fs::exists(fullPath) && fs::is_regular_file(fullPath);
 	};
 
 	auto it = rg::find_if(PackageLUAScript, fileExists);
