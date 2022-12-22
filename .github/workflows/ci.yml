@@ -53,6 +53,7 @@ jobs:
           mkdir deploy-main
           cp -af pacc-repo/res/deploy/content deploy-main/pacc
           cp -af pacc-repo/lua deploy-main/pacc/lua
+          chmod +x pacc-repo/bin/x64/Release/pacc
           cp pacc-repo/bin/x64/Release/pacc deploy-main/pacc/bin/pacc
         
       - name: Upload VM artifact
