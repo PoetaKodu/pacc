@@ -54,6 +54,7 @@ jobs:
           cp -af pacc-repo/res/deploy/content deploy-main/pacc
           cp -af pacc-repo/lua deploy-main/pacc/lua
           chmod +x pacc-repo/bin/x64/Release/pacc
+          chmod +x pacc-repo/bin/x64/Release/premake5
           cp pacc-repo/bin/x64/Release/pacc deploy-main/pacc/bin/pacc
         
       - name: Upload VM artifact
