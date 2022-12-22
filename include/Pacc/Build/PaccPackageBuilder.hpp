@@ -8,5 +8,10 @@ class PaccPackageBuilder
 public:
 	using IPackageBuilder::IPackageBuilder;
 
-	BuildProcessResult run(Package const& pkg_, Toolchain& tc_, BuildSettings const& settings_ = {}, int verbosityLevel_ = 0) override;
+	auto run(
+		Package const&			package,
+		Toolchain&				toolchain,
+		BuildSettings const&	settings = {},
+		int						verbosityLevel = 0
+	) -> BuildProcessResult override;
 };

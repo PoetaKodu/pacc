@@ -6,8 +6,7 @@
 void dumpException(std::exception const& exc_)
 {
 	fmt::printErr(	fmt::runtime("{Error} "
-					"{Details}:\n"
-					"    {}\n"),
+					"{}\n"),
 					exc_.what(),
 
 					fmt_args::error(), fmt_args::details());
@@ -16,14 +15,24 @@ void dumpException(std::exception const& exc_)
 //////////////////////////////////////////////////
 void dumpException(PaccException const& exc_)
 {
+	auto& help = exc_.help();
+	auto& note = exc_.note();
+
 	dumpException(static_cast<std::exception const&>(exc_));
 
-	if (!exc_.help().empty())
+	if (!help.empty())
 	{
-		fmt::printErr(fmt::runtime("{Help}\n"
-						"    {}\n"),
+		fmt::printErr(fmt::runtime("\n{Help} "
+						"{}\n"),
 						exc_.help(),
-
 						fmt_args::help());
+	}
+
+	if (!note.empty())
+	{
+		fmt::printErr(fmt::runtime("\n{Note} "
+						"{}\n"),
+						exc_.note(),
+						fmt_args::note());
 	}
 }

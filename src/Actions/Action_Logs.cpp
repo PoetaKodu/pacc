@@ -10,7 +10,7 @@
 void PaccApp::logs()
 {
 	// Print latest
-	if (containsSwitch("--last"))
+	if (settings.flags.at("--last")->isSet())
 	{
 		auto logs = getSortedBuildLogs(1);
 		if (logs.empty())
@@ -27,10 +27,11 @@ void PaccApp::logs()
 	{
 		size_t amount = 10;
 
-		if (args.size() >= 3)
+		auto amountArgIdx = settings.nthActionArgument(0);
+		if (amountArgIdx)
 		{
 			try {
-				amount = std::stol( String(args[2]) );
+				amount = std::stol( String(args[*amountArgIdx]) );
 			}
 			catch(...) {}
 		}

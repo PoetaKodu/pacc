@@ -5,9 +5,14 @@
 using String		= std::string;
 using StringView	= std::string_view;
 
+using Path			= std::filesystem::path;
+
 // Containers:
 template <typename T, size_t N>
 using Array = std::array<T, N>;
+
+template <typename T, size_t Extent = std::dynamic_extent>
+using Span = std::span<T, Extent>;
 
 template <typename T>
 using Vec = std::vector<T>;

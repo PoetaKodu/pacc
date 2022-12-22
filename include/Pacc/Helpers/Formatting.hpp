@@ -44,6 +44,10 @@ namespace fmt_args
 		fmt::text_style Green	= fmt::fg(fmt::color::green);
 		fmt::text_style Blue	= fmt::fg(fmt::color::blue);
 		fmt::text_style Yellow	= fmt::fg(fmt::color::yellow);
+
+		fmt::text_style ErrorMessage	= Bold | fmt::bg(fmt::color::dark_red);
+		fmt::text_style HelpMessage		= Bold | fmt::fg(fmt::color::white) | fmt::bg(fmt::rgb(0x8500a6));
+		fmt::text_style NoteMessage		= Bold | fmt::fg(fmt::color::white) | fmt::bg(fmt::rgb(0x0556c6));
 	};
 
 	inline Styles const& s() {
@@ -64,9 +68,10 @@ namespace fmt_args
 			return fmt::arg(argName, Val); \
 		})()
 
-	DEFINE_FMT_ARG(error, 	"Error", 	s().Bold | s().Red, 	"[Error]");
-	DEFINE_FMT_ARG(help, 	"Help", 	s().Bold | s().Yellow, 	"[Help]");
-	DEFINE_FMT_ARG(details, "Details", 	s().Bold, 				"Details");
+	DEFINE_FMT_ARG(error, 	"Error", 	s().ErrorMessage, 	"/  Error  /");
+	DEFINE_FMT_ARG(help, 	"Help", 	s().HelpMessage, 	"/  Help   /");
+	DEFINE_FMT_ARG(note, 	"Note", 	s().NoteMessage, 	"/  Note   /");
+	DEFINE_FMT_ARG(details, "Details", 	s().Bold, 			"Details");
 
 	#undef DEFINE_FMT_ARG
 }

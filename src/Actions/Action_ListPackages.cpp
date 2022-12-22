@@ -18,16 +18,19 @@ void PaccApp::listPackages()
 
 	String filter = "";
 
-	if (args.size() >= 3)
-		filter = args[2];
+	auto filterArgIndex = settings.nthActionArgument(0);
+	if (filterArgIndex)
+	{
+		filter = args[*filterArgIndex];
+	}
 
 	size_t totalCount = 0;
 	size_t linksCount = 0;
 
 	struct PackageInfo {
-		String name;
-		String linkTo;
-		Version		ver;
+		String	name;
+		String	linkTo;
+		Version	ver;
 	};
 
 	auto pkgs = Vec<PackageInfo>();

@@ -66,10 +66,34 @@ void PaccApp::generate()
 auto PaccApp::createPremake5Generator() -> gen::Premake5
 {
 	auto gen = gen::Premake5();
-	gen.compileCommands = this->containsSwitch("--compile-commands") || this->containsSwitch("-cc");
+	gen.compileCommands = settings.isFlagSet("--compile-commands");
 	return gen;
 }
 
+///////////////////////////////////////////////////
+auto PaccApp::runPremakeGeneration(StringView toolchainName_) -> void
+{
+	using fmt::fg, fmt::color;
+
+	fmt::print(fg(color::gray), "Running Premake5... ");
+
+	auto command = fmt::format("\"{}\" {}", this->getPremake5Path().string(), toolchainName_);
+
+	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
+
+	if (exitStatus.has_value())
+	{
+		if (exitStatus.value() == 0)
+			fmt::print(fg(color::green), "success\n");
+	}
+	else
+		fmt::printErr(fg(color::red), "timeout\n");
+
+	if (int es = exitStatus.value_or(1))
+	{
+		throw PaccException("Failed to generate project files (Premake5 exit code: {})", es);
+	}
+}
 
 ///////////////////////////////////////////////////
 void PaccApp::ensureProjectsAreBuilt(Package& pkg_, Vec<String> const& projectNames_, BuildSettings const& settings_)
@@ -95,9 +119,9 @@ void PaccApp::ensureProjectsAreBuilt(Package& pkg_, Vec<String> const& projectNa
 			binaryPath /= (projName + ".lib");
 		// else: error
 
-		fmt::print("Binaries for project {} are located at {}\n", p->name, pkg_.getAbsoluteArtifactFilePath(*p).string());
+		fmt::print("Binaries for project {} are located at {}\n", p->name, pkg_.getAbsoluteArtifactFilePath(*p, settings_).string());
 
-		if (!fs::exists(binaryPath) && !fs::exists(pkg_.getAbsoluteArtifactFilePath(*p)))
+		if (!fs::exists(binaryPath) && !fs::exists(pkg_.getAbsoluteArtifactFilePath(*p, settings_)))
 		{
 			fmt::print("Building dependency project \"{}\" from package \"{}\".\n", projName, pkg_.name);
 
@@ -180,7 +204,7 @@ void PaccApp::buildSpecifiedPackage(Package& pkg_, Toolchain& toolchain_, BuildS
 	auto builder = pkg_.builder ? pkg_.builder : defaultPackageBuilder;
 
 	// Run build toolchain
-	auto verbosityLevel = int(this->containsSwitch("--verbose") ? 1 : 0);
+	auto verbosityLevel = int(settings.isFlagSet("--verbose") ? 1 : 0);
 	handleBuildResult( builder->run(pkg_, toolchain_, settings_, verbosityLevel), isDependency_ );
 
 	this->execPackageEvent(pkg_, "post:build");
@@ -210,26 +234,43 @@ auto PaccApp::determineBuildSettingsFromArgs() const -> BuildSettings
 	// Arg 0 -> program name with path
 	// Arg 1 -> action name
 	// Start at 2
-	for(size_t i = 2; i < args.size(); ++i)
+
+	// cores
 	{
-		auto switchVal = String();
-		if (parseSwitch(args[i], cores, switchVal))
+		auto& arg = *settings.flags.at("--cores");
+		if (arg.isSet())
 		{
-			result.cores = convertTo<int>(switchVal);
-		}
-		else if (parseSwitch(args[i], platforms, switchVal))
-		{
-			result.platformName = std::move(switchVal);
-		}
-		else if (parseSwitch(args[i], configurations, switchVal))
-		{
-			result.configName = std::move(switchVal);
-		}
-		else if (parseSwitch(args[i], target, switchVal))
-		{
-			result.targetName = std::move(switchVal);
+			result.cores = convertTo<int>(String(arg.value));
 		}
 	}
+
+	// platform name
+	{
+		auto& arg = *settings.flags.at("--platform");
+		if (arg.isSet())
+		{
+			result.platformName = String(arg.value);
+		}
+	}
+
+	// configuration name
+	{
+		auto& arg = *settings.flags.at("--configuration");
+		if (arg.isSet())
+		{
+			result.configName = String(arg.value);
+		}
+	}
+
+	// target name
+	{
+		auto& arg = *settings.flags.at("--target");
+		if (arg.isSet())
+		{
+			result.targetName = String(arg.value);
+		}
+	}
+
 
 	return result;
 }

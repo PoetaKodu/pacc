@@ -11,33 +11,37 @@ struct PaccException
 	// TODO: this is not professional
 	// String itself may cause exception
 	String helpMessage;
+	String noteMessage;
 
 public:
 	using Super = std::runtime_error;
 
-	template <typename TFormat, typename... TArgs>
-	explicit PaccException(TFormat && fmt_, TArgs &&... args)
+	template <typename... TArgs>
+	explicit PaccException(fmt::format_string<TArgs...> fmt_, TArgs &&... args)
 		:
 		// TODO: Format may cause exception
-		Super(fmt::format(
-				fmt::runtime(std::forward<TFormat>(fmt_)),
-				std::forward<TArgs>(args)...
-			).c_str())
+		Super(fmt::format(fmt_, std::forward<TArgs>(args)...).c_str())
 	{
 	}
 
-	template <typename TFormat, typename... TArgs>
-	PaccException const& withHelp(TFormat && fmt_, TArgs &&... args)
+	template <typename... TArgs>
+	auto withHelp(fmt::format_string<TArgs...> fmt_, TArgs &&... args) -> PaccException&
 	{
 		// TODO: Format may cause exception
-		helpMessage = fmt::format(
-				fmt::runtime(std::forward<TFormat>(fmt_)),
-				std::forward<TArgs>(args)...
-			);
+		helpMessage = fmt::format(fmt_, std::forward<TArgs>(args)...);
+		return *this;
+	}
+
+	template <typename... TArgs>
+	auto withNote(fmt::format_string<TArgs...> fmt_, TArgs &&... args) -> PaccException&
+	{
+		// TODO: Format may cause exception
+		noteMessage = fmt::format(fmt_, std::forward<TArgs>(args)...);
 		return *this;
 	}
 
 	String const& help() const { return helpMessage; }
+	String const& note() const { return noteMessage; }
 };
 
 

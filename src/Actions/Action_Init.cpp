@@ -7,8 +7,8 @@
 ////////////////// FORWARD DECLARATIONS
 
 static bool ensureUserApproval();
-static void writeStringToFile(fs::path const& outputFile_, String const& what_);
-static void getInitPackageNameAndTarget(ProgramArgs const& args_, fs::path& target_, String& targetName_);
+static void writeStringToFile(Path const& outputFile_, String const& what_);
+static void getInitPackageNameAndTarget(ProgramArgs const& args_, Path& target_, String& targetName_);
 
 ///////////////////////////////////////////////////
 void PaccApp::initPackage()
@@ -17,7 +17,7 @@ void PaccApp::initPackage()
 	using namespace fmt::literals;
 
 	auto cwd		= fs::current_path();
-	auto target		= fs::path();
+	auto target		= Path();
 	auto targetName	= String();
 
 	getInitPackageNameAndTarget(args, target, targetName);
@@ -44,7 +44,7 @@ void PaccApp::initPackage()
 }
 
 ///////////////////////////////////////////////////
-static void writeStringToFile(fs::path const& outputFile_, String const& what_)
+static void writeStringToFile(Path const& outputFile_, String const& what_)
 {
 	std::ofstream(outputFile_) << what_;
 }
@@ -52,7 +52,7 @@ static void writeStringToFile(fs::path const& outputFile_, String const& what_)
 ///////////////////////////////////////////////////
 static bool ensureUserApproval()
 {
-	String response;
+	auto response = String();
 	std::getline(std::cin, response);
 
 	if (response[0] != 'y' && response[0] != 'Y')
@@ -64,7 +64,7 @@ static bool ensureUserApproval()
 }
 
 ///////////////////////////////////////////////////
-static void getInitPackageNameAndTarget(ProgramArgs const& args_, fs::path& target_, String& targetName_)
+static void getInitPackageNameAndTarget(ProgramArgs const& args_, Path& target_, String& targetName_)
 {
 	target_ 	= fs::current_path();
 	targetName_	= target_.stem().string();
@@ -73,7 +73,7 @@ static void getInitPackageNameAndTarget(ProgramArgs const& args_, fs::path& targ
 	{
 		targetName_ = args_[2];
 
-		if (fs::path(targetName_).is_relative())
+		if (Path(targetName_).is_relative())
 			target_ /= targetName_;
 		else
 			target_ = targetName_;

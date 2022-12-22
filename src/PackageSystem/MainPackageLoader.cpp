@@ -30,11 +30,6 @@ auto MainPackageLoader::load(fs::path const& root_) -> UPtr<Package>
 
 	if (usesScript)
 	{
-		// lua["rootPackage"] = std::ref(*pkg);
-
-		// disp(lua["pacc"], "pre:generate");
-		// disp(lua["pacc"], "build", std::ref(pkg->projects[0]));
-
 		app.execPackageEvent(*pkg, "onPostLoad");
 	}
 
@@ -53,11 +48,7 @@ auto MainPackageLoader::loadTarget(fs::path const& root_, String const& name_, T
 {
 	auto pkg = load(root_);
 
-	auto it = std::find_if(pkg->projects.begin(), pkg->projects.end(),
-		[&name_](Project const& p)
-		{
-			return p.name == name_;
-		});
+	auto it = rg::find(pkg->projects, name_, &Project::name);
 
 	if (it == pkg->projects.end())
 		return false;

@@ -20,8 +20,8 @@ auto getNumElements(Vec<String> const& v) -> std::size_t;
 auto getNumElements(VecOfStrAcc const& v) -> std::size_t;
 
 
-auto findPackageFile(fs::path const& directory_, Opt<StringView> extension_ = std::nullopt) -> fs::path;
-auto findPackageScriptFile(fs::path const& directory_) -> fs::path;
+auto findPackageFile(Path const& directory_, Opt<StringView> extension_ = std::nullopt) -> Path;
+auto findPackageScriptFile(Path const& directory_) -> Path;
 
 /// <summary>GNU visibility mode</summary>
 /// <remarks>Check https://gcc.gnu.org/wiki/Visibility</remarks>
@@ -115,7 +115,7 @@ inline constexpr auto ArtifactTypesCount = static_cast<int>(Artifact::MAX);
 auto detectArtifactTypeFromPath(StringView path_) -> Artifact;
 
 struct ArtifactProducer {
-	using ArtifactsType = Array<Vec<fs::path>, ArtifactTypesCount>;
+	using ArtifactsType = Array<Vec<Path>, ArtifactTypesCount>;
 
 	ArtifactsType artifacts;
 };
@@ -131,7 +131,7 @@ struct TargetBase
 
 	void inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_);
 
-	fs::path outputArtifact() const;
+	Path outputArtifact() const;
 };
 
 struct PrecompiledHeader
@@ -186,17 +186,17 @@ struct Project
 
 	using EventHandlingTarget::EventHandlingTarget;
 
-	auto getPrimaryArtifactOfType(Artifact artType_) const -> fs::path;
-	auto getLinkTargetArtifact() const -> fs::path;
-	auto getPrimaryArtifact() const -> fs::path;
+	auto getPrimaryArtifactOfType(Artifact artType_) const -> Path;
+	auto getLinkTargetArtifact() const -> Path;
+	auto getPrimaryArtifact() const -> Path;
 
 	auto isLibrary() const -> bool;
 };
 
 struct PackagePreloadInfo
 {
-	fs::path root;
-	fs::path scriptFile;
+	Path root;
+	Path scriptFile;
 
 	bool usesJsonConfig() const {
 		return rg::find(PackageJSON, root.filename()) != std::end(PackageJSON);
@@ -221,12 +221,12 @@ struct Package
 	bool			isCMake = false;
 	String 			startupProject;
 
-	static PackagePreloadInfo preload(fs::path dir_ = "");
+	static PackagePreloadInfo preload(Path dir_ = "");
 
 	void loadPackageSpecificInfo(json const& json_);
 	void loadWorkspaceInfo(json const& json_);
 
-	static UPtr<Package> load(fs::path dir_ = "")
+	static UPtr<Package> load(Path dir_ = "")
 	{
 		return load( preload(dir_) );
 	}
@@ -236,14 +236,14 @@ struct Package
 	auto findProject(StringView name_) const -> Project const*;
 	auto requireProject(StringView name_) const -> Project const&;
 
-	auto predictOutputFolder(Project const& project_) const -> fs::path;
-	auto predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const -> fs::path;
+	auto predictOutputFolder(Project const& project_) const -> Path;
+	auto predictRealOutputFolder(Project const& project_, BuildSettings settings_ = {}) const -> Path;
 
-	auto getAbsoluteArtifactFilePath(Project const& project_) const -> fs::path;
+	auto getAbsoluteArtifactFilePath(Project const& project_, BuildSettings settings_ = {}) const -> Path;
 
-	auto resolvePath( fs::path const& path_) const -> fs::path;
+	auto resolvePath(Path const& path_) const -> Path;
 
-	fs::path outputRoot;
+	Path outputRoot;
 
 	IPackageBuilder* builder = nullptr; // nullptr - use default builder
 

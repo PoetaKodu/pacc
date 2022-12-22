@@ -8,6 +8,11 @@
 namespace gen
 {
 
+struct Premake5Handler
+{
+	virtual auto getPremake5Path() -> Path = 0;
+};
+
 class Premake5
 {
 	static bool exportCompileCommands();
@@ -17,10 +22,6 @@ public:
 
 	void generate(Package const & package_);
 };
-
-fs::path getPremake5Path();
-
-void runPremakeGeneration(StringView toolchainName_);
 
 }
 

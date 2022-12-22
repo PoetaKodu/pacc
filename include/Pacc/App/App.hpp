@@ -4,6 +4,7 @@
 
 #include <Pacc/Main.hpp>
 #include <Pacc/App/PaccConfig.hpp>
+#include <Pacc/App/RunSettings.hpp>
 #include <Pacc/PackageSystem/Events.hpp>
 #include <Pacc/PackageSystem/Package.hpp>
 #include <Pacc/PackageSystem/IPackageLoader.hpp>
@@ -74,8 +75,11 @@ public:
 
 	PaccApp();
 
-	ProgramArgs	args;
+	ProgramArgs args;
+	RunSettings settings;
 	PaccConfig 	cfg;
+
+	Path initialWorkingDirectory;
 
 	sol::state	lua;
 
@@ -105,6 +109,10 @@ public:
 
 	auto setupLua() -> void;
 	auto createPremake5Generator() -> gen::Premake5;
+
+	auto getPremake5Path() const -> Path;
+
+	auto runPremakeGeneration(StringView toolchainName_) -> void;
 private:
 	auto setupEventActions() -> void;
 	auto setupPackageLoaders() -> void;

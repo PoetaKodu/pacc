@@ -4,4 +4,4 @@
 
 #include <Pacc/Helpers/HelperTypes.hpp>
 
-using ProgramArgs = Vec< StringView >;
+using ProgramArgs = Vec< String >;

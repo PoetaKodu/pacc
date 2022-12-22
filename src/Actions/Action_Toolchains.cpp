@@ -8,18 +8,22 @@ void PaccApp::toolchains()
 {
 	auto const &tcs = cfg.toolchains;
 
-	if (args.size() >= 3)
+	// Example:
+	// pacc tc 0
+	auto toolchainArgIndex = settings.nthActionArgument(0);
+
+	if (toolchainArgIndex)
 	{
 		int tcIdx = -1;
 
 		try {
-			tcIdx = std::stoi(String(args[2]));
+			tcIdx = std::stoi(String(args[*toolchainArgIndex]));
 		}
 		catch(...) {}
 
 		if (tcIdx < 0 || tcIdx >= int(tcs.size()))
 		{
-			throw PaccException("Invalid toolchain id \"{:.10}\"", args[2])
+			throw PaccException("Invalid toolchain id \"{:.10}\"", args[*toolchainArgIndex])
 				.withHelp("Use \"pacc tc\" to list available toolchains.");
 		}
 

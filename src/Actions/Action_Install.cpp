@@ -13,9 +13,7 @@ auto PaccApp::install() -> void
 {
 	using fmt::fg, fmt::color;
 
-	bool global = false;
-	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
-		global = true;
+	bool global = settings.isFlagSet("-g");
 
 	auto targetPath = fs::path();
 	if (global)
@@ -23,10 +21,26 @@ auto PaccApp::install() -> void
 	else
 		targetPath = "pacc_packages";
 
-	 // TODO: improve this
-	if (args.size() >= (global ? 4 : 3))
+	// Iterate over every non-flag argument provieded **after** the main action name
+	size_t numRequested = 0;
+
+	// This loop is just for the `numRequested` variable (for now)
+	for (size_t i = settings.actionNameIndex + 1; i < args.size(); ++i)
 	{
-		auto packageTemplate = String(args[2]);
+		if (settings.wasParsed(i))
+			continue;
+
+		++numRequested;
+	}
+
+	size_t numDownloaded = 0;
+
+	for (size_t i = settings.actionNameIndex + 1; i < args.size(); ++i)
+	{
+		if (settings.wasParsed(i))
+			continue;
+
+		auto packageTemplate = String(args[i]);
 
 		auto loc = DownloadLocation::parse( packageTemplate );
 
@@ -38,14 +52,18 @@ auto PaccApp::install() -> void
 		}
 
 		this->downloadPackage(targetPackagePath, loc);
+		++numDownloaded;
 
-		fmt::print(fg(color::lime_green), "Installed package \"{}\".\n", loc.repository);
+		fmt::print(fg(color::lime_green), "Installed package \"{}\" ({} of {}).\n", loc.repository, numDownloaded, numRequested);
 	}
-	else
+
+	if (numRequested == 0)
 	{
 		if (global)
+		{
 			throw PaccException("Missing argument: package name")
-				.withHelp("Use \"pacc install [package_name] --global\"");
+				.withHelp("Use \"pacc install [package_name] [package_name_2] [...] --global\"");
+		}
 
 		auto pkg = Package::load();
 
@@ -68,9 +86,7 @@ auto PaccApp::uninstall() -> void
 {
 	using fmt::fg, fmt::color;
 
-	bool global = false;
-	if (this->containsSwitch("-g") || this->containsSwitch("--global"))
-		global = true;
+	bool global = settings.flags.at("-g")->isSet();
 
 	auto targetPath = fs::path();
 	if (global)
@@ -78,11 +94,16 @@ auto PaccApp::uninstall() -> void
 	else
 		targetPath = "pacc_packages";
 
-	 // TODO: improve this
-	if (args.size() >= (global ? 4 : 3))
+	// Iterate over every non-flag argument provieded **after** the main action name
+	size_t numRequested = 0;
+	for (size_t i = settings.actionNameIndex + 1; i < args.size(); ++i)
 	{
-		auto packageName = String(args[2]);
+		if (settings.wasParsed(i))
+			continue;
 
+		++numRequested;
+
+		auto packageName = String(args[i]);
 		auto packagePath = targetPath / packageName;
 
 		if (fsx::isSymlinkOrJunction(packagePath) && global)
@@ -110,9 +131,12 @@ auto PaccApp::uninstall() -> void
 			}
 		}
 	}
-	else
+
+	if (numRequested == 0)
+	{
 		throw PaccException("Missing argument: package name")
-			.withHelp("Use \"pacc uninstall [package_name]\"");
+			.withHelp("Use \"pacc uninstall [package_name] [package_name_2] [...]\"");
+	}
 }
 
 

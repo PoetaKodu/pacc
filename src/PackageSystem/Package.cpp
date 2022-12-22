@@ -214,7 +214,26 @@ auto detectArtifactTypeFromPath(StringView path_)
 ///////////////////////////////////////////////////
 void TargetBase::inheritConfigurationFrom(Package const& fromPkg_, Project const& fromProject_, AccessType mode_)
 {
+	{
+		// First: if the "fromProject" is a library, add it as a dependency
+		if (fromProject_.type == Project::Type::StaticLib || fromProject_.type == Project::Type::SharedLib)
+		{
+			// Add dependency output folder:
+			{
+				auto& target = targetByAccessType(linkerFolders.computed, mode_);
+				target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
+			}
+
+			// Add dependency file to linker:
+			{
+				auto& target = targetByAccessType(linkedLibraries.computed, mode_);
+				target.push_back(fromProject_.outputArtifact().string());
+			}
+		}
+	}
+
 	computeConfiguration( *this, fromPkg_, fromProject_, mode_ );
+
 
 	// Inherit all premake filters:
 	for(auto it : fromProject_.premakeFilters)
@@ -521,10 +540,10 @@ auto Package::predictRealOutputFolder(Project const& project_, BuildSettings set
 }
 
 ///////////////////////////////////////////////////
-auto Package::getAbsoluteArtifactFilePath(Project const& project_) const
+auto Package::getAbsoluteArtifactFilePath(Project const& project_, BuildSettings settings_) const
 	-> Path
 {
-	return this->predictRealOutputFolder(project_) / project_.getPrimaryArtifact().filename();
+	return this->predictRealOutputFolder(project_, settings_) / project_.getPrimaryArtifact().filename();
 }
 
 ///////////////////////////////////////////////////
@@ -638,22 +657,6 @@ void computeConfiguration(Configuration& into_, Package const& fromPkg_, Project
 	mergeAccesses(into_.linkedLibraries, 	from_.linkedLibraries, 		mode_);
 	mergeAccesses(into_.compilerOptions, 	from_.compilerOptions, 		mode_);
 	mergeAccesses(into_.linkerOptions, 		from_.linkerOptions, 		mode_);
-
-	// TODO: case, enums
-	if (fromProject_.type == Project::Type::StaticLib || fromProject_.type == Project::Type::SharedLib)
-	{
-		// Add dependency output folder:
-		{
-			auto& target = targetByAccessType(into_.linkerFolders.computed, mode_);
-			target.push_back(fsx::fwd(fromPkg_.predictOutputFolder(fromProject_)).string());
-		}
-
-		// Add dependency file to linker:
-		{
-			auto& target = targetByAccessType(into_.linkedLibraries.computed, mode_);
-			target.push_back(fromProject_.outputArtifact().string());
-		}
-	}
 }
 
 ///////////////////////////////////////////////////

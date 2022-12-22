@@ -126,14 +126,5 @@ auto freshLuaInstance() -> sol::state {
 			}
 		);
 
-
-	auto currentPackagesPath	= lua["package"]["path"].get<String>();
-	auto paccLuaScriptsPattern	= env::getPaccAppPath().parent_path() / "../lua/?.lua";
-
-	lua["package"]["path"].set(currentPackagesPath + ";" + paccLuaScriptsPattern.string());
-	lua.script("require(\"pacc-std/app\")");
-
-	lua["pacc"]["version"] = Version::fromString("0.5.0");
-
 	return lua;
 }

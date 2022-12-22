@@ -1,5 +1,6 @@
 #include "include/Pacc/PaccPCH.hpp"
 
+#include <Pacc/App/App.hpp>
 #include <Pacc/Generation/Premake5.hpp>
 #include <Pacc/Generation/OutputFormatter.hpp>
 #include <Pacc/System/Filesystem.hpp>
@@ -104,38 +105,6 @@ void appendStringsWithAccess(OutputFormatter &fmt_, T const& vec_, MultiAccess a
 void appendStrings(OutputFormatter &fmt_, Vec<String> const& vec_);
 
 /////////////////////////////////////////////////
-fs::path getPremake5Path()
-{
-	return env::getPaccAppPath().parent_path() / "premake5";
-}
-
-/////////////////////////////////////////////////
-void runPremakeGeneration(StringView toolchainName_)
-{
-	using fmt::fg, fmt::color;
-
-	fmt::print(fg(color::gray), "Running Premake5... ");
-
-	auto command = fmt::format("\"{}\" {}", getPremake5Path().string(), toolchainName_);
-
-	auto exitStatus = ChildProcess{command, "", ch::seconds{30}}.runSync();
-
-	if (exitStatus.has_value())
-	{
-		if (exitStatus.value() == 0)
-			fmt::print(fg(color::green), "success\n");
-	}
-	else
-		fmt::printErr(fg(color::red), "timeout\n");
-
-	if (int es = exitStatus.value_or(1))
-	{
-		throw PaccException("Failed to generate project files (Premake5 exit code: {})", es);
-	}
-}
-
-
-/////////////////////////////////////////////////
 void Premake5::generate(Package const & pkg_)
 {
 	// Prepare output buffer
@@ -163,8 +132,22 @@ void Premake5::generate(Package const & pkg_)
 /////////////////////////////////////////////////
 bool Premake5::exportCompileCommands()
 {
-	auto premake5Path = getPremake5Path();
-	auto premake5ScriptPath = premake5Path.parent_path().parent_path() / "premake";
+	auto& app = useApp();
+	auto premake5Path = app.getPremake5Path();
+
+	auto premake5ScriptPath = Path();
+
+	{
+		auto& luaLibFlag = *app.settings.flags.at("--lua-lib");
+		if (luaLibFlag.isSet())
+		{
+			premake5ScriptPath = luaLibFlag.value;
+		}
+		else
+		{
+			premake5ScriptPath = premake5Path.parent_path().parent_path() / "lua";
+		}
+	}
 
 	using fmt::fg, fmt::color;
 

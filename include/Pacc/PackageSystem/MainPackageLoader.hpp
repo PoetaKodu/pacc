@@ -5,12 +5,13 @@
 #include <Pacc/PackageSystem/IPackageLoader.hpp>
 
 class MainPackageLoader
-	: public IPackageLoader
+	:
+	public IPackageLoader
 {
 public:
 	using IPackageLoader::IPackageLoader;
 
-	UPtr<Package> load(fs::path const& root_) override;
-	bool canLoad(fs::path const& root_) const override;
-	bool loadTarget(fs::path const& root_, String const& name_, TargetBase& target_) override;
+	auto load(fs::path const& root_) -> UPtr<Package> override;
+	auto canLoad(fs::path const& root_) const -> bool override;
+	auto loadTarget(fs::path const& root_, String const& name_, TargetBase& target_) -> bool override;
 };

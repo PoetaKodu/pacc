@@ -1,7 +1,5 @@
-local class				= require("pacc-std/middleclass")
-local EventDispatcher	= require("pacc-std/event-dispatcher")
-
-print("pacc-std/app.lua")
+local class				= require("pacc-sdk/middleclass")
+local EventDispatcher	= require("pacc-sdk/event-dispatcher")
 
 local PaccApp = class('PaccApp', EventDispatcher)
 

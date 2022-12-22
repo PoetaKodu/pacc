@@ -197,6 +197,19 @@ auto PaccApp::loadPaccConfig()
 }
 
 ///////////////////////////////////////////////////
+auto PaccApp::getPremake5Path() const -> Path
+{
+	static auto DefaultPath = env::getPaccAppPath().parent_path() / "premake5";
+
+	auto premakeFlag = *settings.flags.at("--premake5");
+
+	if (!premakeFlag.isSet())
+		return DefaultPath;
+
+	return Path(premakeFlag.value);
+}
+
+///////////////////////////////////////////////////
 auto PaccApp::containsSwitch(StringView switch_) const
 	-> bool
 {
@@ -232,7 +245,7 @@ auto PaccApp::argValue(StringView name_) const
 	return result;
 }
 
-auto PaccApp::requireLuaScript(Package const& packageContext, fs::path const& path) -> sol::state&
+auto PaccApp::requireLuaScript(Package const& packageContext, Path const& path) -> sol::state&
 {
 	auto context = LuaScriptContext{ &packageContext, path };
 

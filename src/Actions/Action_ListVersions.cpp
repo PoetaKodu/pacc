@@ -17,8 +17,8 @@ void PaccApp::listVersions()
 
 	constexpr auto ListRemoteCommand 	= "git ls-remote --tags --refs --sort=v:refname \"{}\"";
 
-
-	if (args.size() < 3)
+	auto packagePatternIdx = settings.nthActionArgument(0);
+	if (!packagePatternIdx)
 	{
 		throw PaccException("Missing argument: package name")
 			.withHelp(
@@ -27,7 +27,7 @@ void PaccApp::listVersions()
 				);
 	}
 
-	auto dependencyTemplate = String(args[2]);
+	auto dependencyTemplate = String(args[*packagePatternIdx]);
 
 	auto loc = DownloadLocation::parse(dependencyTemplate);
 
@@ -52,9 +52,16 @@ void PaccApp::listVersions()
 
 	{
 		VersionReq req;
-		if (args.size() >= 4 && args[3][0] != '-')
+		auto versionPatternIdx = settings.nthActionArgument(1);
+		if (versionPatternIdx)
 		{
-			req = VersionReq::fromString( String(args[3]) );
+			try {
+				req = VersionReq::fromString( String(args[*versionPatternIdx]) );
+			}
+			catch (std::exception const& e)
+			{
+				throw PaccException("list-versions command failed - invalid version pattern, details: {}", e.what());
+			}
 			versions = versions.filter(req);
 		}
 		else
@@ -62,7 +69,7 @@ void PaccApp::listVersions()
 			fmt::print(boldBlue, "Note: you filter compatible versions, f.e.: \"pacc lsver fmt ^7.1\"\n\n" );
 		}
 
-		bool showTags = this->containsSwitch("--tags");
+		bool showTags = settings.isFlagSet("--tags");
 
 		fmt::print("PACKAGE {}:\n", showTags ? "TAGS" : "VERSIONS");
 		if (showTags)
@@ -96,7 +103,7 @@ void PaccApp::listVersions()
 		}
 
 		// Print rest:
-		if (this->containsSwitch("--all"))
+		if (settings.isFlagSet("--all"))
 		{
 			constexpr int NumPerRow = 4;
 			size_t numVer = versions.rest.size();

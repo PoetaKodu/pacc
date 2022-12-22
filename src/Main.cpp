@@ -59,9 +59,8 @@ void handleArgs(ProgramArgs args_)
 	using fmt::color, fmt::fg;
 
 	auto& app = useApp();
+	app.initialWorkingDirectory = fs::current_path();
 	app.args = std::move(args_);
-
-	app.setupLua();
 
 	// TODO: make configurable
 	app.cleanupLogs(200);
@@ -72,88 +71,116 @@ void handleArgs(ProgramArgs args_)
 	}
 	else
 	{
-		auto action = toLower(app.args[1]);
+		using Action = PaccMainAction;
 
-		if (action == "version")
+		app.settings = RunSettings::fromArgs(app.args);
+
+		// Initial switch for trivial commands
+		switch (app.settings.mainAction)
+		{
+		case Action::None:
+		{
+			auto programName = fs::u8path(app.args[0]).stem();
+
+			if (app.settings.actionNameIndex == 0)
+			{
+				throw PaccException("No action specified")
+					.withHelp("Use \"{} help\" to list available actions.", programName.string());
+			}
+
+			throw PaccException("Unrecognized action \"{}\"", app.args[app.settings.actionNameIndex])
+				.withHelp("Use \"{} help\" to list available actions.", programName.string());
+
+		}
+		case Action::Version:
 		{
 			fmt::print("pacc v{}\n", PaccApp::PaccVersion);
+			return;
 		}
-		else if (action == "help")
+		case Action::Help:
 		{
 			app.displayHelp(false);
+			return;
 		}
-		else if (action == "init")
+		}
+
+
+
+		app.setupLua();
+
+		// For non-trivial commands
+		switch(app.settings.mainAction)
+		{
+		case Action::Init:
 		{
 			app.loadPaccConfig();
 
 			app.initPackage();
+			break;
 		}
-		else if (action == "generate")
+		case Action::Generate:
 		{
 			app.loadPaccConfig();
 
 			app.generate();
+			break;
 		}
-		else if (action == "build")
+		case Action::Build:
 		{
 			app.loadPaccConfig();
 
 			app.buildPackage();
+			break;
 		}
-		else if (action == "link")
+		case Action::Link:
 		{
 			app.linkPackage();
+			break;
 		}
-		else if (action == "unlink")
+		case Action::Unlink:
 		{
 			app.unlinkPackage();
+			break;
 		}
-		else if (action == "logs" || action == "log")
+		case Action::Logs:
 		{
 			app.logs();
+			break;
 		}
-		else if (action == "install" || action == "i")
+		case Action::Install:
 		{
 			app.install();
+			break;
 		}
-		else if (action == "uninstall")
+		case Action::Uninstall:
 		{
 			app.uninstall();
+			break;
 		}
-		else if (action == "list-versions" || action == "list-version" || action == "lsver")
+		case Action::ListVersions:
 		{
 			app.listVersions();
+			break;
 		}
-		else if (action == "list-packages" || action == "list" || action == "ls")
+		case Action::ListPackages:
 		{
 			app.listPackages();
+			break;
 		}
-		else if (action == "toolchains" || action == "toolchain" || action == "tc")
+		case Action::Toolchains:
 		{
 			app.loadPaccConfig();
 
 			app.toolchains();
+			break;
 		}
-		else if (action == "run")
+		case Action::Run:
 		{
 			app.loadPaccConfig();
 
 			app.run();
+			break;
 		}
-		else if (action == "graph")
-		{
-			app.visualizeGraph();
-		}
-		else if (action == "query")
-		{
-			app.query();
-		}
-		else
-		{
-			auto programName = fs::u8path(app.args[0]).stem();
-
-			throw PaccException("unsupported action \"{}\"", action)
-					.withHelp("Use \"{} help\" to list available actions.", programName.string());
 		}
 	}
 }

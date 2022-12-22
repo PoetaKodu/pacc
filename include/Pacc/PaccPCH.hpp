@@ -9,7 +9,9 @@
 #include <string>
 #include <sstream>
 #include <string_view>
+#include <initializer_list>
 #include <array>
+#include <span>
 #include <vector>
 #include <tuple>
 #include <stdexcept>

@@ -13,14 +13,15 @@ void PaccApp::run()
 	if (pkg->projects.empty())
 		throw PaccException("Package \"{}\" does not contain any projects.", pkg->name);
 
-	auto settings = this->determineBuildSettingsFromArgs();
+	auto buildSettings = this->determineBuildSettingsFromArgs();
 
 	Project const* project = nullptr;
 
-	String targetName;
+	auto targetName = String();
 	// Try to get target name from args (ignore build settings --target flag, too complex)
-	if (args.size() >= 3 && args[2][0] != '-') // not a switch
-		targetName = args[2];
+	auto targetNameArgIdx = settings.nthActionArgument(0);
+	if (targetNameArgIdx)
+		targetName = args[*targetNameArgIdx];
 
 	if (targetName.empty())
 		targetName = pkg->startupProject;
@@ -51,7 +52,7 @@ void PaccApp::run()
 			.withHelp("If the package contains other application projects, use \"pacc run [project_name]\"");
 	}
 
-	fs::path outputFile = fsx::fwd(pkg->predictRealOutputFolder(*project, settings) / project->name);
+	fs::path outputFile = fsx::fwd(pkg->predictRealOutputFolder(*project, buildSettings) / project->name);
 
 	#ifdef PACC_SYSTEM_WINDOWS
 	outputFile += ".exe";

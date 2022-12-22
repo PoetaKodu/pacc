@@ -47,30 +47,45 @@ void PaccApp::linkPackage()
 }
 
 ///////////////////////////////////////////////////
-void PaccApp::unlinkPackage()
+static auto unlinkPackageByName(String const& name) -> void
 {
-	String pkgName;
-	if (args.size() > 2)
-		pkgName = args[2];
-
-	if (pkgName.empty())
-	{
-		auto pkg = Package::load();
-		pkgName = pkg->name;
-	}
-
-	fs::path storage = env::getPaccDataStorageFolder();
-	fs::path symlinkPath = storage / "packages" / pkgName;
+	auto storage = Path(env::getPaccDataStorageFolder());
+	auto symlinkPath = storage / "packages" / name;
 	if (fsx::isSymlinkOrJunction(symlinkPath))
 	{
 		fs::remove(symlinkPath);
-		fmt::print("Package \"{}\" has been unlinked from the user environment.", pkgName);
+		fmt::print("Package \"{}\" has been unlinked from the user environment.", name);
 	}
 	else
 	{
 		throw PaccException(
 				"Package \"{}\" is not linked within user environment.\n",
-				pkgName
+				name
 			).withHelp("If you want to link current package, use \"pacc link\" first.");
+	}
+}
+
+///////////////////////////////////////////////////
+void PaccApp::unlinkPackage()
+{
+
+	size_t numRequested = 0;
+	for (size_t i = settings.actionNameIndex + 1; i < args.size(); ++i)
+	{
+		if (settings.wasParsed(i))
+			continue;
+
+		String pkgName;
+		pkgName = args[i];
+		unlinkPackageByName(pkgName);
+
+		break;
+	}
+
+
+	if (numRequested == 0)
+	{
+		auto pkg = Package::load();
+		unlinkPackageByName(pkg->name);
 	}
 }

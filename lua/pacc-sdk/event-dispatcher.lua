@@ -1,4 +1,4 @@
-local class = require("pacc-std/middleclass")
+local class = require("pacc-sdk/middleclass")
 local EventDispatcher = class('EventDispatcher')
 
 function EventDispatcher:initialize()

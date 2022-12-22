@@ -8,14 +8,19 @@
 #include <Pacc/App/App.hpp>
 
 ///////////////////////////////////////////
-BuildProcessResult PaccPackageBuilder::run(Package const& pkg_, Toolchain& tc_, BuildSettings const& settings_, int verbosityLevel_)
+auto PaccPackageBuilder::run(
+		Package const&			package,
+		Toolchain&				toolchain,
+		BuildSettings const&	settings,
+		int						verbosityLevel
+	) -> BuildProcessResult
 {
 	// Generate premake5 files
-	app->createPremake5Generator().generate(pkg_);
+	app->createPremake5Generator().generate(package);
 
 	// Run premake:
-	gen::runPremakeGeneration(tc_.premakeToolchainType());
+	app->runPremakeGeneration(toolchain.premakeToolchainType());
 
 	// TODO: build should be implemented here, instead of in the toolchain
-	return tc_.run(pkg_, settings_, verbosityLevel_);
+	return toolchain.run(package, settings, verbosityLevel);
 }
