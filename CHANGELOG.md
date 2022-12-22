@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.6.0-prealpha](https://github.com/PoetaKodu/pacc/compare/v0.5.0-prealpha...v0.6.0-prealpha) (2022-12-22)
+## [0.6.0](https://github.com/PoetaKodu/pacc/compare/v0.5.0-prealpha...v0.6.0) (2022-12-22)
 
 
 ### Features
