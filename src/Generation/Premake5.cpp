@@ -141,11 +141,14 @@ bool Premake5::exportCompileCommands()
 		auto& luaLibFlag = *app.settings.flags.at("--lua-lib");
 		if (luaLibFlag.isSet())
 		{
-			premake5ScriptPath = luaLibFlag.value;
+			premake5ScriptPath = Path(luaLibFlag.value) / "premake";
 		}
 		else
 		{
-			premake5ScriptPath = premake5Path.parent_path().parent_path() / "lua";
+			// Example:
+			// Premake5 path:			C:\Program Files\pacc\bin\premake5.exe
+			// Premake scripts library:	C:\Program Files\pacc\lua\premake
+			premake5ScriptPath = premake5Path.parent_path().parent_path() / "lua/premake";
 		}
 	}
 
