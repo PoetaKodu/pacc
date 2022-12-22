@@ -24,6 +24,7 @@
 		"system:macosx": 	{ "defines": [ "PACC_SYSTEM_MACOSX" ] },
 
 		"action:gmake*": {
+			"linkerFlags": { "private": "-fPIC" },
 			"dependencies": [ "file:stdc++fs", "file:pthread" ]
 		}
 	},

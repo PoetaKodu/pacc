@@ -1,18 +1,19 @@
 #pragma once
 
 #include <Pacc/PaccPCH.hpp>
+#include <Pacc/Helpers/HelperTypes.hpp>
 
 struct Package;
 
 struct LuaScriptContext {
 	Package const* package;
-	fs::path scriptPath;
+	Path scriptPath;
 };
 
 template <>
 struct std::hash<LuaScriptContext> {
 	auto operator()(LuaScriptContext const& ctx) const -> std::size_t {
-		return std::hash<Package const*>()(ctx.package) ^ std::hash<fs::path>()(ctx.scriptPath);
+		return std::hash<Package const*>()(ctx.package) ^ std::hash<String>()(ctx.scriptPath.string());
 	}
 
 };
