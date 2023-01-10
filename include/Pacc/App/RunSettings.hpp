@@ -89,6 +89,7 @@ struct ProgramFlag
 
 using ProgramFlagMap = UMap<String, SPtr<ProgramFlag>>;
 
+
 struct RunSettings
 {
 	/// The main action that was parsed
@@ -109,6 +110,13 @@ struct RunSettings
 		return it != flags.end() && it->second->isSet();
 	}
 
+	template <typename T>
+	auto tryGetFlagValue(String const& name) const -> Opt<T> {
+		auto it = flags.find(name);
+		if (it == flags.end()) return {};
+		return tryParse<T>(it->second->value);
+	}
+
 	/// @brief Returns the index of the nth not parsed argument after the argument
 	/// that was parsed as the main action
 	auto nthActionArgument(size_t n) const -> Opt<size_t>;
@@ -119,3 +127,4 @@ private:
 	// Pointer to the program arguments
 	Vec<String> const* args;
 };
+

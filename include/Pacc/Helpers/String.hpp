@@ -129,3 +129,48 @@ inline Opt<int> convertTo(String const& str_)
 	try 		{ return std::stoi(str_); }
 	catch(...) 	{ return std::nullopt; }
 }
+
+
+template <typename T>
+auto tryParse(StringView str) -> Opt<T> = delete;
+
+
+/// @brief StringView to String
+template <>
+inline auto tryParse<String>(StringView str) -> Opt<String> {
+	return String(str);
+}
+
+/// @brief StringView to a boolean
+template <>
+inline auto tryParse<bool>(StringView str) -> Opt<bool> {
+	if (str == "true" || str == "1") return true;
+	if (str == "false" || str == "0") return false;
+	return {};
+}
+
+/// @brief StringView to an int
+template <>
+inline auto tryParse<int>(StringView str) -> Opt<int> {
+	auto value = int(0);
+	try {
+		value = std::stoi(String(str));
+	} catch (...) {
+		return {};
+	}
+
+	return value;
+}
+
+/// @brief StringView to a float
+template <>
+inline auto tryParse<float>(StringView str) -> Opt<float> {
+	auto value = float(0);
+	try {
+		value = std::stof(String(str));
+	} catch (...) {
+		return {};
+	}
+
+	return value;
+}

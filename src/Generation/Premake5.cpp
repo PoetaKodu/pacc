@@ -261,6 +261,16 @@ void appendProject(OutputFormatter &fmt_, Package const& pkg_, Project const& pr
 			fmt_.write("includedirs( {{ \".\" }} )\n\n");
 		}
 
+		auto& app = useApp();
+		if (app.settings.isFlagSet("--cores")) {
+			auto cores = app.settings.tryGetFlagValue<int>("--cores");
+
+			if (cores.value_or(1) > 1)
+			{
+				fmt_.write("flags ({{ \"MultiProcessorCompile\" }})\n");
+			}
+		}
+
 		appendConfiguration(fmt_, pkg_, project_, project_);
 
 		// TODO: keep insertion order

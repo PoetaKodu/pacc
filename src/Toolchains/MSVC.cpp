@@ -146,16 +146,16 @@ Opt<int> MSVCToolchain::run(Package const& pkg_, BuildSettings settings_, int ve
 	if (settings_.cores.has_value())
 		params.push_back(fmt::format("/p:CL_MPCount={}", settings_.cores.value()));
 
-	fs::path const msbuildPath = mainPath / "MSBuild/Current/Bin/msbuild.exe";
+	auto msbuildPath = mainPath / "MSBuild/Current/Bin/msbuild.exe";
 
-	String buildCommand = fmt::format("{} {}.sln", msbuildPath.string(), pkg_.name);
+	auto buildCommand = fmt::format("{} {}.sln", msbuildPath.string(), pkg_.name);
 	for(auto p : params)
 		buildCommand += fmt::format(" \"{}\"", p);
 
 	auto proc = ChildProcess{buildCommand, "build", std::nullopt, verbose};
 	proc.runSync();
 
-	String outputLog = fmt::format(
+	auto outputLog = fmt::format(
 			FMT_COMPILE("STDOUT:\n\n{}\n\nSTDERR:\n\n{}"),
 			proc.out.stdOut,
 			proc.out.stdErr
