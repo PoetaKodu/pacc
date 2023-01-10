@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.1-prealpha](https://github.com/PoetaKodu/pacc/compare/v0.6.0-prealpha...v0.6.1-prealpha) (2023-01-10)
+
+
+### Bug Fixes
+
+* actually enable multiprocessor build on MSVC 🤦‍♂️ ([581949d](https://github.com/PoetaKodu/pacc/commit/581949db2884581586954ecb725e70f4260254cd))
+* make `pacc` binary executable before deploying the linux package ([9e1ed6c](https://github.com/PoetaKodu/pacc/commit/9e1ed6cc8969f180fa82ab7ae0cb69b30810e822))
+* make `premake5` binary executable before deploying the linux package ([1ab3b1f](https://github.com/PoetaKodu/pacc/commit/1ab3b1fea308b836522ea584a52340ff2ef3e7ef))
+* wrong chmod target file ([0c0f7f9](https://github.com/PoetaKodu/pacc/commit/0c0f7f95b4bb967dc373571bed8f9a916b548a2e))
+
 ## [0.6.0](https://github.com/PoetaKodu/pacc/compare/v0.5.0-prealpha...v0.6.0) (2022-12-22)
 
 
