@@ -19,7 +19,7 @@ class PaccApp
 	public PaccAppModule_EventHandlerActions
 {
 public:
-	constexpr static StringView PaccVersion = "0.6.0";
+	constexpr static StringView PaccVersion = "0.6.1";
 
 	///////////////////////////////////
 	// Actions:4

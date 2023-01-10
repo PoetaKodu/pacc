@@ -28,7 +28,7 @@ auto loadPaccLuaSDK(sol::state& lua, Path const& searchPattern) -> void
 		);
 	}
 
-	lua["pacc"]["version"] = Version::fromString("0.6.0");
+	lua["pacc"]["version"] = Version::fromString("0.6.1");
 }
 
 auto PaccApp::setupLua() -> void
